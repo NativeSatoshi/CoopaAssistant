@@ -15,3 +15,6 @@ backups_*.json
 
 # Geçici olarak yüklenen veya üretilen dosyaların klasörü
 /uploads
+
+# Veritabanı dosyaları
+*.db
