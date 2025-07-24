@@ -1,4 +1,4 @@
-// server.js - KARARLI NİHAİ SÜRÜM
+// server.js - STATELESS (HAFIZASIZ) MİMARİ - NİHAİ SÜRÜM
 
 require('dotenv').config();
 const express = require('express');
@@ -10,33 +10,26 @@ const axios = require('axios');
 const app = express();
 const port = 3000;
 
-let conversationHistory = [];
+// ARTIK SUNUCUDA GEÇMİŞ TUTMUYORUZ!
+// let conversationHistory = []; // BU SATIR SİLİNDİ
 
 app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
 
-// --- ARAÇ FONKSİYONLARI ---
+// --- ARAÇ FONKSİYONLARI (DEĞİŞİKLİK YOK) ---
 async function get_current_weather(location) {
-    console.log(`Gerçek hava durumu API'si çağrılıyor. Lokasyon: ${location}`);
     try {
         const apiKey = process.env.OPENWEATHERMAP_API_KEY;
         if (!apiKey) throw new Error("OpenWeatherMap API anahtarı .env dosyasında bulunamadı.");
         const url = `https://api.openweathermap.org/data/2.5/weather?q=${location}&appid=${apiKey}&units=metric&lang=tr`;
         const response = await axios.get(url);
-        return {
-            konum: response.data.name,
-            sicaklik: response.data.main.temp,
-            durum: response.data.weather[0].description,
-            hissedilen_sicaklik: response.data.main.feels_like
-        };
+        return { konum: response.data.name, sicaklik: response.data.main.temp, durum: response.data.weather[0].description, hissedilen_sicaklik: response.data.main.feels_like };
     } catch (error) {
-        console.error("Hava durumu API hatası:", error.message);
         return { hata: `"${location}" için hava durumu bilgisi alınamadı.` };
     }
 }
 
 async function send_email(to, subject, body) {
-    console.log(`E-posta gönderme aracı çalıştırılıyor. Alıcı: ${to}`);
     try {
         const user = process.env.ETHEREAL_USER;
         const pass = process.env.ETHEREAL_PASS;
@@ -44,10 +37,8 @@ async function send_email(to, subject, body) {
         let transporter = nodemailer.createTransport({ host: "smtp.ethereal.email", port: 587, secure: false, auth: { user, pass } });
         let info = await transporter.sendMail({ from: '"Coopa Asistan" <coopa@example.com>', to, subject, text: body, html: `<b>${body}</b>` });
         const emailUrl = nodemailer.getTestMessageUrl(info);
-        console.log("✉️ E-posta başarıyla gönderildi. Test URL: %s", emailUrl);
         return { success: true, message: "E-posta başarıyla gönderildi.", url: emailUrl };
     } catch (error) {
-        console.error("❌ E-posta gönderme hatası:", error);
         return { success: false, error: error.message };
     }
 }
@@ -59,11 +50,13 @@ app.get('/', (req, res) => {
 
 app.post('/generate', async (req, res) => {
     try {
-        const userPrompt = req.body.prompt;
-        if (!userPrompt) return res.status(400).json({ error: "Prompt boş olamaz." });
+        // YENİ: prompt VE history'yi istek gövdesinden alıyoruz
+        const { prompt, history } = req.body;
+        if (!prompt) return res.status(400).json({ error: "Prompt boş olamaz." });
 
-        console.log(`\n🚀 Yeni komut alındı: "${userPrompt}"`);
-        let historyForThisTurn = [...conversationHistory, { role: "user", parts: [{ text: userPrompt }] }];
+        console.log(`\n🚀 Yeni komut alındı: "${prompt}"`);
+        let historyForThisTurn = [...(history || []), { role: "user", parts: [{ text: prompt }] }];
+        
         const initialResult = await coopaCore.generateContentFromHistory(historyForThisTurn);
         const functionCall = initialResult.response.candidates[0]?.content?.parts[0]?.functionCall;
 
@@ -74,8 +67,8 @@ app.post('/generate', async (req, res) => {
 
             if (name === 'send_email') {
                 console.log("💡 Onay gerekiyor. Kullanıcıya onay bilgileri gönderiliyor.");
-                conversationHistory = historyForThisTurn; // Geçmişi bu noktada kaydet
-                return res.json({ requires_confirmation: true, action_details: args });
+                // ONAY GEREKTİĞİNDE, O ANA KADARKİ GEÇMİŞİ DE GERİ GÖNDERİYORUZ
+                return res.json({ requires_confirmation: true, action_details: args, history: historyForThisTurn });
             } 
             else if (name === 'get_current_weather') {
                 const toolResult = await get_current_weather(args.location);
@@ -87,9 +80,9 @@ app.post('/generate', async (req, res) => {
             historyForThisTurn.push(initialResult.response.candidates[0].content);
         }
 
-        conversationHistory = historyForThisTurn;
-        coopaCore.uploadToIrys(conversationHistory.slice(-2)); // Son kullanıcı ve model cevabını Irys'e yükle
-        res.json({ history: conversationHistory });
+        coopaCore.uploadToIrys(historyForThisTurn.slice(-2));
+        // YENİ: Global geçmişi güncellemek yerine, sadece bu isteğin sonucunu döndürüyoruz
+        res.json({ history: historyForThisTurn });
 
     } catch (error) {
         console.error("❌ /generate rotasında hata:", error.message);
@@ -99,22 +92,26 @@ app.post('/generate', async (req, res) => {
 
 app.post('/execute-action', async (req, res) => {
     try {
-        const { actionName, to, subject, body } = req.body;
+        // YENİ: history'yi istekten alıyoruz
+        const { actionName, to, subject, body, history } = req.body;
         if (actionName !== 'send_email') throw new Error("Desteklenmeyen eylem.");
 
         console.log(`\n👍 Onay alındı! Eylem gerçekleştiriliyor: ${actionName}`);
         const toolResult = await send_email(to, subject, body);
         
-        conversationHistory.push({ role: "function", parts: [{ functionResponse: { name: actionName, response: toolResult } }] });
+        // Bize gönderilen geçmişin üzerine eklemeler yapıyoruz
+        let historyForThisTurn = [...(history || [])];
+        historyForThisTurn.push({ role: "function", parts: [{ functionResponse: { name: actionName, response: toolResult } }] });
         
         const finalResponseText = toolResult.success 
             ? `E-posta başarıyla gönderildi. Ön izlemesine şu adresten bakabilirsin: ${toolResult.url}`
             : `E-posta gönderilemedi. Hata: ${toolResult.error}`;
         
-        conversationHistory.push({ role: "model", parts: [{ text: finalResponseText }]});
+        historyForThisTurn.push({ role: "model", parts: [{ text: finalResponseText }]});
         
         coopaCore.uploadToIrys(`ONAYLANDI: E-posta gönderildi. Alıcı: ${to}`);
-        res.json({ history: conversationHistory });
+        // YENİ: Güncellenmiş tam geçmişi geri gönderiyoruz
+        res.json({ history: historyForThisTurn });
 
     } catch (error) {
         console.error("❌ /execute-action rotasında hata:", error);
@@ -122,8 +119,7 @@ app.post('/execute-action', async (req, res) => {
     }
 });
 
-// --- SUNUCUYU BAŞLATMA ---
 app.listen(port, () => {
-    console.log(`\n✅ Sunucu (Nihai Sürüm) başarıyla başlatıldı!`);
+    console.log(`\n✅ Sunucu (Hafızasız Mimarî) başarıyla başlatıldı!`);
     console.log(`   http://localhost:${port} adresinden erişebilirsiniz.`);
 });
