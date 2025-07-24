@@ -5,90 +5,167 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Coopa Asistan</title>
     <style>
-        body { font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif; max-width: 700px; margin: 40px auto; padding: 20px; background-color: #f7f7f7; }
-        h1 { text-align: center; color: #333; }
-        form { display: flex; gap: 10px; }
+        :root { --user-bg: #007bff; --model-bg: #e9e9eb; --text-light: #ffffff; --text-dark: #000000; }
+        body { font-family: system-ui, sans-serif; max-width: 700px; margin: 0 auto; padding: 20px; background-color: #f7f7f7; display: flex; flex-direction: column; height: 95vh; }
+        h1 { text-align: center; color: #333; flex-shrink: 0; }
+        #chat-container { flex-grow: 1; overflow-y: auto; background-color: white; padding: 20px; border-radius: 8px; border: 1px solid #ddd; margin-bottom: 20px; }
+        .message { padding: 10px 15px; border-radius: 18px; margin-bottom: 10px; max-width: 80%; word-wrap: break-word; line-height: 1.5; }
+        .user-message { background-color: var(--user-bg); color: var(--text-light); margin-left: auto; }
+        .model-message { background-color: var(--model-bg); color: var(--text-dark); margin-right: auto; }
+        .model-message a { color: #0056b3; text-decoration: underline; }
+        .model-message pre { white-space: pre-wrap; font-family: inherit; margin: 0; }
+        form { display: flex; gap: 10px; flex-shrink: 0; }
         input { flex-grow: 1; padding: 12px; font-size: 16px; border: 1px solid #ccc; border-radius: 8px; }
-        button { padding: 12px 22px; font-size: 16px; background-color: #007bff; color: white; border: none; border-radius: 8px; cursor: pointer; }
-        button:hover { background-color: #0056b3; }
-        #result-container { margin-top: 30px; background-color: white; padding: 20px; border-radius: 8px; border: 1px solid #ddd; min-height: 50px; }
-        .loader { text-align: center; display: none; padding: 20px; } /* Yükleniyor animasyonu için */
+        button { padding: 12px 22px; font-size: 16px; background-color: var(--user-bg); color: white; border: none; border-radius: 8px; cursor: pointer; }
+        #loading-indicator { text-align: center; display: none; padding: 20px; }
     </style>
 </head>
 <body>
     <h1>Coopa Asistan</h1>
-    
+    <div id="chat-container"></div>
+    <div id="loading-indicator"><p>Yanıt hazırlanıyor...</p></div>
     <form id="prompt-form">
-        <input 
-            type="text" 
-            id="prompt-input" 
-            name="prompt" 
-            placeholder="Örn: Didim için hava durumu" 
-            required>
+        <input type="text" id="prompt-input" placeholder="Coopa'ya bir şey sor..." required>
         <button type="submit">Gönder</button>
     </form>
-    
-    <div id="result-container">
-        <p>Yanıt burada görünecek...</p>
-    </div>
-
-    <div class="loader" id="loader">
-        <p>Lütfen bekleyin, yanıt hazırlanıyor...</p>
-    </div>
-
 
     <script>
-        // Form ve diğer HTML elementlerini seçiyoruz
-        const promptForm = document.getElementById('prompt-form');
-        const promptInput = document.getElementById('prompt-input');
-        const resultContainer = document.getElementById('result-container');
-        const loader = document.getElementById('loader');
+    const promptForm = document.getElementById('prompt-form');
+    const promptInput = document.getElementById('prompt-input');
+    const chatContainer = document.getElementById('chat-container');
+    const loadingIndicator = document.getElementById('loading-indicator');
 
-        // Form gönderildiğinde bu fonksiyon çalışacak
-        promptForm.addEventListener('submit', async function(event) {
-            
-            // 1. Formun normalde yaptığı sayfa yenileme işlemini engelle
-            event.preventDefault();
+    function linkify(text) {
+        const urlRegex = /(https?:\/\/[^\s"'<>()]+)/g;
+        return text.replace(urlRegex, (url) => `<a href="${url}" target="_blank" rel="noopener noreferrer">${url}</a>`);
+    }
 
-            // Kullanıcının girdiği metni al
-            const userPrompt = promptInput.value;
-            
-            // Sonuç kutusunu temizle ve yükleniyor animasyonunu göster
-            resultContainer.style.display = 'none';
-            loader.style.display = 'block';
-
-            try {
-                // 2. Veriyi fetch ile sunucuya gönder
-                const response = await fetch('/generate', {
-                    method: 'POST',
-                    headers: {
-                        // Sunucuya JSON formatında veri gönderdiğimizi belirtiyoruz
-                        'Content-Type': 'application/json'
-                    },
-                    // JavaScript nesnesini JSON metnine çeviriyoruz.
-                    // İşte burası daha önceki hatanın kaynağıydı. Doğrusu bu şekilde.
-                    body: JSON.stringify({ prompt: userPrompt }) 
-                });
-
-                // Sunucudan gelen HTML cevabını metin olarak al
-                const resultHTML = await response.text();
+    function renderHistory(history) {
+        // Hata kontrolü: history'nin bir dizi olduğundan emin ol
+        if (!Array.isArray(history)) {
+            console.error("renderHistory fonksiyonu bir dizi beklemesine rağmen farklı bir türde veri aldı:", history);
+            return; // Hatalı veriyle işlem yapmayı durdur
+        }
+        chatContainer.innerHTML = '';
+        for (const message of history) {
+            if (message.role === 'function') continue;
+            if (message.parts && message.parts[0]) {
+                const messageDiv = document.createElement('div');
+                messageDiv.classList.add('message');
+                messageDiv.classList.add(message.role === 'user' ? 'user-message' : 'model-message');
                 
-                // 3. Gelen sonucu ekranda göster
-                resultContainer.innerHTML = resultHTML;
-
-            } catch (error) {
-                // Bir hata olursa, hatayı ekranda göster
-                console.error('Hata oluştu:', error);
-                resultContainer.innerHTML = `<p style="color: red;">Bir hata oluştu: ${error.message}</p>`;
-            } finally {
-                // Sonuç ne olursa olsun (başarılı ya da hatalı), 
-                // yükleniyor animasyonunu gizle ve sonuç kutusunu tekrar göster.
-                loader.style.display = 'none';
-                resultContainer.style.display = 'block';
-                promptInput.value = ''; // Input kutusunu temizle
+                if (message.parts[0].text) {
+                    messageDiv.innerHTML = linkify(message.parts[0].text);
+                } else if (message.parts[0].functionCall) {
+                    messageDiv.innerText = `[Coopa, ${message.parts[0].functionCall.name} aracını kullanıyor...]`;
+                    messageDiv.style.fontStyle = 'italic';
+                }
+                chatContainer.appendChild(messageDiv);
             }
-        });
-    </script>
+        }
+        chatContainer.scrollTop = chatContainer.scrollHeight;
+    }
 
+    function renderConfirmation(details) {
+        const confirmationDiv = document.createElement('div');
+        confirmationDiv.className = 'message model-message';
+        confirmationDiv.innerHTML = `
+            <p><strong>Lütfen Onaylayın</strong></p>
+            <p>Aşağıdaki e-postayı göndermek üzeresiniz:</p>
+            <ul style="list-style-position: inside; padding-left: 0;">
+                <li><strong>Alıcı:</strong> ${details.to}</li>
+                <li><strong>Konu:</strong> ${details.subject}</li>
+            </ul>
+            <p><strong>İçerik:</strong></p>
+            <pre>${details.body}</pre>
+        `;
+        const buttonContainer = document.createElement('div');
+        buttonContainer.style.marginTop = '10px';
+        const yesButton = document.createElement('button');
+        yesButton.innerText = 'Evet, Gönder';
+        yesButton.onclick = () => executeAction(details);
+        const noButton = document.createElement('button');
+        noButton.innerText = 'Hayır, İptal Et';
+        noButton.style.marginLeft = '10px';
+        noButton.style.backgroundColor = '#6c757d';
+        noButton.onclick = () => cancelAction(confirmationDiv);
+        buttonContainer.append(yesButton, noButton);
+        confirmationDiv.appendChild(buttonContainer);
+        chatContainer.appendChild(confirmationDiv);
+        chatContainer.scrollTop = chatContainer.scrollHeight;
+    }
+
+    async function executeAction(details) {
+        loadingIndicator.style.display = 'block';
+        const response = await fetch('/execute-action', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ actionName: 'send_email', ...details })
+        });
+        const data = await response.json();
+        loadingIndicator.style.display = 'none';
+        if (data.history) {
+            renderHistory(data.history);
+        }
+    }
+
+    function cancelAction(confirmationDiv) {
+        confirmationDiv.innerHTML = '<p>İşlem kullanıcı tarafından iptal edildi.</p>';
+    }
+
+    promptForm.addEventListener('submit', async function(event) {
+        event.preventDefault();
+        const userPrompt = promptInput.value;
+        if (!userPrompt.trim()) return;
+
+        const userMessageDiv = document.createElement('div');
+        userMessageDiv.className = 'message user-message';
+        userMessageDiv.innerText = userPrompt;
+        chatContainer.appendChild(userMessageDiv);
+        chatContainer.scrollTop = chatContainer.scrollHeight;
+        
+        loadingIndicator.style.display = 'block';
+        const currentPrompt = promptInput.value;
+        promptInput.value = '';
+        promptInput.disabled = true;
+        document.querySelector('button').disabled = true;
+
+        try {
+            const response = await fetch('/generate', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ prompt: currentPrompt })
+            });
+
+            if (!response.ok) {
+                const errorData = await response.json().catch(() => ({error: response.statusText}));
+                throw new Error(errorData.error || `Sunucu hatası: ${response.statusText}`);
+            }
+            const data = await response.json();
+
+            // ***İŞTE HATAYI DÜZELTEN KONTROL BURASI***
+            // Önce `history` verisinin gelip gelmediğini kontrol et
+            if (data.history) {
+                renderHistory(data.history);
+            }
+            // Sonra `requires_confirmation` durumunu kontrol et
+            if (data.requires_confirmation) {
+                renderConfirmation(data.action_details);
+            }
+
+        } catch (error) {
+            const errorDiv = document.createElement('div');
+            errorDiv.className = 'message model-message';
+            errorDiv.style.backgroundColor = '#ffdddd';
+            errorDiv.innerText = `Bir hata oluştu: ${error.message}`;
+            chatContainer.appendChild(errorDiv);
+        } finally {
+            loadingIndicator.style.display = 'none';
+            promptInput.disabled = false;
+            document.querySelector('button').disabled = false;
+            promptInput.focus();
+        }
+    });
+</script>
 </body>
 </html>

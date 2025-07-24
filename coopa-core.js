@@ -1,58 +1,96 @@
-// coopa-core.js - STABİL VERSİYON (Resim Üretme Hariç)
+// coopa-core.js - KARARLI NİHAİ SÜRÜM
 
-require('dotenv').config();
 const { GoogleGenerativeAI } = require("@google/generative-ai");
-const Irys = require("@irys/sdk");
-const fs = require('fs');
-const axios = require("axios");
-const crypto = require('crypto');
+const { Irys } = require("@irys/sdk");
 
-const GEMINI_API_KEY = process.env.GEMINI_API_KEY;
-const privateKeyFileName = "evm-wallet.key";
-const rpcUrl = "https://rpc-amoy.polygon.technology/";
+const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
 
 const tools = [
-    {
-        "function_declarations": [
-            {
-                "name": "get_current_weather",
-                "description": "Belirtilen konumdaki mevcut hava durumunu getirir.",
-                "parameters": { "type": "OBJECT", "properties": { "location": { "type": "STRING", "description": "Hava durumunun öğrenileceği şehir" } }, "required": ["location"] }
-            },
-            {
-                "name": "send_email",
-                "description": "Belirtilen alıcıya bir e-posta gönderir.",
-                "parameters": { "type": "OBJECT", "properties": { "to": { "type": "STRING", "description": "E-postanın alıcısı" }, "subject": { "type": "STRING", "description": "E-postanın konusu" }, "body": { "type": "STRING", "description": "E-postanın içeriği" } }, "required": ["to", "subject", "body"] }
+  {
+    functionDeclarations: [
+      {
+        name: "get_current_weather",
+        description: "Belirtilen bir konumdaki güncel hava durumu bilgisini alır.",
+        parameters: {
+          type: "OBJECT",
+          properties: {
+            location: {
+              type: "STRING",
+              description: "Hava durumu bilgisi alınacak şehir veya bölge, örn: 'İstanbul' veya 'Ankara, Türkiye'"
             }
-        ]
-    }
+          },
+          required: ["location"]
+        }
+      },
+      {
+        name: "send_email",
+        description: "Belirtilen alıcıya, belirtilen konu ve içerikle bir e-posta gönderir.",
+        parameters: {
+          type: "OBJECT",
+          properties: {
+            to: {
+              type: "STRING",
+              description: "E-postanın gönderileceği alıcının e-posta adresi."
+            },
+            subject: {
+              type: "STRING",
+              description: "E-postanın konusu."
+            },
+            body: {
+              type: "STRING",
+              description: "E-postanın ana metni veya içeriği."
+            }
+          },
+          required: ["to", "subject", "body"]
+        }
+      }
+    ]
+  }
 ];
 
-function encryptData(text) { try { const iv = crypto.randomBytes(16); const key = Buffer.from(process.env.ENCRYPTION_KEY, 'hex'); const cipher = crypto.createCipheriv('aes-256-gcm', key, iv); const encrypted = Buffer.concat([cipher.update(text, 'utf8'), cipher.final()]); const authTag = cipher.getAuthTag(); return `${iv.toString('hex')}:${authTag.toString('hex')}:${encrypted.toString('hex')}`; } catch (error) { console.error("❌ Şifreleme sırasında hata:", error); return text; } }
-function decryptData(encryptedText) { try { const parts = encryptedText.split(':'); if (parts.length !== 3) { return encryptedText; } const [ivHex, authTagHex, encryptedHex] = parts; const iv = Buffer.from(ivHex, 'hex'); const authTag = Buffer.from(authTagHex, 'hex'); const encrypted = Buffer.from(encryptedHex, 'hex'); const key = Buffer.from(process.env.ENCRYPTION_KEY, 'hex'); const decipher = crypto.createDecipheriv('aes-256-gcm', key, iv); decipher.setAuthTag(authTag); const decrypted = Buffer.concat([decipher.update(encrypted), decipher.final()]); return decrypted.toString('utf8'); } catch (error) { console.error("❌ Şifre çözme sırasında hata:", error); return encryptedText; } }
-
-async function generateAIMessage(prompt, history = [], file = null) {
-    if (!GEMINI_API_KEY) throw new Error("Gemini API Anahtarı eksik.");
+async function generateContentFromHistory(history) {
     try {
-        const genAI = new GoogleGenerativeAI(GEMINI_API_KEY);
-        const model = genAI.getGenerativeModel({ model: "gemini-1.5-pro-latest", tools });
-        const chat = model.startChat({ history });
-        const content = [prompt];
-        if (file) {
-            console.log("Çok-modlu istek hazırlanıyor: Metin + Dosya");
-            content.push({ inlineData: { data: file.buffer.toString("base64"), mimeType: file.mimetype } });
-        }
-        const result = await chat.sendMessage(content);
-        return { response: result.response, chat };
+        const model = genAI.getGenerativeModel({
+            model: "gemini-1.5-pro-latest",
+        });
+        const result = await model.generateContent({
+            contents: history,
+            tools: tools, 
+        });
+        return result;
     } catch (error) {
         console.error("❌ HATA: Gemini AI ile iletişim sırasında bir sorun oluştu:", error.message);
         throw error;
     }
 }
 
-const getIrys = async () => { const privateKeyBuffer = fs.readFileSync(privateKeyFileName); const privateKey = privateKeyBuffer.toString('hex'); return new Irys({ network: "devnet", token: "matic", key: privateKey, config: { providerUrl: rpcUrl } }); };
-async function uploadToIrys(dataToUpload) { const irys = await getIrys(); const tags = [{ name: "Content-Type", value: "text/plain; charset=utf-8" }]; return await irys.upload(String(dataToUpload), { tags }); }
-async function uploadFileToIrys(filePath) { const irys = await getIrys(); console.log(`Dosya Irys'e yükleniyor: ${filePath}`); const receipt = await irys.uploadFile(filePath); console.log(`✅ Dosya başarıyla yüklendi! Irys ID: ${receipt.id}`); return receipt; }
-async function loadHistoryFromIrys(transactionId) { try { const response = await axios.get(`https://gateway.irys.xyz/${transactionId}`); const decryptedData = decryptData(response.data); return JSON.parse(decryptedData); } catch (error) { return []; } }
+const getIrys = async () => {
+	const network = "matic";
+	const providerUrl = `https://polygon-mumbai.g.alchemy.com/v2/${process.env.ALCHEMY_API_KEY}`;
+	const token = "matic";
+	const privateKey = process.env.EVM_PRIVATE_KEY;
 
-module.exports = { generateAIMessage, uploadToIrys, uploadFileToIrys, loadHistoryFromIrys, encryptData, decryptData };
+	if (!privateKey) throw new Error("EVM_PRIVATE_KEY .env dosyasında bulunamadı.");
+    if (!process.env.ALCHEMY_API_KEY) throw new Error("ALCHEMY_API_KEY .env dosyasında bulunamadı.");
+
+	const irys = new Irys({
+		network, token, key: privateKey, config: { providerUrl },
+	});
+	return irys;
+};
+
+const uploadToIrys = async (data) => {
+    try {
+        const irys = await getIrys();
+        const receipt = await irys.upload(JSON.stringify(data), {
+            tags: [{ name: "Content-Type", value: "application/json" }]
+        });
+        console.log(`✅ Veri başarıyla Irys'e yüklendi. ID: ${receipt.id}`);
+        return receipt;
+    } catch (e) {
+        console.error("❌ Irys'e yükleme sırasında hata oluştu: ", e);
+        return null;
+    }
+};
+
+module.exports = { generateContentFromHistory, uploadToIrys };
