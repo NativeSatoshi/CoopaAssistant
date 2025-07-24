@@ -1,0 +1,24 @@
+{
+  "name": "coopo",
+  "version": "1.0.0",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "description": "",
+  "dependencies": {
+    "@google/generative-ai": "^0.24.1",
+    "@irys/sdk": "^0.2.11",
+    "arweave": "^1.15.7",
+    "axios": "^1.10.0",
+    "dotenv": "^17.2.0",
+    "ethers": "^6.15.0",
+    "express": "^5.1.0",
+    "form-data": "^4.0.4",
+    "multer": "^2.0.2",
+    "nodemailer": "^7.0.5"
+  }
+}

@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Coopa Asistan</title>
+    <style>
+        body { font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif; max-width: 700px; margin: 40px auto; padding: 20px; background-color: #f7f7f7; }
+        h1 { text-align: center; color: #333; }
+        form { display: flex; gap: 10px; }
+        input { flex-grow: 1; padding: 12px; font-size: 16px; border: 1px solid #ccc; border-radius: 8px; }
+        button { padding: 12px 22px; font-size: 16px; background-color: #007bff; color: white; border: none; border-radius: 8px; cursor: pointer; }
+        button:hover { background-color: #0056b3; }
+        #result-container { margin-top: 30px; background-color: white; padding: 20px; border-radius: 8px; border: 1px solid #ddd; min-height: 50px; }
+        .loader { text-align: center; display: none; padding: 20px; } /* Yükleniyor animasyonu için */
+    </style>
+</head>
+<body>
+    <h1>Coopa Asistan</h1>
+    
+    <form id="prompt-form">
+        <input 
+            type="text" 
+            id="prompt-input" 
+            name="prompt" 
+            placeholder="Örn: Didim için hava durumu" 
+            required>
+        <button type="submit">Gönder</button>
+    </form>
+    
+    <div id="result-container">
+        <p>Yanıt burada görünecek...</p>
+    </div>
+
+    <div class="loader" id="loader">
+        <p>Lütfen bekleyin, yanıt hazırlanıyor...</p>
+    </div>
+
+
+    <script>
+        // Form ve diğer HTML elementlerini seçiyoruz
+        const promptForm = document.getElementById('prompt-form');
+        const promptInput = document.getElementById('prompt-input');
+        const resultContainer = document.getElementById('result-container');
+        const loader = document.getElementById('loader');
+
+        // Form gönderildiğinde bu fonksiyon çalışacak
+        promptForm.addEventListener('submit', async function(event) {
+            
+            // 1. Formun normalde yaptığı sayfa yenileme işlemini engelle
+            event.preventDefault();
+
+            // Kullanıcının girdiği metni al
+            const userPrompt = promptInput.value;
+            
+            // Sonuç kutusunu temizle ve yükleniyor animasyonunu göster
+            resultContainer.style.display = 'none';
+            loader.style.display = 'block';
+
+            try {
+                // 2. Veriyi fetch ile sunucuya gönder
+                const response = await fetch('/generate', {
+                    method: 'POST',
+                    headers: {
+                        // Sunucuya JSON formatında veri gönderdiğimizi belirtiyoruz
+                        'Content-Type': 'application/json'
+                    },
+                    // JavaScript nesnesini JSON metnine çeviriyoruz.
+                    // İşte burası daha önceki hatanın kaynağıydı. Doğrusu bu şekilde.
+                    body: JSON.stringify({ prompt: userPrompt }) 
+                });
+
+                // Sunucudan gelen HTML cevabını metin olarak al
+                const resultHTML = await response.text();
+                
+                // 3. Gelen sonucu ekranda göster
+                resultContainer.innerHTML = resultHTML;
+
+            } catch (error) {
+                // Bir hata olursa, hatayı ekranda göster
+                console.error('Hata oluştu:', error);
+                resultContainer.innerHTML = `<p style="color: red;">Bir hata oluştu: ${error.message}</p>`;
+            } finally {
+                // Sonuç ne olursa olsun (başarılı ya da hatalı), 
+                // yükleniyor animasyonunu gizle ve sonuç kutusunu tekrar göster.
+                loader.style.display = 'none';
+                resultContainer.style.display = 'block';
+                promptInput.value = ''; // Input kutusunu temizle
+            }
+        });
+    </script>
+
+</body>
+</html>

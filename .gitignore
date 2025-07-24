@@ -1,0 +1,17 @@
+# İşletim sistemi ve editör dosyaları
+.DS_Store
+*.log
+
+# Proje bağımlılıkları - npm install ile yeniden oluşturulabilir
+/node_modules
+
+# Gizli anahtarlar ve ortam değişkenleri
+.env
+*.key
+
+# Kullanıcıya özel, üretilmiş dosyalar (Hassas Veri!)
+context_*.json
+backups_*.json
+
+# Geçici olarak yüklenen veya üretilen dosyaların klasörü
+/uploads
