@@ -1,4 +1,4 @@
-// coopa-core.js - KARARLI NİHAİ SÜRÜM
+// coopa-core.js - GENEL BİLGİ YETENEĞİ EKLENMİŞ NİHAİ SÜRÜM
 
 const { GoogleGenerativeAI } = require("@google/generative-ai");
 const { Irys } = require("@irys/sdk");
@@ -16,7 +16,7 @@ const tools = [
           properties: {
             location: {
               type: "STRING",
-              description: "Hava durumu bilgisi alınacak şehir veya bölge, örn: 'İstanbul' veya 'Ankara, Türkiye'"
+              description: "Hava durumu bilgisi alınacak şehir veya bölge, örn: 'İstanbul'"
             }
           },
           required: ["location"]
@@ -50,13 +50,17 @@ const tools = [
 
 async function generateContentFromHistory(history) {
     try {
+        // YENİ: Coopa'ya ana görevini ve kimliğini hatırlatan sistem talimatı
         const model = genAI.getGenerativeModel({
             model: "gemini-1.5-pro-latest",
+            systemInstruction: "Sen, Coopa adında yardımsever ve çok yönlü bir dijital asistansın. Amacın, kullanıcıya her türlü isteğinde yardımcı olmaktır. Hava durumunu öğrenmek veya e-posta göndermek gibi özel görevler için bazı araçlara erişimin var. Eğer kullanıcının isteği bu araçlardan biriyle açıkça eşleşiyorsa, o aracı kullanmalısın. Eğer istek genel bir soru, bir bilgi talebi veya basit bir sohbet mesajı ise, bunu bir araca zorlamaya çalışmadan, doğrudan kendi genel bilgini kullanarak cevaplamalısın. Çok amaçlı ve bilgili bir yoldaş gibi davran.",
         });
+
         const result = await model.generateContent({
             contents: history,
             tools: tools, 
         });
+
         return result;
     } catch (error) {
         console.error("❌ HATA: Gemini AI ile iletişim sırasında bir sorun oluştu:", error.message);
@@ -64,6 +68,7 @@ async function generateContentFromHistory(history) {
     }
 }
 
+// --- Irys fonksiyonları (Değişiklik yok) ---
 const getIrys = async () => {
 	const network = "matic";
 	const providerUrl = `https://polygon-mumbai.g.alchemy.com/v2/${process.env.ALCHEMY_API_KEY}`;
