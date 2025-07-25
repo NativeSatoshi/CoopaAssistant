@@ -1,26 +1,23 @@
 {
   "name": "coopo",
   "version": "1.0.0",
-  "main": "index.js",
+  "description": "Gemini-powered digital assistant",
+  "main": "server.js",
   "scripts": {
+    "start": "node server.js",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
-  "keywords": [],
   "author": "",
   "license": "ISC",
-  "description": "",
   "dependencies": {
-    "@google/generative-ai": "^0.24.1",
+    "@google/generative-ai": "^0.16.0",
     "@irys/sdk": "^0.2.11",
-    "arweave": "^1.15.7",
-    "axios": "^1.10.0",
-    "dotenv": "^17.2.0",
-    "ethers": "^6.15.0",
-    "express": "^5.1.0",
-    "form-data": "^4.0.4",
-    "multer": "^2.0.2",
-    "node-cron": "^4.2.1",
-    "nodemailer": "^7.0.5",
+    "axios": "^1.7.2",
+    "dotenv": "^17.2.1",
+    "ethers": "^5.7.2",
+    "express": "^4.19.2",
+    "node-cron": "^3.0.3",
+    "nodemailer": "^6.9.14",
     "sqlite3": "^5.1.7"
   }
 }

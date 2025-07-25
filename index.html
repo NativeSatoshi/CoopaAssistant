@@ -7,24 +7,19 @@
     <style>
         :root { --user-bg: #007bff; --model-bg: #e9e9eb; --text-light: #ffffff; --text-dark: #000000; }
         body { font-family: system-ui, sans-serif; max-width: 700px; margin: 0 auto; padding: 20px; background-color: #f7f7f7; display: flex; flex-direction: column; height: 95vh; }
-        h1 { text-align: center; color: #333; flex-shrink: 0; }
         #chat-container { flex-grow: 1; overflow-y: auto; background-color: white; padding: 20px; border-radius: 8px; border: 1px solid #ddd; margin-bottom: 20px; }
         .message { padding: 10px 15px; border-radius: 18px; margin-bottom: 10px; max-width: 80%; word-wrap: break-word; line-height: 1.5; }
         .user-message { background-color: var(--user-bg); color: var(--text-light); margin-left: auto; }
         .model-message { background-color: var(--model-bg); color: var(--text-dark); margin-right: auto; }
-        .model-message a { color: #0056b3; text-decoration: underline; }
-        .model-message pre { white-space: pre-wrap; font-family: inherit; margin: 0; }
-        form { display: flex; gap: 10px; flex-shrink: 0; }
+        .model-message a { color: #0056b3; }
+        form { display: flex; gap: 10px; }
         input { flex-grow: 1; padding: 12px; font-size: 16px; border: 1px solid #ccc; border-radius: 8px; }
         button { padding: 12px 22px; font-size: 16px; background-color: var(--user-bg); color: white; border: none; border-radius: 8px; cursor: pointer; }
-        button:disabled { background-color: #6c757d; cursor: not-allowed; }
-        #loading-indicator { text-align: center; display: none; padding: 20px; }
     </style>
 </head>
 <body>
     <h1>Coopa Asistan</h1>
     <div id="chat-container"></div>
-    <div id="loading-indicator"><p>Yanıt hazırlanıyor...</p></div>
     <form id="prompt-form">
         <input type="text" id="prompt-input" placeholder="Coopa'ya bir şey sor..." required>
         <button type="submit">Gönder</button>
@@ -33,18 +28,15 @@
         const promptForm = document.getElementById('prompt-form');
         const promptInput = document.getElementById('prompt-input');
         const chatContainer = document.getElementById('chat-container');
-        const loadingIndicator = document.getElementById('loading-indicator');
-
         let conversationHistory = [];
 
         function linkify(text) {
-            const urlRegex = /(https?:\/\/[^\s"'<>()]+)/g;
-            return text.replace(urlRegex, (url) => `<a href="${url}" target="_blank" rel="noopener noreferrer">${url}</a>`);
+            const urlRegex = /(https?:\/\/[^\s]+)/g;
+            return text.replace(urlRegex, (url) => `<a href="${url}" target="_blank">${url}</a>`);
         }
 
         function renderHistory(history) {
-            if (!Array.isArray(history)) return;
-            conversationHistory = history; // Yerel geçmişi her zaman senkronize et
+            conversationHistory = history;
             chatContainer.innerHTML = '';
             for (const message of history) {
                 if (message.role === 'function') continue;
@@ -66,99 +58,44 @@
         function renderConfirmation(details) {
             const confirmationDiv = document.createElement('div');
             confirmationDiv.className = 'message model-message';
-            confirmationDiv.innerHTML = `<p><strong>Lütfen Onaylayın</strong></p><p>Aşağıdaki e-postayı göndermek üzeresiniz:</p><ul style="list-style-position: inside; padding-left: 0;"><li><strong>Alıcı:</strong> ${details.to}</li><li><strong>Konu:</strong> ${details.subject}</li></ul><p><strong>İçerik:</strong></p><pre>${details.body}</pre>`;
-            const buttonContainer = document.createElement('div');
-            buttonContainer.style.marginTop = '10px';
+            confirmationDiv.innerHTML = `<p><strong>Lütfen Onaylayın</strong></p><p>E-posta gönderilecek: ${details.to}</p>`;
             const yesButton = document.createElement('button');
             yesButton.innerText = 'Evet, Gönder';
             yesButton.onclick = () => executeAction(details);
             const noButton = document.createElement('button');
             noButton.innerText = 'Hayır, İptal Et';
-            noButton.style.marginLeft = '10px';
-            noButton.style.backgroundColor = '#6c757d';
             noButton.onclick = () => cancelAction();
-            buttonContainer.append(yesButton, noButton);
-            confirmationDiv.appendChild(buttonContainer);
+            confirmationDiv.append(yesButton, noButton);
             chatContainer.appendChild(confirmationDiv);
-            chatContainer.scrollTop = chatContainer.scrollHeight;
         }
 
-        // DÜZELTME: Bu fonksiyon artık formu tekrar aktif hale getiriyor.
         async function executeAction(details) {
-            loadingIndicator.style.display = 'block';
-            promptInput.disabled = true;
-            document.querySelector('button').disabled = true;
-
-            try {
-                const response = await fetch('/execute-action', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ actionName: 'send_email', ...details, history: conversationHistory })
-                });
-                if (!response.ok) {
-                    const errorData = await response.json().catch(() => ({ error: response.statusText }));
-                    throw new Error(errorData.error || `Sunucu hatası: ${response.statusText}`);
-                }
-                const data = await response.json();
-                if (data.history) {
-                    renderHistory(data.history);
-                }
-            } catch (error) {
-                renderHistory([...conversationHistory, { role: 'model', parts: [{ text: `Eylem gerçekleştirilirken bir hata oluştu: ${error.message}` }] }]);
-            } finally {
-                loadingIndicator.style.display = 'none';
-                promptInput.disabled = false;
-                document.querySelector('button').disabled = false;
-                promptInput.focus();
-            }
+            const response = await fetch('/execute-action', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ actionName: 'send_email', ...details, history: conversationHistory })
+            });
+            const data = await response.json();
+            if (data.history) renderHistory(data.history);
         }
 
         function cancelAction() {
-            renderHistory([...conversationHistory, { role: 'model', parts: [{ text: 'İşlem kullanıcı tarafından iptal edildi.' }] }]);
+            conversationHistory.push({ role: 'model', parts: [{ text: 'İşlem iptal edildi.' }] });
+            renderHistory(conversationHistory);
         }
 
         promptForm.addEventListener('submit', async function(event) {
             event.preventDefault();
-            const userPrompt = promptInput.value;
-            if (!userPrompt.trim()) return;
-            
-            conversationHistory.push({ role: 'user', parts: [{ text: userPrompt }] });
-            renderHistory(conversationHistory);
-            
-            loadingIndicator.style.display = 'block';
+            const prompt = promptInput.value;
             promptInput.value = '';
-            promptInput.disabled = true;
-            document.querySelector('button').disabled = true;
-
-            try {
-                const response = await fetch('/generate', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ prompt: userPrompt, history: conversationHistory.slice(0, -1) })
-                });
-
-                if (!response.ok) {
-                    const errorData = await response.json().catch(() => ({ error: response.statusText }));
-                    throw new Error(errorData.error || `Sunucu hatası: ${response.statusText}`);
-                }
-                const data = await response.json();
-
-                if (data.history) {
-                    renderHistory(data.history);
-
-                    if (data.requires_confirmation) {
-                        renderConfirmation(data.action_details);
-                    }
-                }
-
-            } catch (error) {
-                renderHistory([...conversationHistory, { role: 'model', parts: [{ text: `Bir hata oluştu: ${error.message}` }] }]);
-            } finally {
-                loadingIndicator.style.display = 'none';
-                promptInput.disabled = false;
-                document.querySelector('button').disabled = false;
-                promptInput.focus();
-            }
+            const response = await fetch('/generate', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ prompt, history: conversationHistory })
+            });
+            const data = await response.json();
+            if (data.history) renderHistory(data.history);
+            if (data.requires_confirmation) renderConfirmation(data.action_details);
         });
     </script>
 </body>
