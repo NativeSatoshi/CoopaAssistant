@@ -1,13 +1,10 @@
-// coopa-core.js - TÜM ÖZELLİKLERİ AKTİF, NİHAİ KARARLI SÜRÜM
+// coopa-core.js - SAAT SÖYLEME YETENEĞİ ÖĞRENMİŞ NİHAİ SÜRÜM
 
 const { GoogleGenerativeAI } = require("@google/generative-ai");
 const Irys = require("@irys/sdk");
-// const { ethers } = require("ethers"); // Artık bu kütüphanelere ihtiyacımız yok
-// const { Buffer } = require("buffer");
 
 const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
 
-// DÜZELTİLMİŞ VE DİKKATLİCE YENİDEN YAZILMIŞ ARAÇ TANIMLARI
 const tools = [
   {
     functionDeclarations: [
@@ -72,6 +69,15 @@ const tools = [
           },
           required: ["noteName", "time"]
         }
+      },
+      // YENİ: Saat aracının tanımı
+      {
+        name: "get_current_time",
+        description: "Kullanıcıya o anki saati ve tarihi söyler. Hiçbir parametre almaz.",
+        parameters: {
+          type: "OBJECT",
+          properties: {} // Parametresi olmadığı için 'properties' boş
+        }
       }
     ]
   }
@@ -101,20 +107,20 @@ async function generateContentFromHistory(history) {
     }
 }
 
-// Irys bağlantısı için en basit ve kararlı yöntem
 const getIrys = async () => {
 	const url = "https://devnet.irys.xyz";
 	const token = "matic";
 	const privateKey = process.env.EVM_PRIVATE_KEY;
-	const providerUrl = `https://polygon-amoy.g.alchemy.com/v2/${process.env.ALCHEMY_API_KEY}`;
 
-	if (!privateKey || !providerUrl) throw new Error(".env dosyasında Irys anahtarları eksik.");
+	if (!privateKey) throw new Error("EVM_PRIVATE_KEY .env dosyasında bulunamadı.");
     
     const irys = new Irys({
         url,
         token,
         key: privateKey,
-        config: { providerUrl },
+        config: {
+            providerUrl: `https://polygon-amoy.g.alchemy.com/v2/${process.env.ALCHEMY_API_KEY}`,
+        },
     });
 	return irys;
 };
@@ -122,7 +128,6 @@ const getIrys = async () => {
 const uploadToIrys = async (data) => {
     try {
         const irys = await getIrys();
-        // await irys.ready(); // Bu satır genellikle gereksizdir ve hataya neden olabilir.
         const receipt = await irys.upload(JSON.stringify(data));
         console.log(`✅ Veri başarıyla Irys'e yüklendi. ID: ${receipt.id}`);
         return receipt;

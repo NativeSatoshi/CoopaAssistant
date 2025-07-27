@@ -16,16 +16,8 @@
         form { display: flex; gap: 10px; }
         input { flex-grow: 1; padding: 12px; font-size: 16px; border: 1px solid #ccc; border-radius: 8px; }
         button { padding: 12px 22px; font-size: 16px; background-color: var(--user-bg); color: white; border: none; border-radius: 8px; cursor: pointer; }
-        /* YENİ: Mikrofon butonu stilleri */
-        #mic-button {
-            padding: 12px;
-            font-size: 20px;
-            width: 50px;
-            background-color: #6c757d;
-        }
-        #mic-button.listening { /* Dinleme sırasında butonu kırmızı yap */
-            background-color: #dc3545;
-        }
+        #mic-button { padding: 12px; font-size: 20px; width: 50px; background-color: #6c757d; }
+        #mic-button.listening { background-color: #dc3545; }
     </style>
 </head>
 <body>
@@ -37,59 +29,85 @@
         <button type="button" id="mic-button">🎤</button>
     </form>
     <script>
-        // ... (önceki değişken tanımları aynı)
         const promptForm = document.getElementById('prompt-form');
         const promptInput = document.getElementById('prompt-input');
         const chatContainer = document.getElementById('chat-container');
         let conversationHistory = [];
 
-        // --- YENİ: Sesten Metne (Speech-to-Text) Kodları ---
+        // --- Sesten Metne (Speech-to-Text) Kodları (Değişiklik yok) ---
         const micButton = document.getElementById('mic-button');
-        
-        // Tarayıcının bu özelliği destekleyip desteklemediğini kontrol et
         const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
         if (SpeechRecognition) {
             const recognition = new SpeechRecognition();
-            recognition.lang = 'tr-TR'; // Türkçe dinleme yap
-            recognition.continuous = false; // Tek bir cümle sonrası dur
-            
+            recognition.lang = 'tr-TR';
+            recognition.continuous = false;
             micButton.addEventListener('click', () => {
-                if (micButton.classList.contains('listening')) {
-                    recognition.stop();
-                } else {
-                    recognition.start();
-                }
+                micButton.classList.contains('listening') ? recognition.stop() : recognition.start();
             });
-            
-            recognition.onstart = () => {
-                micButton.classList.add('listening');
-                promptInput.placeholder = "Dinliyorum...";
-            };
-
-            recognition.onend = () => {
-                micButton.classList.remove('listening');
-                promptInput.placeholder = "Coopa'ya bir şey sor veya 🎤";
-            };
-            
+            recognition.onstart = () => { micButton.classList.add('listening'); promptInput.placeholder = "Dinliyorum..."; };
+            recognition.onend = () => { micButton.classList.remove('listening'); promptInput.placeholder = "Coopa'ya bir şey sor veya 🎤"; };
             recognition.onresult = (event) => {
-                const transcript = event.results[event.results.length - 1][0].transcript.trim();
-                promptInput.value = transcript;
-                // İsteğe bağlı: Sesli komut sonrası otomatik gönderme için
-                // promptForm.requestSubmit(); 
+                promptInput.value = event.results[event.results.length - 1][0].transcript.trim();
             };
-
-            recognition.onerror = (event) => {
-                alert('Ses tanıma hatası: ' + event.error);
-            };
-
+            recognition.onerror = (event) => { alert('Ses tanıma hatası: ' + event.error); };
         } else {
-            micButton.style.display = 'none'; // Desteklenmiyorsa butonu gizle
-            alert("Üzgünüm, tarayıcınız ses tanıma özelliğini desteklemiyor.");
+            micButton.style.display = 'none';
         }
         
-        // --- Mevcut Kodlar (Değişiklik Yok) ---
+        // --- YENİ: Metinden Sese (Text-to-Speech) Kodları ---
+        const synth = window.speechSynthesis;
+        
+        // Bu fonksiyon, verilen metni sesli olarak okur.
+        function speak(text) {
+            if (synth.speaking) {
+                console.error('Zaten konuşuyor...');
+                return;
+            }
+            if (text !== '') {
+                const utterThis = new SpeechSynthesisUtterance(text);
+                utterThis.lang = 'tr-TR'; // Türkçe seslendirme yap
+                utterThis.onerror = (event) => {
+                    console.error('SpeechSynthesisUtterance.onerror');
+                };
+                synth.speak(utterThis);
+            }
+        }
+        
+        // --- Ana Fonksiyonlarda Güncellemeler ---
         function linkify(text) { /* ...içerik aynı... */ }
-        function renderHistory(history) { /* ...içerik aynı... */ }
+        
+        function renderHistory(history) {
+            conversationHistory = history;
+            chatContainer.innerHTML = '';
+            let lastModelMessage = ""; // Son model mesajını tutmak için
+            for (const message of history) {
+                if (message.role === 'function') continue;
+                if (message.parts && message.parts[0]) {
+                    const messageDiv = document.createElement('div');
+                    messageDiv.classList.add('message', message.role === 'user' ? 'user-message' : 'model-message');
+                    if (message.parts[0].text) {
+                        const textContent = message.parts[0].text;
+                        messageDiv.innerHTML = linkify(textContent);
+                        if(message.role === 'model') {
+                            lastModelMessage = textContent; // Son model mesajını güncelle
+                        }
+                    } else if (message.parts[0].functionCall) {
+                        const toolText = `[Coopa, ${message.parts[0].functionCall.name} aracını kullanıyor...]`;
+                        messageDiv.innerText = toolText;
+                        messageDiv.style.fontStyle = 'italic';
+                        lastModelMessage = toolText; // Son model mesajını güncelle
+                    }
+                    chatContainer.appendChild(messageDiv);
+                }
+            }
+            chatContainer.scrollTop = chatContainer.scrollHeight;
+            
+            // YENİ: Sohbet geçmişi render edildikten sonra son mesajı seslendir.
+            if(lastModelMessage) {
+                speak(lastModelMessage);
+            }
+        }
+
         function renderConfirmation(details) { /* ...içerik aynı... */ }
         async function executeAction(details) { /* ...içerik aynı... */ }
         function cancelAction() { /* ...içerik aynı... */ }
@@ -97,10 +115,9 @@
 
         // --- Fonksiyonların tam içerikleri (Kopyala-Yapıştır için) ---
         function linkify(text) { const urlRegex = /(https?:\/\/[^\s]+)/g; return text.replace(urlRegex, (url) => `<a href="${url}" target="_blank">${url}</a>`); }
-        function renderHistory(history) { conversationHistory = history; chatContainer.innerHTML = ''; for (const message of history) { if (message.role === 'function') continue; if (message.parts && message.parts[0]) { const messageDiv = document.createElement('div'); messageDiv.classList.add('message', message.role === 'user' ? 'user-message' : 'model-message'); if (message.parts[0].text) { messageDiv.innerHTML = linkify(message.parts[0].text); } else if (message.parts[0].functionCall) { messageDiv.innerText = `[Coopa, ${message.parts[0].functionCall.name} aracını kullanıyor...]`; messageDiv.style.fontStyle = 'italic'; } chatContainer.appendChild(messageDiv); } } chatContainer.scrollTop = chatContainer.scrollHeight; }
-        function renderConfirmation(details) { const confirmationDiv = document.createElement('div'); confirmationDiv.className = 'message model-message'; confirmationDiv.innerHTML = `<p><strong>Lütfen Onaylayın</strong></p><p>E-posta gönderilecek: ${details.to}</p>`; const yesButton = document.createElement('button'); yesButton.innerText = 'Evet, Gönder'; yesButton.onclick = () => executeAction(details); const noButton = document.createElement('button'); noButton.innerText = 'Hayır, İptal Et'; noButton.onclick = () => cancelAction(); confirmationDiv.append(yesButton, noButton); chatContainer.appendChild(confirmationDiv); }
+        function renderConfirmation(details) { const confirmationDiv = document.createElement('div'); confirmationDiv.className = 'message model-message'; confirmationDiv.innerHTML = `<p><strong>Lütfen Onaylayın</strong></p><p>E-posta gönderilecek: ${details.to}</p>`; const yesButton = document.createElement('button'); yesButton.innerText = 'Evet, Gönder'; yesButton.onclick = () => executeAction(details); const noButton = document.createElement('button'); noButton.innerText = 'Hayır, İptal Et'; noButton.onclick = () => cancelAction(); confirmationDiv.append(yesButton, noButton); chatContainer.appendChild(confirmationDiv); speak("Lütfen işlemi onayla."); }
         async function executeAction(details) { const response = await fetch('/execute-action', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ actionName: 'send_email', ...details, history: conversationHistory }) }); const data = await response.json(); if (data.history) renderHistory(data.history); }
-        function cancelAction() { conversationHistory.push({ role: 'model', parts: [{ text: 'İşlem iptal edildi.' }] }); renderHistory(conversationHistory); }
+        function cancelAction() { const cancelText = 'İşlem iptal edildi.'; conversationHistory.push({ role: 'model', parts: [{ text: cancelText }] }); renderHistory(conversationHistory); }
         promptForm.addEventListener('submit', async function(event) { event.preventDefault(); const prompt = promptInput.value; if(!prompt.trim()) return; promptInput.value = ''; const response = await fetch('/generate', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ prompt, history: conversationHistory }) }); const data = await response.json(); if (data.history) renderHistory(data.history); if (data.requires_confirmation) renderConfirmation(data.action_details); });
     </script>
 </body>

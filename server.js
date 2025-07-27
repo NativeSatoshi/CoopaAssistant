@@ -1,4 +1,4 @@
-// server.js - NİHAİ KARARLI SÜRÜM
+// server.js - SAAT SÖYLEME YETENEĞİ EKLENDİ - NİHAİ SÜRÜM
 
 require('dotenv').config();
 const express = require('express');
@@ -86,6 +86,16 @@ async function schedule_reminder(noteName, time) {
     return { success: true, message: `Tamamdır, "${noteName}" notunu sana Türkiye saatiyle ${time}'da hatırlatacağım.` };
 }
 
+// YENİ: Saati ve tarihi söyleyen fonksiyon
+async function get_current_time() {
+    console.log("Saat söyleme aracı çalıştırılıyor.");
+    const now = new Date();
+    const timeString = now.toLocaleTimeString('tr-TR', { hour: '2-digit', minute: '2-digit', timeZone: 'Europe/Istanbul' });
+    const dateString = now.toLocaleDateString('tr-TR', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric', timeZone: 'Europe/Istanbul' });
+    const response = `Şu an saat ${timeString}, tarih ${dateString}.`;
+    return { success: true, timeInfo: response };
+}
+
 // --- ROUTE'LAR ---
 app.get('/', (req, res) => res.sendFile(path.join(__dirname, 'index.html')));
 
@@ -96,7 +106,6 @@ app.post('/generate', async (req, res) => {
 
         let currentHistory = [...(history || []), { role: "user", parts: [{ text: prompt }] }];
         
-        // Araçları yönetmek için bir döngü
         while (true) {
             const result = await coopaCore.generateContentFromHistory(currentHistory);
             
@@ -112,7 +121,6 @@ app.post('/generate', async (req, res) => {
                 const { name, args } = part.functionCall;
                 
                 if (name === 'send_email') {
-                    // E-posta için döngüyü kır ve onaya git
                     return res.json({ requires_confirmation: true, action_details: args, history: currentHistory });
                 }
                 
@@ -121,14 +129,14 @@ app.post('/generate', async (req, res) => {
                 else if (name === 'create_note') toolResult = await create_note(args.noteName, args.content);
                 else if (name === 'get_note') toolResult = await get_note(args.noteName);
                 else if (name === 'schedule_reminder') toolResult = await schedule_reminder(args.noteName, args.time);
+                // YENİ: Saat aracını çağırma
+                else if (name === 'get_current_time') toolResult = await get_current_time();
                 
                 currentHistory.push({
                     role: "function",
                     parts: [{ functionResponse: { name, response: toolResult } }]
                 });
-                // Döngüye devam et, AI'nın araç sonucunu yorumlaması için tekrar sor.
             } else {
-                // Eğer cevap metin ise, döngüyü kır ve sonucu gönder.
                 break;
             }
         }
