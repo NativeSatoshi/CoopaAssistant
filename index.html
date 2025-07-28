@@ -38,10 +38,65 @@
         const elements = { form: document.getElementById('prompt-form'), input: document.getElementById('prompt-input'), chatContainer: document.getElementById('chat-container'), micButton: document.getElementById('mic-button'), submitButton: document.getElementById('submit-button'), loadingIndicator: document.getElementById('loading-indicator'), authContainer: document.getElementById('auth-container') };
         let conversationHistory = [];
 
+        // --- YENİ: Metinden Sese (Text-to-Speech) Fonksiyonu ---
+        const synth = window.speechSynthesis;
+        const speak = (text) => {
+            if (synth.speaking) {
+                synth.cancel(); // Önceki konuşmayı iptal et
+            }
+            if (text) {
+                const utterThis = new SpeechSynthesisUtterance(text);
+                utterThis.lang = 'tr-TR';
+                synth.speak(utterThis);
+            }
+        };
+        
         const linkify = (text) => text.replace(/(https?:\/\/[^\s]+)/g, (url) => `<a href="${url}" target="_blank" rel="noopener noreferrer">${url}</a>`);
         const toggleForm = (disabled) => { elements.input.disabled = disabled; elements.submitButton.disabled = disabled; elements.micButton.disabled = disabled; elements.loadingIndicator.style.display = disabled ? 'block' : 'none'; if (!disabled) elements.input.focus(); };
-        const renderHistory = (history) => { if (!Array.isArray(history)) return; conversationHistory = history; elements.chatContainer.innerHTML = ''; for (const message of history) { if (message.role === 'function' || !message.parts?.[0]) continue; const messageDiv = document.createElement('div'); messageDiv.classList.add('message', message.role === 'user' ? 'user-message' : 'model-message'); const part = message.parts[0]; if (part.text) { messageDiv.innerHTML = linkify(part.text); } else if (part.functionCall) { messageDiv.innerText = `[Coopa, ${part.functionCall.name} aracını kullanıyor...]`; messageDiv.style.fontStyle = 'italic'; } elements.chatContainer.appendChild(messageDiv); } elements.chatContainer.scrollTop = elements.chatContainer.scrollHeight; };
-        const renderConfirmation = (details) => { const confirmationDiv = document.createElement('div'); confirmationDiv.className = 'message model-message'; confirmationDiv.innerHTML = `<p><strong>Lütfen Onaylayın</strong></p><p>E-posta gönderilecek: ${details.to}</p>`; const yesButton = document.createElement('button'); yesButton.innerText = 'Evet, Gönder'; yesButton.onclick = () => executeAction(details); const noButton = document.createElement('button'); noButton.innerText = 'Hayır, İptal Et'; noButton.onclick = () => cancelAction(); confirmationDiv.append(yesButton, noButton); elements.chatContainer.appendChild(confirmationDiv); elements.chatContainer.scrollTop = elements.chatContainer.scrollHeight; };
+        
+        const renderHistory = (history) => {
+            if (!Array.isArray(history)) return;
+            conversationHistory = history;
+            elements.chatContainer.innerHTML = '';
+            let lastModelMessageText = ''; // Seslendirilecek son metni tut
+            for (const message of history) {
+                if (message.role === 'function' || !message.parts?.[0]) continue;
+                const messageDiv = document.createElement('div');
+                messageDiv.classList.add('message', message.role === 'user' ? 'user-message' : 'model-message');
+                const part = message.parts[0];
+                if (part.text) {
+                    messageDiv.innerHTML = linkify(part.text);
+                    if (message.role === 'model') lastModelMessageText = part.text;
+                } else if (part.functionCall) {
+                    const toolText = `[Coopa, ${part.functionCall.name} aracını kullanıyor...]`;
+                    messageDiv.innerText = toolText;
+                    messageDiv.style.fontStyle = 'italic';
+                    if (message.role === 'model') lastModelMessageText = toolText;
+                }
+                elements.chatContainer.appendChild(messageDiv);
+            }
+            elements.chatContainer.scrollTop = elements.chatContainer.scrollHeight;
+            // GÜNCELLEME: Render işlemi bittikten sonra son mesajı seslendir
+            speak(lastModelMessageText);
+        };
+        
+        const renderConfirmation = (details) => {
+            const confirmationDiv = document.createElement('div');
+            confirmationDiv.className = 'message model-message';
+            const confirmationText = `Lütfen Onaylayın: E-posta gönderilecek: ${details.to}`;
+            confirmationDiv.innerHTML = `<p><strong>Lütfen Onaylayın</strong></p><p>E-posta gönderilecek: ${details.to}</p>`;
+            const yesButton = document.createElement('button');
+            yesButton.innerText = 'Evet, Gönder';
+            yesButton.onclick = () => executeAction(details);
+            const noButton = document.createElement('button');
+            noButton.innerText = 'Hayır, İptal Et';
+            noButton.onclick = () => cancelAction();
+            confirmationDiv.append(yesButton, noButton);
+            elements.chatContainer.appendChild(confirmationDiv);
+            elements.chatContainer.scrollTop = elements.chatContainer.scrollHeight;
+            speak(confirmationText); // Onay sorusunu seslendir
+        };
+
         const executeAction = async (details) => { toggleForm(true); try { const response = await fetch('/execute-action', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ actionName: 'send_email', ...details, history: conversationHistory }) }); const data = await response.json(); if (data.history) renderHistory(data.history); } catch (e) { renderHistory([...conversationHistory, { role: 'model', parts: [{ text: `Hata: ${e.message}` }] }]); } finally { toggleForm(false); } };
         const cancelAction = () => { renderHistory([...conversationHistory, { role: 'model', parts: [{ text: 'İşlem iptal edildi.' }] }]); };
         
@@ -49,12 +104,10 @@
             event.preventDefault();
             const prompt = elements.input.value;
             if (!prompt.trim()) return;
-
             toggleForm(true);
-            const newHistoryForUI = [...conversationHistory, { role: 'user', parts: [{ text: prompt }] }];
-            renderHistory(newHistoryForUI);
+            const newHistory = [...conversationHistory, { role: 'user', parts: [{ text: prompt }] }];
+            renderHistory(newHistory);
             elements.input.value = '';
-
             try {
                 const response = await fetch('/generate', {
                     method: 'POST',
@@ -78,9 +131,9 @@
         elements.form.addEventListener('submit', handleFormSubmit);
 
         const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
-        if (SpeechRecognition) { const recognition = new SpeechRecognition(); recognition.lang = 'tr-TR'; recognition.continuous = false; elements.micButton.addEventListener('click', () => { elements.micButton.classList.contains('listening') ? recognition.stop() : recognition.start(); }); recognition.onstart = () => { elements.micButton.classList.add('listening'); elements.input.placeholder = "Dinliyorum..."; }; recognition.onend = () => { elements.micButton.classList.remove('listening'); elements.input.placeholder = "Coopa'ya bir şey sor veya 🎤"; }; recognition.onresult = (event) => { elements.input.value = event.results[event.results.length - 1][0].transcript.trim(); elements.form.dispatchEvent(new Event('submit')); }; recognition.onerror = (event) => { alert('Ses tanıma hatası: ' + event.error); }; } else { elements.micButton.style.display = 'none'; }
+        if (SpeechRecognition) { const recognition = new SpeechRecognition(); recognition.lang = 'tr-TR'; recognition.continuous = false; elements.micButton.addEventListener('click', () => { synth.cancel(); recognition.start(); }); recognition.onstart = () => { elements.micButton.classList.add('listening'); elements.input.placeholder = "Dinliyorum..."; }; recognition.onend = () => { elements.micButton.classList.remove('listening'); elements.input.placeholder = "Coopa'ya bir şey sor veya 🎤"; }; recognition.onresult = (event) => { elements.input.value = event.results[event.results.length - 1][0].transcript.trim(); elements.form.dispatchEvent(new Event('submit')); }; recognition.onerror = (event) => { alert('Ses tanıma hatası: ' + event.error); }; } else { elements.micButton.style.display = 'none'; }
         
-        window.onload = () => { const params = new URLSearchParams(window.location.search); if (params.get('auth') === 'success') { const successDiv = document.createElement('div'); successDiv.innerText = '✅ Google Takvim\'e başarıyla bağlandınız!'; successDiv.style.color = 'green'; elements.authContainer.innerHTML = ''; elements.authContainer.appendChild(successDiv); } else if (params.get('auth') === 'error') { const errorDiv = document.createElement('div'); errorDiv.innerText = '❌ Google Takvim\'e bağlanırken bir hata oluştu.'; errorDiv.style.color = 'red'; elements.authContainer.appendChild(errorDiv); }};
+        window.onload = () => { const params = new URLSearchParams(window.location.search); if (params.get('auth') === 'success') { const successDiv = document.createElement('div'); const successText = 'Google Takvim\'e başarıyla bağlandınız!'; successDiv.innerText = `✅ ${successText}`; successDiv.style.color = 'green'; elements.authContainer.innerHTML = ''; elements.authContainer.appendChild(successDiv); speak(successText); } else if (params.get('auth') === 'error') { const errorDiv = document.createElement('div'); const errorText = 'Google Takvim\'e bağlanırken bir hata oluştu.'; errorDiv.innerText = `❌ ${errorText}`; errorDiv.style.color = 'red'; elements.authContainer.appendChild(errorDiv); speak(errorText); }};
     </script>
 </body>
 </html>
