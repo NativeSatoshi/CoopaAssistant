@@ -18,7 +18,7 @@
         form { display: flex; gap: 10px; }
         input[type="text"] { flex-grow: 1; padding: 12px; font-size: 16px; border: 1px solid #ccc; border-radius: 8px; }
         button { padding: 12px; font-size: 16px; background-color: var(--user-bg); color: white; border: none; border-radius: 8px; cursor: pointer; }
-        #mic-button { font-size: 20px; width: 50px; flex-shrink: 0; background-color: #6c757d; }
+        #mic-button, #tts-button { font-size: 20px; width: 50px; flex-shrink: 0; background-color: #6c757d; } /* YENİ: TTS butonu eklendi */
         #mic-button.listening { background-color: #dc3545; }
         button#submit-button { padding: 12px 22px; }
         button:disabled { background-color: #999; cursor: not-allowed; }
@@ -33,16 +33,33 @@
         <input type="text" id="prompt-input" placeholder="Coopa'ya bir şey sor veya 🎤">
         <button type="submit" id="submit-button">Gönder</button>
         <button type="button" id="mic-button">🎤</button>
+        <button type="button" id="tts-button">🔊</button> 
     </form>
-    <script>
-        const elements = { form: document.getElementById('prompt-form'), input: document.getElementById('prompt-input'), chatContainer: document.getElementById('chat-container'), micButton: document.getElementById('mic-button'), submitButton: document.getElementById('submit-button'), loadingIndicator: document.getElementById('loading-indicator'), authContainer: document.getElementById('auth-container') };
-        let conversationHistory = [];
 
-        // --- YENİ: Metinden Sese (Text-to-Speech) Fonksiyonu ---
+    <script>
+        const elements = { 
+            form: document.getElementById('prompt-form'), 
+            input: document.getElementById('prompt-input'), 
+            chatContainer: document.getElementById('chat-container'), 
+            micButton: document.getElementById('mic-button'), 
+            submitButton: document.getElementById('submit-button'), 
+            loadingIndicator: document.getElementById('loading-indicator'), 
+            authContainer: document.getElementById('auth-container'),
+            ttsButton: document.getElementById('tts-button') // YENİ: TTS butonu referansı
+        };
+
+        let conversationHistory = [];
+        // YENİ: TTS durumunu yöneten değişken (tarayıcı hafızasından okunur)
+        let isTtsEnabled = localStorage.getItem('ttsEnabled') === 'false' ? false : true;
+
         const synth = window.speechSynthesis;
+
+        // GÜNCELLEME: 'speak' fonksiyonu artık 'isTtsEnabled' durumunu kontrol ediyor
         const speak = (text) => {
+            if (!isTtsEnabled) return; // Eğer TTS kapalıysa, fonksiyondan çık
+
             if (synth.speaking) {
-                synth.cancel(); // Önceki konuşmayı iptal et
+                synth.cancel(); 
             }
             if (text) {
                 const utterThis = new SpeechSynthesisUtterance(text);
@@ -52,13 +69,22 @@
         };
         
         const linkify = (text) => text.replace(/(https?:\/\/[^\s]+)/g, (url) => `<a href="${url}" target="_blank" rel="noopener noreferrer">${url}</a>`);
-        const toggleForm = (disabled) => { elements.input.disabled = disabled; elements.submitButton.disabled = disabled; elements.micButton.disabled = disabled; elements.loadingIndicator.style.display = disabled ? 'block' : 'none'; if (!disabled) elements.input.focus(); };
+        
+        // GÜNCELLEME: 'toggleForm' artık TTS butonunu da devre dışı bırakıyor
+        const toggleForm = (disabled) => { 
+            elements.input.disabled = disabled; 
+            elements.submitButton.disabled = disabled; 
+            elements.micButton.disabled = disabled; 
+            elements.ttsButton.disabled = disabled; // YENİ
+            elements.loadingIndicator.style.display = disabled ? 'block' : 'none'; 
+            if (!disabled) elements.input.focus(); 
+        };
         
         const renderHistory = (history) => {
             if (!Array.isArray(history)) return;
             conversationHistory = history;
             elements.chatContainer.innerHTML = '';
-            let lastModelMessageText = ''; // Seslendirilecek son metni tut
+            let lastModelMessageText = '';
             for (const message of history) {
                 if (message.role === 'function' || !message.parts?.[0]) continue;
                 const messageDiv = document.createElement('div');
@@ -76,7 +102,6 @@
                 elements.chatContainer.appendChild(messageDiv);
             }
             elements.chatContainer.scrollTop = elements.chatContainer.scrollHeight;
-            // GÜNCELLEME: Render işlemi bittikten sonra son mesajı seslendir
             speak(lastModelMessageText);
         };
         
@@ -94,7 +119,7 @@
             confirmationDiv.append(yesButton, noButton);
             elements.chatContainer.appendChild(confirmationDiv);
             elements.chatContainer.scrollTop = elements.chatContainer.scrollHeight;
-            speak(confirmationText); // Onay sorusunu seslendir
+            speak(confirmationText);
         };
 
         const executeAction = async (details) => { toggleForm(true); try { const response = await fetch('/execute-action', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ actionName: 'send_email', ...details, history: conversationHistory }) }); const data = await response.json(); if (data.history) renderHistory(data.history); } catch (e) { renderHistory([...conversationHistory, { role: 'model', parts: [{ text: `Hata: ${e.message}` }] }]); } finally { toggleForm(false); } };
@@ -133,7 +158,25 @@
         const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
         if (SpeechRecognition) { const recognition = new SpeechRecognition(); recognition.lang = 'tr-TR'; recognition.continuous = false; elements.micButton.addEventListener('click', () => { synth.cancel(); recognition.start(); }); recognition.onstart = () => { elements.micButton.classList.add('listening'); elements.input.placeholder = "Dinliyorum..."; }; recognition.onend = () => { elements.micButton.classList.remove('listening'); elements.input.placeholder = "Coopa'ya bir şey sor veya 🎤"; }; recognition.onresult = (event) => { elements.input.value = event.results[event.results.length - 1][0].transcript.trim(); elements.form.dispatchEvent(new Event('submit')); }; recognition.onerror = (event) => { alert('Ses tanıma hatası: ' + event.error); }; } else { elements.micButton.style.display = 'none'; }
         
-        window.onload = () => { const params = new URLSearchParams(window.location.search); if (params.get('auth') === 'success') { const successDiv = document.createElement('div'); const successText = 'Google Takvim\'e başarıyla bağlandınız!'; successDiv.innerText = `✅ ${successText}`; successDiv.style.color = 'green'; elements.authContainer.innerHTML = ''; elements.authContainer.appendChild(successDiv); speak(successText); } else if (params.get('auth') === 'error') { const errorDiv = document.createElement('div'); const errorText = 'Google Takvim\'e bağlanırken bir hata oluştu.'; errorDiv.innerText = `❌ ${errorText}`; errorDiv.style.color = 'red'; elements.authContainer.appendChild(errorDiv); speak(errorText); }};
+        // --- YENİ: TTS Butonunu Yöneten Kod Bloğu ---
+        const updateTtsButtonIcon = () => {
+            elements.ttsButton.textContent = isTtsEnabled ? '🔊' : '🔇';
+        };
+
+        elements.ttsButton.addEventListener('click', () => {
+            isTtsEnabled = !isTtsEnabled; // Durumu tersine çevir
+            localStorage.setItem('ttsEnabled', isTtsEnabled); // Seçimi tarayıcı hafızasına kaydet
+            updateTtsButtonIcon(); // İkonu güncelle
+            if (!isTtsEnabled) {
+                synth.cancel(); // Eğer kapatıldıysa, mevcut konuşmayı sustur
+            }
+        });
+
+        window.onload = () => { 
+            updateTtsButtonIcon(); // Sayfa yüklendiğinde doğru ikonu ayarla
+            const params = new URLSearchParams(window.location.search); 
+            if (params.get('auth') === 'success') { const successDiv = document.createElement('div'); const successText = 'Google Takvim\'e başarıyla bağlandınız!'; successDiv.innerText = `✅ ${successText}`; successDiv.style.color = 'green'; elements.authContainer.innerHTML = ''; elements.authContainer.appendChild(successDiv); speak(successText); } else if (params.get('auth') === 'error') { const errorDiv = document.createElement('div'); const errorText = 'Google Takvim\'e bağlanırken bir hata oluştu.'; errorDiv.innerText = `❌ ${errorText}`; errorDiv.style.color = 'red'; elements.authContainer.appendChild(errorDiv); speak(errorText); }
+        };
     </script>
 </body>
 </html>
