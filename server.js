@@ -1,4 +1,4 @@
-// server.js - TEKRAR EDEN KODLAR TEMİZLENMİŞ NİHAİ SÜRÜM
+// server.js - TAKVİM ZAMAN HATASI GİDERİLMİŞ VE DEBUG EKLENMİŞ NİHAİ SÜRÜM
 
 require('dotenv').config();
 const express = require('express');
@@ -29,11 +29,64 @@ async function create_note(noteName, content) { return new Promise((resolve) => 
 async function get_note(noteName) { return new Promise((resolve) => { const sql = `SELECT content FROM notes WHERE name = ?`; db.get(sql, [noteName], (err, row) => { if (err) resolve({ success: false, error: err.message }); else if (row) resolve({ success: true, content: row.content }); else resolve({ success: false, message: `"${noteName}" isminde bir not bulunamadı.` }); }); }); }
 async function schedule_reminder(noteName, time) { const [hour, minute] = time.split(':'); if (isNaN(hour) || isNaN(minute)) return { success: false, message: "Geçersiz zaman formatı." }; const cronTime = `${minute} ${hour} * * *`; cron.schedule(cronTime, async () => { const userEmail = process.env.MY_EMAIL_ADDRESS; if (!userEmail) { console.error("MY_EMAIL_ADDRESS .env dosyasında eksik."); return; } const note = await get_note(noteName); if (note.success) { await send_email(userEmail, `Coopa Hatırlatıcısı: ${noteName}`, `Hatırlatma:\n\n${note.content}`); } }, { timezone: "Europe/Istanbul" }); return { success: true, message: `Tamamdır, "${noteName}" notunu sana Türkiye saatiyle ${time}'da hatırlatacağım.` }; }
 async function get_current_time() { const now = new Date(); const timeString = now.toLocaleTimeString('tr-TR', { hour: '2-digit', minute: '2-digit', timeZone: 'Europe/Istanbul' }); const dateString = now.toLocaleDateString('tr-TR', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric', timeZone: 'Europe/Istanbul' }); return { success: true, timeInfo: `Şu an saat ${timeString}, tarih ${dateString}.` }; }
-async function create_calendar_event(title, date, time, description = '') { try { const tokens = await new Promise((resolve, reject) => { db.get(`SELECT * FROM google_auth WHERE id = 1`, (err, row) => { if (err) reject(err); resolve(row); }); }); if (!tokens || !tokens.refresh_token) { throw new Error("Kullanıcı için Google kimlik doğrulaması bulunamadı."); } oauth2Client.setCredentials({ refresh_token: tokens.refresh_token }); const calendar = google.calendar({ version: 'v3', auth: oauth2Client }); let eventDate = new Date(`${date}T${time}`); if (eventDate < new Date()) { const today = new Date(); eventDate = new Date(`${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}T${time}`); } const eventEndTime = new Date(eventDate.getTime() + 60 * 60 * 1000); const event = { summary: title, description: description, start: { dateTime: eventDate.toISOString(), timeZone: 'Europe/Istanbul' }, end: { dateTime: eventEndTime.toISOString(), timeZone: 'Europe/Istanbul' } }; const response = await calendar.events.insert({ calendarId: 'primary', resource: event }); return { success: true, message: `"${title}" etkinliği takviminize başarıyla eklendi.`, event_link: response.data.htmlLink }; } catch (error) { console.error("❌ Google Takvim hatası:", error.message); return { success: false, error: "Takvim etkinliği oluşturulamadı. Lütfen Google izninizi kontrol edin." }; } }
+
+// GÜNCELLENMİŞ VE DAHA SAĞLAM FONKSİYON
+async function create_calendar_event(title, date, time, description = '') {
+    console.log(`[DEBUG] create_calendar_event çağrıldı. Argümanlar: title='${title}', date='${date}', time='${time}'`); // DEBUG LOG 1
+    try {
+        const tokens = await new Promise((resolve, reject) => {
+            db.get(`SELECT * FROM google_auth WHERE id = 1`, (err, row) => {
+                if (err) reject(err);
+                resolve(row);
+            });
+        });
+
+        if (!tokens || !tokens.refresh_token) {
+            throw new Error("Google kimlik doğrulaması bulunamadı. Lütfen http://localhost:3000/auth/google adresine giderek izin verin.");
+        }
+
+        oauth2Client.setCredentials({ refresh_token: tokens.refresh_token });
+        const calendar = google.calendar({ version: 'v3', auth: oauth2Client });
+
+        let eventDateStr;
+        if (!date || date.toLowerCase() === 'bugün') {
+            const today = new Date();
+            eventDateStr = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`;
+        } else {
+            eventDateStr = date;
+        }
+        
+        const eventDateTimeString = `${eventDateStr}T${time}`;
+        const eventDateTime = new Date(eventDateTimeString);
+
+        if (isNaN(eventDateTime.getTime())) {
+            throw new Error(`Geçersiz tarih/saat formatı. Gelen değerler: date='${date}', time='${time}'`);
+        }
+
+        const eventEndTime = new Date(eventDateTime.getTime() + 60 * 60 * 1000);
+
+        const event = {
+            summary: title,
+            description: description,
+            start: { dateTime: eventDateTime.toISOString(), timeZone: 'Europe/Istanbul' },
+            end: { dateTime: eventEndTime.toISOString(), timeZone: 'Europe/Istanbul' },
+        };
+        
+        console.log('[DEBUG] Google API\'ye gönderilecek etkinlik:', JSON.stringify(event, null, 2)); // DEBUG LOG 2
+
+        const response = await calendar.events.insert({ calendarId: 'primary', resource: event });
+        return { success: true, message: `"${title}" etkinliği takviminize başarıyla eklendi.`, event_link: response.data.htmlLink };
+
+    } catch (error) {
+        console.error("❌ Google Takvim hatası:", error.message);
+        return { success: false, error: `Takvim etkinliği oluşturulamadı. Hata: ${error.message}` };
+    }
+}
+
 
 // --- ROUTE'LAR ---
 app.get('/', (req, res) => res.sendFile(path.join(__dirname, 'index.html')));
-app.get('/auth/google', (req, res) => { const url = oauth2Client.generateAuthUrl({ access_type: 'offline', scope: ['https.googleapis.com/auth/calendar.events'] }); res.redirect(url); });
+app.get('/auth/google', (req, res) => { const url = oauth2Client.generateAuthUrl({ access_type: 'offline', prompt: 'consent', scope: ['https://www.googleapis.com/auth/calendar.events'] }); res.redirect(url); });
 app.get('/auth/google/callback', async (req, res) => { const { code } = req.query; try { const { tokens } = await oauth2Client.getToken(code); const sql = `INSERT OR REPLACE INTO google_auth (id, access_token, refresh_token, expiry_date, scope) VALUES (1, ?, ?, ?, ?)`; db.run(sql, [tokens.access_token, tokens.refresh_token, tokens.expiry_date, tokens.scope]); res.redirect('/?auth=success'); } catch (error) { res.redirect('/?auth=error'); } });
 
 app.post('/generate', async (req, res) => {
@@ -62,7 +115,7 @@ app.post('/generate', async (req, res) => {
         coopaCore.uploadToIrys(currentHistory.slice(-2));
         res.json({ history: currentHistory });
     } catch (error) {
-        const historyWithError = [...(history || []), { role: "user", parts: [{ text: req.body.prompt }] }, { role: "model", parts: [{ text: `Bir hata oluştu: ${error.message}` }] }];
+        const historyWithError = [...(req.body.history || []), { role: "user", parts: [{ text: req.body.prompt }] }, { role: "model", parts: [{ text: `Bir hata oluştu: ${error.message}` }] }];
         res.status(500).json({ history: historyWithError });
     }
 });
