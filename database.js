@@ -1,48 +1,58 @@
-// database.js - GOOGLE İZİN TABLOSU EKLENDİ
+// database.js - TEMİZ VE SAĞLAM NİHAİ SÜRÜM
 
 const sqlite3 = require('sqlite3').verbose();
 const DB_SOURCE = "coopa_memory.db";
 
 const db = new sqlite3.Database(DB_SOURCE, (err) => {
     if (err) {
-      console.error(err.message);
-      throw err;
-    } else {
-        console.log('✅ SQLite veritabanına başarıyla bağlanıldı.');
-        
-        db.run(`CREATE TABLE IF NOT EXISTS notes (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            name TEXT UNIQUE,
-            content TEXT,
-            createdAt TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-        )`, (err) => {
-            if (err) console.error("'notes' tablosu oluşturulamadı:", err);
-            else console.log("✅ 'notes' tablosu başarıyla oluşturuldu veya zaten mevcut.");
-        });
+        console.error("❌ Veritabanı dosyası açılamadı:", err.message);
+        throw err;
+    }
+});
 
-        db.run(`CREATE TABLE IF NOT EXISTS memories (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            irys_id TEXT NOT NULL,
-            media_type TEXT,
-            description TEXT,
-            createdAt TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-        )`, (err) => {
-            if (err) console.error("'memories' tablosu oluşturulamadı:", err);
-            else console.log("✅ 'memories' tablosu başarıyla oluşturuldu veya zaten mevcut.");
+const runQuery = (query) => {
+    return new Promise((resolve, reject) => {
+        db.run(query, (err) => {
+            if (err) return reject(err);
+            resolve();
         });
+    });
+};
 
-        // YENİ: Google kimlik doğrulama anahtarlarını saklamak için tablo
-        db.run(`CREATE TABLE IF NOT EXISTS google_auth (
+const initializeDB = async () => {
+    console.log('✅ SQLite veritabanına başarıyla bağlanıldı ve kurulum başlıyor...');
+    try {
+        await runQuery(`CREATE TABLE IF NOT EXISTS notes (
+            name TEXT PRIMARY KEY,
+            content TEXT
+        )`);
+        console.log("✅ 'notes' tablosu hazır.");
+
+        await runQuery(`CREATE TABLE IF NOT EXISTS google_auth (
             id INTEGER PRIMARY KEY DEFAULT 1,
             access_token TEXT,
             refresh_token TEXT,
             expiry_date INTEGER,
             scope TEXT
-        )`, (err) => {
-            if (err) console.error("'google_auth' tablosu oluşturulamadı:", err);
-            else console.log("✅ 'google_auth' tablosu başarıyla oluşturuldu veya zaten mevcut.");
-        });
-    }
-});
+        )`);
+        console.log("✅ 'google_auth' tablosu hazır.");
 
-module.exports = db;
+        await runQuery(`CREATE TABLE IF NOT EXISTS reminders (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            note_name TEXT NOT NULL,
+            cron_time TEXT NOT NULL,
+            target_email TEXT NOT NULL,
+            is_active INTEGER DEFAULT 1
+        )`);
+        console.log("✅ 'reminders' tablosu hazır.");
+
+        console.log("👍 Veritabanı kurulumu başarıyla tamamlandı.");
+        return db;
+
+    } catch (error) {
+        console.error("❌ Veritabanı kurulumu sırasında bir hata oluştu:", error);
+        throw error;
+    }
+};
+
+module.exports = { db, initializeDB };
