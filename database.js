@@ -1,4 +1,4 @@
-// database.js - TÜM TABLOLARI İÇEREN NİHAİ SÜRÜM
+// database.js - `memories` TABLOSUNA KULLANICI ADRESİ EKLENDİ
 
 const sqlite3 = require('sqlite3').verbose();
 const DB_SOURCE = "coopa_memory.db";
@@ -31,8 +31,10 @@ const initializeDB = async () => {
         await runQuery(`CREATE TABLE IF NOT EXISTS reminders ( id INTEGER PRIMARY KEY AUTOINCREMENT, note_name TEXT NOT NULL, cron_time TEXT NOT NULL, target_email TEXT NOT NULL, is_active INTEGER DEFAULT 1 )`);
         console.log("✅ 'reminders' tablosu hazır.");
 
+        // GÜNCELLEME: `memories` tablosuna kullanıcı adresini saklamak için user_address sütunu eklendi.
         await runQuery(`CREATE TABLE IF NOT EXISTS memories (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
+            user_address TEXT NOT NULL,
             irys_id TEXT NOT NULL,
             description TEXT,
             media_type TEXT,
