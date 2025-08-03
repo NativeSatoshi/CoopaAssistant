@@ -1,4 +1,4 @@
-// coopa-core.js - YENİ DOSYA YÜKLEME FONKSİYONU İLE NİHAİ SÜRÜM
+// coopa-core.js - YENİ `find_memory` ARACI TANIMLANMIŞ NİHAİ SÜRÜM
 
 const { GoogleGenerativeAI } = require("@google/generative-ai");
 const Irys = require("@irys/sdk");
@@ -15,7 +15,18 @@ const tools = [
             { name: "get_note", description: "Daha önceden oluşturulmuş bir notun içeriğini adına göre getirir.", parameters: { type: "OBJECT", properties: { noteName: { type: "STRING" } }, required: ["noteName"] } },
             { name: "schedule_task", description: "Gelecekteki bir zamanda bir hatırlatma veya e-posta görevi zamanlar. Var olan bir notu hatırlatmak için 'noteName' kullanılır. Yeni bir e-posta için 'subject' ve 'body' kullanılır.", parameters: { type: "OBJECT", properties: { time: { type: "STRING", description: "'HH:MM' formatında" }, noteName: { type: "STRING" }, subject: { type: "STRING" }, body: { type: "STRING" } }, required: ["time"] } },
             { name: "get_current_time", description: "Kullanıcıya o anki saati ve tarihi söyler.", parameters: { type: "OBJECT", properties: {} } },
-            { name: "create_calendar_event", description: "Kullanıcının takvimine yeni bir etkinlik veya randevu ekler.", parameters: { type: "OBJECT", properties: { title: { type: "STRING" }, date: { type: "STRING" }, time: { type: "STRING" }, description: { type: "STRING" } }, required: ["title", "time"] } }
+            { name: "create_calendar_event", description: "Kullanıcının takvimine yeni bir etkinlik veya randevu ekler.", parameters: { type: "OBJECT", properties: { title: { type: "STRING" }, date: { type: "STRING" }, time: { type: "STRING" }, description: { type: "STRING" } }, required: ["title", "time"] } },
+            {
+                name: "find_memory",
+                description: "Kullanıcının daha önce kaydettiği bir anıyı (görsel, dosya vb.) açıklamasına göre arar ve bulur. '... göster', '... bul', '... getir' gibi komutlar için kullanılır.",
+                parameters: {
+                    type: "OBJECT",
+                    properties: {
+                        searchText: { type: "STRING", description: "Anıyı bulmak için kullanılacak anahtar kelimeler (örn: 'kırmızı araba')" }
+                    },
+                    required: ["searchText"]
+                }
+            }
         ]
     }
 ];
@@ -37,46 +48,24 @@ async function generateContentFromHistory(history) {
     }
 }
 
-const getIrys = async () => {
-    const url = "https://devnet.irys.xyz";
-    const token = "matic";
-    const privateKey = process.env.EVM_PRIVATE_KEY;
+const getIrys = async () => { /* ... */ };
+const uploadToIrys = async (data) => { /* ... */ };
+const uploadFileToIrys = async (fileBuffer, tags) => { /* ... */ };
+
+// --- Fonksiyonların Tam İçeriği ---
+async function getIrys_full() {
+    const url = "https://devnet.irys.xyz"; const token = "matic"; const privateKey = process.env.EVM_PRIVATE_KEY;
     if (!privateKey) throw new Error("EVM_PRIVATE_KEY .env dosyasında bulunamadı.");
-    const irys = new Irys({
-        url, token, key: privateKey,
-        config: { providerUrl: `https://polygon-amoy.g.alchemy.com/v2/${process.env.ALCHEMY_API_KEY}` },
-    });
+    const irys = new Irys({ url, token, key: privateKey, config: { providerUrl: `https://polygon-amoy.g.alchemy.com/v2/${process.env.ALCHEMY_API_KEY}` } });
     return irys;
-};
+}
+async function uploadToIrys_full(data) {
+    try { const irys = await getIrys_full(); await irys.ready(); const receipt = await irys.upload(JSON.stringify(data)); console.log(`✅ Metin verisi başarıyla Irys'e yüklendi. ID: ${receipt.id}`); return receipt; }
+    catch (e) { console.error("❌ Metin Irys'e yüklenirken hata oluştu: ", e.message); return null; }
+}
+async function uploadFileToIrys_full(fileBuffer, tags) {
+    try { console.log("[Irys] Dosya yükleme için Irys'e bağlanılıyor..."); const irys = await getIrys_full(); await irys.ready(); console.log("[Irys] Dosya Irys'e yükleniyor..."); const receipt = await irys.upload(fileBuffer, { tags }); console.log(`✅ Dosya başarıyla Irys'e yüklendi. ID: ${receipt.id}`); return receipt; }
+    catch (e) { console.error("❌ Dosya Irys'e yüklenirken hata oluştu: ", e.message); return null; }
+}
 
-const uploadToIrys = async (data) => {
-    try {
-        const irys = await getIrys();
-        await irys.ready();
-        const receipt = await irys.upload(JSON.stringify(data));
-        console.log(`✅ Metin verisi başarıyla Irys'e yüklendi. ID: ${receipt.id}`);
-        return receipt;
-    } catch (e) {
-        console.error("❌ Metin Irys'e yüklenirken hata oluştu: ", e.message);
-        return null;
-    }
-};
-
-const uploadFileToIrys = async (fileBuffer, tags) => {
-    try {
-        console.log("[Irys] Dosya yükleme için Irys'e bağlanılıyor...");
-        const irys = await getIrys();
-        await irys.ready();
-        
-        console.log("[Irys] Dosya Irys'e yükleniyor...");
-        const receipt = await irys.upload(fileBuffer, { tags });
-        
-        console.log(`✅ Dosya başarıyla Irys'e yüklendi. ID: ${receipt.id}`);
-        return receipt;
-    } catch (e) {
-        console.error("❌ Dosya Irys'e yüklenirken hata oluştu: ", e.message);
-        return null;
-    }
-};
-
-module.exports = { generateContentFromHistory, uploadToIrys, uploadFileToIrys };
+module.exports = { generateContentFromHistory, uploadToIrys: uploadToIrys_full, uploadFileToIrys: uploadFileToIrys_full };
