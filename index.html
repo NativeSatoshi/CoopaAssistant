@@ -15,12 +15,18 @@
         #connect-wallet-button { padding: 8px 16px; font-size: 14px; background-color: #ff9800; color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: bold; }
         #wallet-info { font-size: 12px; color: #555; background-color: #f0f0f0; padding: 5px 10px; border-radius: 12px; margin-top: 5px;}
         #chat-container { flex-grow: 1; overflow-y: auto; background-color: white; padding: 20px; border-radius: 8px; border: 1px solid #ddd; margin-bottom: 20px; }
+        
+        #upload-section { background-color: #e9ecef; padding: 15px; border-radius: 8px; margin-bottom: 20px; border: 1px solid #ddd;}
+        #upload-section h3 { margin-top: 0; text-align: center; color: #495057; }
+        #upload-form { display: flex; flex-direction: column; gap: 10px; }
+        #upload-form input[type="text"], #upload-form input[type="file"] { width: 100%; box-sizing: border-box; padding: 8px; border: 1px solid #ccc; border-radius: 4px; }
+        #upload-form button { background-color: #28a745; }
+
         .message { padding: 10px 15px; border-radius: 18px; margin-bottom: 10px; max-width: 80%; word-wrap: break-word; line-height: 1.5; }
         .user-message { background-color: var(--user-bg); color: var(--text-light); margin-left: auto; }
         .model-message { background-color: var(--model-bg); color: var(--text-dark); margin-right: auto; }
-        .model-message a { color: #0056b3; }
-        form { display: flex; gap: 10px; }
-        input[type="text"] { flex-grow: 1; padding: 12px; font-size: 16px; border: 1px solid #ccc; border-radius: 8px; }
+        #prompt-form { display: flex; gap: 10px; }
+        #prompt-form input[type="text"] { flex-grow: 1; padding: 12px; font-size: 16px; border: 1px solid #ccc; border-radius: 8px; }
         button { padding: 12px; font-size: 16px; background-color: var(--user-bg); color: white; border: none; border-radius: 8px; cursor: pointer; }
         #mic-button, #tts-button { font-size: 20px; width: 50px; flex-shrink: 0; background-color: #6c757d; } 
         #mic-button.listening { background-color: #dc3545; }
@@ -32,16 +38,26 @@
 <body>
     <h1>Coopa Asistan</h1>
     <div id="auth-container">
-        <div id="google-auth-section"><a href="/auth/google">Google Takvim'e Bağlan ve Yetki Ver</a></div>
+        <div id="google-auth-section"><a href="/auth/google">Google Takvim'e Bağlan</a></div>
         <div id="wallet-auth-section">
              <button id="connect-wallet-button">🦊 Cüzdanla Bağlan</button>
              <p id="wallet-info" style="display: none;"></p>
         </div>
     </div>
     <div id="chat-container"></div>
+    
+    <div id="upload-section">
+        <h3>🖼️ Kalıcı Anı Yükle</h3>
+        <form id="upload-form" action="/upload" method="POST" enctype="multipart/form-data">
+            <input type="file" name="memoryFile" id="file-input" required>
+            <input type="text" name="description" id="description-input" placeholder="Dosya için kısa bir açıklama..." required>
+            <button type="submit">Anıyı Kalıcı Olarak Kaydet</button>
+        </form>
+    </div>
+    
     <div id="loading-indicator" style="text-align: center; display: none; padding: 20px;"><p>Yanıt hazırlanıyor...</p></div>
     <form id="prompt-form">
-        <input type="text" id="prompt-input" placeholder="Coopa'ya bir şey sor veya 🎤">
+        <input type="text" id="prompt-input" placeholder="Coopa'ya bir şey sor...">
         <button type="submit" id="submit-button">Gönder</button>
         <button type="button" id="mic-button">🎤</button>
         <button type="button" id="tts-button">🔊</button> 
@@ -174,7 +190,7 @@
             updateTtsButtonIcon();
             elements.ttsButton.addEventListener('click', () => {
                 isTtsEnabled = !isTtsEnabled;
-                localStorage.setItem('ttsEnabled', isTtsEnabled);
+                localStorage.setItem('ttsEnabled', isTtsEnabled ? 'true' : 'false');
                 updateTtsButtonIcon();
                 if (!isTtsEnabled) synth.cancel();
             });
@@ -191,7 +207,6 @@
             }
         };
         
-        // GÜNCELLEME: EKSİK OLAN MİKROFON KODU BURAYA GERİ EKLENDİ
         const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
         if (SpeechRecognition) {
             const recognition = new SpeechRecognition();
@@ -207,32 +222,13 @@
                 recognition.start();
             });
             
-            recognition.onstart = () => {
-                elements.micButton.classList.add('listening');
-                elements.input.placeholder = "Dinliyorum...";
-            };
-            
-            recognition.onend = () => {
-                elements.micButton.classList.remove('listening');
-                if (isWalletConnected) {
-                    elements.input.placeholder = "Coopa'ya bir şey sor veya 🎤";
-                }
-            };
-            
-            recognition.onresult = (event) => {
-                const transcript = event.results[event.results.length - 1][0].transcript.trim();
-                elements.input.value = transcript;
-                handleFormSubmit(); // Formu otomatik gönder
-            };
-            
-            recognition.onerror = (event) => {
-                alert('Ses tanıma hatası: ' + event.error);
-            };
+            recognition.onstart = () => { elements.micButton.classList.add('listening'); elements.input.placeholder = "Dinliyorum..."; };
+            recognition.onend = () => { elements.micButton.classList.remove('listening'); if (isWalletConnected) { elements.input.placeholder = "Coopa'ya bir şey sor veya 🎤"; } };
+            recognition.onresult = (event) => { const transcript = event.results[event.results.length - 1][0].transcript.trim(); elements.input.value = transcript; handleFormSubmit(); };
+            recognition.onerror = (event) => { alert('Ses tanıma hatası: ' + event.error); };
         } else {
-            // Tarayıcı desteklemiyorsa mikrofon butonunu gizle
             elements.micButton.style.display = 'none';
         }
-
     </script>
 </body>
 </html>
