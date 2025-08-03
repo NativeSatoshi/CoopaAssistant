@@ -15,16 +15,15 @@
         #connect-wallet-button { padding: 8px 16px; font-size: 14px; background-color: #ff9800; color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: bold; }
         #wallet-info { font-size: 12px; color: #555; background-color: #f0f0f0; padding: 5px 10px; border-radius: 12px; margin-top: 5px;}
         #chat-container { flex-grow: 1; overflow-y: auto; background-color: white; padding: 20px; border-radius: 8px; border: 1px solid #ddd; margin-bottom: 20px; }
-        
         #upload-section { background-color: #e9ecef; padding: 15px; border-radius: 8px; margin-bottom: 20px; border: 1px solid #ddd;}
         #upload-section h3 { margin-top: 0; text-align: center; color: #495057; }
         #upload-form { display: flex; flex-direction: column; gap: 10px; }
         #upload-form input[type="text"], #upload-form input[type="file"] { width: 100%; box-sizing: border-box; padding: 8px; border: 1px solid #ccc; border-radius: 4px; }
         #upload-form button { background-color: #28a745; }
-
         .message { padding: 10px 15px; border-radius: 18px; margin-bottom: 10px; max-width: 80%; word-wrap: break-word; line-height: 1.5; }
         .user-message { background-color: var(--user-bg); color: var(--text-light); margin-left: auto; }
         .model-message { background-color: var(--model-bg); color: var(--text-dark); margin-right: auto; }
+        .memory-image { max-width: 100%; border-radius: 12px; margin-top: 10px; cursor: pointer; }
         #prompt-form { display: flex; gap: 10px; }
         #prompt-form input[type="text"] { flex-grow: 1; padding: 12px; font-size: 16px; border: 1px solid #ccc; border-radius: 8px; }
         button { padding: 12px; font-size: 16px; background-color: var(--user-bg); color: white; border: none; border-radius: 8px; cursor: pointer; }
@@ -45,7 +44,6 @@
         </div>
     </div>
     <div id="chat-container"></div>
-    
     <div id="upload-section">
         <h3>🖼️ Kalıcı Anı Yükle</h3>
         <form id="upload-form" action="/upload" method="POST" enctype="multipart/form-data">
@@ -54,7 +52,6 @@
             <button type="submit">Anıyı Kalıcı Olarak Kaydet</button>
         </form>
     </div>
-    
     <div id="loading-indicator" style="text-align: center; display: none; padding: 20px;"><p>Yanıt hazırlanıyor...</p></div>
     <form id="prompt-form">
         <input type="text" id="prompt-input" placeholder="Coopa'ya bir şey sor...">
@@ -65,60 +62,54 @@
 
     <script>
         const elements = { 
-            form: document.getElementById('prompt-form'), 
-            input: document.getElementById('prompt-input'), 
-            chatContainer: document.getElementById('chat-container'), 
-            submitButton: document.getElementById('submit-button'), 
-            loadingIndicator: document.getElementById('loading-indicator'), 
-            micButton: document.getElementById('mic-button'), 
-            ttsButton: document.getElementById('tts-button'),
-            connectWalletButton: document.getElementById('connect-wallet-button'),
-            walletInfo: document.getElementById('wallet-info'),
-            googleAuthSection: document.getElementById('google-auth-section')
+            form: document.getElementById('prompt-form'), input: document.getElementById('prompt-input'), chatContainer: document.getElementById('chat-container'), submitButton: document.getElementById('submit-button'), loadingIndicator: document.getElementById('loading-indicator'), micButton: document.getElementById('mic-button'), ttsButton: document.getElementById('tts-button'),
+            connectWalletButton: document.getElementById('connect-wallet-button'), walletInfo: document.getElementById('wallet-info'), googleAuthSection: document.getElementById('google-auth-section')
         };
+        let conversationHistory = []; let isWalletConnected = false; let isTtsEnabled = localStorage.getItem('ttsEnabled') === 'true'; const synth = window.speechSynthesis;
 
-        let conversationHistory = [];
-        let isWalletConnected = false;
-        let isTtsEnabled = localStorage.getItem('ttsEnabled') === 'true';
-        const synth = window.speechSynthesis;
-
-        const speak = (text) => {
-            if (!isTtsEnabled || !text) return;
-            if (synth.speaking) synth.cancel();
-            const utterThis = new SpeechSynthesisUtterance(text);
-            utterThis.lang = 'tr-TR';
-            synth.speak(utterThis);
-        };
-
-        const toggleForm = (disabled, reason = 'loading') => { 
-            elements.input.disabled = disabled; 
-            elements.submitButton.disabled = disabled; 
-            elements.micButton.disabled = disabled; 
-            elements.ttsButton.disabled = disabled; 
-            elements.loadingIndicator.style.display = (disabled && reason === 'loading') ? 'block' : 'none'; 
-            if (disabled) {
-                if (reason === 'wallet') elements.input.placeholder = "İşlem için lütfen önce cüzdanınızı bağlayın...";
-            } else {
-                elements.input.placeholder = "Coopa'ya bir şey sor veya 🎤";
-                elements.input.focus();
-            }
-        };
+        const speak = (text) => { if (!isTtsEnabled || !text) return; if (synth.speaking) synth.cancel(); const utterThis = new SpeechSynthesisUtterance(text); utterThis.lang = 'tr-TR'; synth.speak(utterThis); };
+        const toggleForm = (disabled, reason = 'loading') => { elements.input.disabled = disabled; elements.submitButton.disabled = disabled; elements.micButton.disabled = disabled; elements.ttsButton.disabled = disabled; elements.loadingIndicator.style.display = (disabled && reason === 'loading') ? 'block' : 'none'; if (disabled) { if (reason === 'wallet') elements.input.placeholder = "İşlem için lütfen önce cüzdanınızı bağlayın..."; } else { elements.input.placeholder = "Coopa'ya bir şey sor veya 🎤"; elements.input.focus(); } };
         
         const renderHistory = () => {
             elements.chatContainer.innerHTML = '';
             let lastModelMessageText = '';
             conversationHistory.forEach(message => {
-                if (message.role === 'function' || !message.parts?.[0]) return;
+                if (!message.parts?.[0]) return;
                 const messageDiv = document.createElement('div');
-                messageDiv.classList.add('message', message.role === 'user' ? 'user-message' : 'model-message');
                 const part = message.parts[0];
-                if (part.text) {
-                    const linkify = (text) => text.replace(/(https?:\/\/[^\s]+)/g, (url) => `<a href="${url}" target="_blank" rel="noopener noreferrer">${url}</a>`);
-                    messageDiv.innerHTML = linkify(part.text);
-                    if (message.role === 'model') lastModelMessageText = part.text;
-                } else if (part.functionCall) {
-                    messageDiv.innerText = `[Coopa, ${part.functionCall.name} aracını kullanıyor...]`;
-                    messageDiv.style.fontStyle = 'italic';
+
+                if (message.role === 'user') {
+                    messageDiv.className = 'message user-message';
+                    messageDiv.innerText = part.text;
+                } else if (message.role === 'model') {
+                    messageDiv.className = 'message model-message';
+                    if (part.text) {
+                        const linkify = (text) => text.replace(/(https?:\/\/[^\s]+)/g, (url) => `<a href="${url}" target="_blank">${url}</a>`);
+                        messageDiv.innerHTML = linkify(part.text);
+                        lastModelMessageText = part.text;
+                    } else if (part.functionCall) {
+                        messageDiv.innerText = `[Coopa, ${part.functionCall.name} aracını kullanıyor...]`;
+                        messageDiv.style.fontStyle = 'italic';
+                    }
+                } else if (message.role === 'function' && part.functionResponse) {
+                    const funcName = part.functionResponse.name;
+                    const funcResult = part.functionResponse.response.result;
+
+                    if (funcName === 'find_memory' && funcResult && funcResult.success) {
+                        messageDiv.className = 'message model-message';
+                        const memoryData = funcResult.data;
+                        const gatewayUrl = `https://gateway.irys.xyz/${memoryData.irysId}`;
+                        let contentHTML = `<p>${funcResult.message}</p>`;
+                        if (memoryData.mediaType && memoryData.mediaType.startsWith('image/')) {
+                            contentHTML += `<a href="${gatewayUrl}" target="_blank"><img src="${gatewayUrl}" class="memory-image" alt="${memoryData.description}"></a>`;
+                        } else {
+                            contentHTML += `<p><a href="${gatewayUrl}" target="_blank">Bulunan dosyayı görüntülemek için tıklayın.</a></p>`;
+                        }
+                        messageDiv.innerHTML = contentHTML;
+                        lastModelMessageText = funcResult.message;
+                    } else {
+                        return;
+                    }
                 }
                 elements.chatContainer.appendChild(messageDiv);
             });
@@ -128,30 +119,22 @@
         
         const handleFormSubmit = async (event) => {
             if (event) event.preventDefault();
-            if (!isWalletConnected) {
-                alert("Lütfen işlem yapmadan önce cüzdanınızı bağlayın.");
-                return;
-            }
+            if (!isWalletConnected) { alert("Lütfen işlem yapmadan önce cüzdanınızı bağlayın."); return; }
             const prompt = elements.input.value;
             if (!prompt.trim()) return;
-            
             conversationHistory.push({ role: 'user', parts: [{ text: prompt }] });
             renderHistory();
             toggleForm(true, 'loading');
             elements.input.value = '';
-            
             try {
                 const response = await fetch('/generate', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ prompt: prompt, history: conversationHistory.slice(0, -1) })
                 });
-
                 const data = await response.json();
                 if (!response.ok) throw new Error(data.error || 'Sunucu hatası');
-
                 conversationHistory = data.history;
-                
             } catch (error) {
                 conversationHistory.push({ role: 'model', parts: [{ text: `Bir hata oluştu: ${error.message}` }] });
             } finally {
@@ -162,25 +145,7 @@
 
         elements.form.addEventListener('submit', handleFormSubmit);
 
-        const connectWallet = async () => {
-            if (typeof window.ethereum !== 'undefined') {
-                try {
-                    const accounts = await window.ethereum.request({ method: 'eth_requestAccounts' });
-                    const account = accounts[0];
-                    isWalletConnected = true; 
-                    const shortAddress = `${account.substring(0, 6)}...${account.substring(account.length - 4)}`;
-                    elements.walletInfo.textContent = `Bağlandı: ${shortAddress}`;
-                    elements.walletInfo.style.display = 'block';
-                    elements.connectWalletButton.style.display = 'none';
-                    toggleForm(false); 
-                } catch (error) {
-                    elements.walletInfo.textContent = 'Bağlantı başarısız oldu.';
-                    elements.walletInfo.style.display = 'block';
-                }
-            } else {
-                alert('Lütfen bu özelliği kullanmak için MetaMask cüzdanını kurun.');
-            }
-        };
+        const connectWallet = async () => { if (typeof window.ethereum !== 'undefined') { try { const accounts = await window.ethereum.request({ method: 'eth_requestAccounts' }); const account = accounts[0]; isWalletConnected = true; const shortAddress = `${account.substring(0, 6)}...${account.substring(account.length - 4)}`; elements.walletInfo.textContent = `Bağlandı: ${shortAddress}`; elements.walletInfo.style.display = 'block'; elements.connectWalletButton.style.display = 'none'; toggleForm(false); } catch (error) { elements.walletInfo.textContent = 'Bağlantı başarısız oldu.'; elements.walletInfo.style.display = 'block'; } } else { alert('Lütfen bu özelliği kullanmak için MetaMask cüzdanını kurun.'); } };
         elements.connectWalletButton.addEventListener('click', connectWallet);
 
         const updateTtsButtonIcon = () => elements.ttsButton.textContent = isTtsEnabled ? '🔊' : '🔇';
@@ -188,47 +153,13 @@
         window.onload = () => {
             toggleForm(true, 'wallet');
             updateTtsButtonIcon();
-            elements.ttsButton.addEventListener('click', () => {
-                isTtsEnabled = !isTtsEnabled;
-                localStorage.setItem('ttsEnabled', isTtsEnabled ? 'true' : 'false');
-                updateTtsButtonIcon();
-                if (!isTtsEnabled) synth.cancel();
-            });
-
+            elements.ttsButton.addEventListener('click', () => { isTtsEnabled = !isTtsEnabled; localStorage.setItem('ttsEnabled', isTtsEnabled ? 'true' : 'false'); updateTtsButtonIcon(); if (!isTtsEnabled) synth.cancel(); });
             const params = new URLSearchParams(window.location.search);
-            if (params.get('auth')) {
-                const authStatus = params.get('auth');
-                const div = document.createElement('div');
-                div.innerText = authStatus === 'success' ? '✅ Google Takvim\'e başarıyla bağlandınız!' : '❌ Google Takvim\'e bağlanırken bir hata oluştu.';
-                div.style.color = authStatus === 'success' ? 'green' : 'red';
-                elements.googleAuthSection.innerHTML = '';
-                elements.googleAuthSection.appendChild(div);
-                speak(div.innerText);
-            }
+            if (params.get('auth')) { const authStatus = params.get('auth'); const div = document.createElement('div'); div.innerText = authStatus === 'success' ? '✅ Google Takvim\'e başarıyla bağlandınız!' : '❌ Google Takvim\'e bağlanırken bir hata oluştu.'; div.style.color = authStatus === 'success' ? 'green' : 'red'; elements.googleAuthSection.innerHTML = ''; elements.googleAuthSection.appendChild(div); speak(div.innerText); }
         };
         
         const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
-        if (SpeechRecognition) {
-            const recognition = new SpeechRecognition();
-            recognition.lang = 'tr-TR';
-            recognition.continuous = false;
-            
-            elements.micButton.addEventListener('click', () => {
-                if (!isWalletConnected) {
-                    alert("Lütfen sesli komut kullanmadan önce cüzdanınızı bağlayın.");
-                    return;
-                }
-                synth.cancel();
-                recognition.start();
-            });
-            
-            recognition.onstart = () => { elements.micButton.classList.add('listening'); elements.input.placeholder = "Dinliyorum..."; };
-            recognition.onend = () => { elements.micButton.classList.remove('listening'); if (isWalletConnected) { elements.input.placeholder = "Coopa'ya bir şey sor veya 🎤"; } };
-            recognition.onresult = (event) => { const transcript = event.results[event.results.length - 1][0].transcript.trim(); elements.input.value = transcript; handleFormSubmit(); };
-            recognition.onerror = (event) => { alert('Ses tanıma hatası: ' + event.error); };
-        } else {
-            elements.micButton.style.display = 'none';
-        }
+        if (SpeechRecognition) { const recognition = new SpeechRecognition(); recognition.lang = 'tr-TR'; recognition.continuous = false; elements.micButton.addEventListener('click', () => { if (!isWalletConnected) { alert("Lütfen sesli komut kullanmadan önce cüzdanınızı bağlayın."); return; } synth.cancel(); recognition.start(); }); recognition.onstart = () => { elements.micButton.classList.add('listening'); elements.input.placeholder = "Dinliyorum..."; }; recognition.onend = () => { elements.micButton.classList.remove('listening'); if (isWalletConnected) { elements.input.placeholder = "Coopa'ya bir şey sor veya 🎤"; } }; recognition.onresult = (event) => { const transcript = event.results[event.results.length - 1][0].transcript.trim(); elements.input.value = transcript; handleFormSubmit(); }; recognition.onerror = (event) => { alert('Ses tanıma hatası: ' + event.error); }; } else { elements.micButton.style.display = 'none'; }
     </script>
 </body>
 </html>
