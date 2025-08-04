@@ -66,20 +66,33 @@
             connectWalletButton: document.getElementById('connect-wallet-button'), walletInfo: document.getElementById('wallet-info'), googleAuthSection: document.getElementById('google-auth-section'), uploadForm: document.getElementById('upload-form'),
         };
 
-        let conversationHistory = []; let currentUserAddress = null; let isWalletConnected = false; let isTtsEnabled = localStorage.getItem('ttsEnabled') === 'true'; const synth = window.speechSynthesis;
+        let conversationHistory = []; let currentUserAddress = null; let sessionSignature = null; let isWalletConnected = false; let isTtsEnabled = localStorage.getItem('ttsEnabled') === 'true'; const synth = window.speechSynthesis;
 
         const speak = (text) => { if (!isTtsEnabled || !text) return; if (synth.speaking) synth.cancel(); const utterThis = new SpeechSynthesisUtterance(text); utterThis.lang = 'tr-TR'; synth.speak(utterThis); };
         const toggleForm = (disabled, reason = 'loading') => { elements.input.disabled = disabled; elements.submitButton.disabled = disabled; elements.micButton.disabled = disabled; elements.ttsButton.disabled = disabled; elements.loadingIndicator.style.display = (disabled && reason === 'loading') ? 'block' : 'none'; if (disabled) { if (reason === 'wallet') elements.input.placeholder = "İşlem için lütfen önce cüzdanınızı bağlayın..."; } else { elements.input.placeholder = "Coopa'ya bir şey sor veya 🎤"; elements.input.focus(); } };
         
-        // GÜNCELLEME: renderHistory fonksiyonunun tam ve doğru hali
+        const displayMemory = (memoryData) => {
+            if (!memoryData) return;
+            const messageDiv = document.createElement('div');
+            messageDiv.className = 'message model-message';
+            let contentHTML = `<p>İsteğiniz üzerine bulunan anı:</p><p><em>${memoryData.description}</em></p>`;
+            if (memoryData.decryptedDataUrl) {
+                contentHTML += `<img src="${memoryData.decryptedDataUrl}" class="memory-image" alt="${memoryData.description}">`;
+            } else {
+                contentHTML += `<p>Görsel verisi bulunamadı.</p>`;
+            }
+            messageDiv.innerHTML = contentHTML;
+            elements.chatContainer.appendChild(messageDiv);
+            elements.chatContainer.scrollTop = elements.chatContainer.scrollHeight;
+        };
+
         const renderHistory = () => {
             elements.chatContainer.innerHTML = '';
             let lastModelMessageText = '';
             conversationHistory.forEach(message => {
-                if (!message.parts?.[0]) return;
+                if (message.role === 'function' || !message.parts?.[0]) return;
                 const messageDiv = document.createElement('div');
                 const part = message.parts[0];
-
                 if (message.role === 'user') {
                     messageDiv.className = 'message user-message';
                     messageDiv.innerText = part.text;
@@ -92,25 +105,6 @@
                     } else if (part.functionCall) {
                         messageDiv.innerText = `[Coopa, ${part.functionCall.name} aracını kullanıyor...]`;
                         messageDiv.style.fontStyle = 'italic';
-                    }
-                } else if (message.role === 'function' && part.functionResponse) {
-                    const funcName = part.functionResponse.name;
-                    const funcResult = part.functionResponse.response.result;
-
-                    if (funcName === 'find_memory' && funcResult && funcResult.success) {
-                        messageDiv.className = 'message model-message';
-                        const memoryData = funcResult.data;
-                        const gatewayUrl = `https://gateway.irys.xyz/${memoryData.irysId}`;
-                        let contentHTML = `<p>${funcResult.message}</p>`;
-                        if (memoryData.mediaType && memoryData.mediaType.startsWith('image/')) {
-                            contentHTML += `<a href="${gatewayUrl}" target="_blank"><img src="${gatewayUrl}" class="memory-image" alt="${memoryData.description}"></a>`;
-                        } else {
-                            contentHTML += `<p><a href="${gatewayUrl}" target="_blank">Bulunan dosyayı görüntülemek için tıklayın.</a></p>`;
-                        }
-                        messageDiv.innerHTML = contentHTML;
-                        lastModelMessageText = funcResult.message;
-                    } else {
-                        return;
                     }
                 }
                 elements.chatContainer.appendChild(messageDiv);
@@ -133,71 +127,30 @@
                 const response = await fetch('/generate', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ prompt: prompt, history: conversationHistory.slice(0, -1), userAddress: currentUserAddress })
+                    body: JSON.stringify({ prompt: prompt, history: conversationHistory.slice(0, -1), userAddress: currentUserAddress, signature: sessionSignature })
                 });
                 const data = await response.json();
                 if (!response.ok) throw new Error(data.error || 'Sunucu hatası');
+                
                 conversationHistory = data.history;
+                renderHistory();
+                if (data.displayData) {
+                    displayMemory(data.displayData);
+                }
             } catch (error) {
                 conversationHistory.push({ role: 'model', parts: [{ text: `Bir hata oluştu: ${error.message}` }] });
-            } finally {
                 renderHistory();
+            } finally {
                 toggleForm(isWalletConnected ? false : true, 'wallet');
             }
         };
 
-        const connectWallet = async () => {
-            if (typeof window.ethereum !== 'undefined') {
-                try {
-                    const accounts = await window.ethereum.request({ method: 'eth_requestAccounts' });
-                    const account = accounts[0];
-                    currentUserAddress = account;
-                    isWalletConnected = true; 
-                    const shortAddress = `${account.substring(0, 6)}...${account.substring(account.length - 4)}`;
-                    elements.walletInfo.textContent = `Giriş Yapıldı: ${shortAddress}`;
-                    elements.walletInfo.style.display = 'block';
-                    elements.connectWalletButton.style.display = 'none';
-                    toggleForm(false); 
-                } catch (error) {
-                    console.error("Cüzdan bağlantı hatası:", error);
-                    elements.walletInfo.textContent = 'Bağlantı başarısız oldu.';
-                    elements.walletInfo.style.display = 'block';
-                }
-            } else {
-                alert('Lütfen bu özelliği kullanmak için MetaMask cüzdanını kurun.');
-            }
-        };
+        const handleLogin = async () => { if (typeof window.ethereum !== 'undefined') { try { const accounts = await window.ethereum.request({ method: 'eth_requestAccounts' }); const account = accounts[0]; const signMessage = "CoopaASI dijital kasanızın kilidini açmak ve işlem yapmak için bu mesajı imzalayın."; const signature = await window.ethereum.request({ method: 'personal_sign', params: [signMessage, account] }); currentUserAddress = account; sessionSignature = signature; isWalletConnected = true; const shortAddress = `${account.substring(0, 6)}...${account.substring(account.length - 4)}`; elements.walletInfo.textContent = `Giriş Yapıldı: ${shortAddress}`; elements.walletInfo.style.display = 'block'; elements.connectWalletButton.style.display = 'none'; toggleForm(false); } catch (error) { console.error("Giriş ve imzalama hatası:", error); alert("Giriş yapmak için mesajı imzalamanız gerekmektedir."); } } else { alert('Lütfen bu özelliği kullanmak için MetaMask cüzdanını kurun.'); } };
+        const handleUpload = async (event) => { event.preventDefault(); if (!isWalletConnected || !sessionSignature) { return alert("Lütfen dosya yüklemeden önce cüzdanınızla giriş yapın."); } const formData = new FormData(); const fileInput = document.getElementById('file-input'); const descriptionInput = document.getElementById('description-input'); if (!fileInput.files[0]) return alert("Lütfen bir dosya seçin."); formData.append('memoryFile', fileInput.files[0]); formData.append('description', descriptionInput.value); formData.append('userAddress', currentUserAddress); formData.append('signature', sessionSignature); alert('Dosya yükleniyor, bu işlem biraz zaman alabilir...'); try { const response = await fetch('/upload', { method: 'POST', body: formData }); const resultHtml = await response.text(); if (!response.ok) throw new Error(resultHtml); const newWindow = window.open(); newWindow.document.write(resultHtml); newWindow.document.close(); fileInput.value = ''; descriptionInput.value = ''; } catch (error) { alert(`Yükleme sırasında bir hata oluştu: ${error.message}`); } };
         
-        const handleUpload = async (event) => {
-            event.preventDefault();
-            if (!isWalletConnected) { return alert("Lütfen dosya yüklemeden önce cüzdanınızla giriş yapın."); }
-            const formData = new FormData();
-            const fileInput = document.getElementById('file-input');
-            const descriptionInput = document.getElementById('description-input');
-            if (!fileInput.files[0]) return alert("Lütfen bir dosya seçin.");
-
-            formData.append('memoryFile', fileInput.files[0]);
-            formData.append('description', descriptionInput.value);
-            formData.append('userAddress', currentUserAddress);
-            
-            alert('Dosya yükleniyor, bu işlem biraz zaman alabilir...');
-            try {
-                const response = await fetch('/upload', { method: 'POST', body: formData });
-                const resultHtml = await response.text();
-                if (!response.ok) throw new Error(resultHtml);
-                const newWindow = window.open();
-                newWindow.document.write(resultHtml);
-                newWindow.document.close();
-                fileInput.value = '';
-                descriptionInput.value = '';
-            } catch (error) {
-                alert(`Yükleme sırasında bir hata oluştu: ${error.message}`);
-            }
-        };
-
         elements.form.addEventListener('submit', handleFormSubmit);
         elements.uploadForm.addEventListener('submit', handleUpload);
-        elements.connectWalletButton.addEventListener('click', connectWallet);
+        elements.connectWalletButton.addEventListener('click', handleLogin);
 
         const updateTtsButtonIcon = () => elements.ttsButton.textContent = isTtsEnabled ? '🔊' : '🔇';
         
