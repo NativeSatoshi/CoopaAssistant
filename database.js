@@ -1,54 +1,117 @@
-// database.js - `memories` TABLOSUNA KULLANICI ADRESİ EKLENDİ
+// database.js - GÜNCELLENMIŞ VE KONTROL EDİLMİŞ VERSİYON
 
 const sqlite3 = require('sqlite3').verbose();
-const DB_SOURCE = "coopa_memory.db";
+const path = require('path');
 
-const db = new sqlite3.Database(DB_SOURCE, (err) => {
+// Veritabanı dosyasının yolu
+const dbPath = path.join(__dirname, 'coopa_memory.db');
+
+// Veritabanı bağlantısı
+const db = new sqlite3.Database(dbPath, (err) => {
     if (err) {
-        console.error("❌ Veritabanı dosyası açılamadı:", err.message);
-        throw err;
+        console.error('❌ Veritabanı bağlantı hatası:', err.message);
+    } else {
+        console.log('✅ SQLite veritabanına başarıyla bağlanıldı.');
     }
 });
 
-const runQuery = (query) => {
+// Veritabanını başlatma fonksiyonu
+function initializeDB() {
     return new Promise((resolve, reject) => {
-        db.run(query, (err) => {
-            if (err) return reject(err);
-            resolve();
-        });
-    });
-};
-
-const initializeDB = async () => {
-    console.log('✅ SQLite veritabanına başarıyla bağlanıldı ve kurulum başlıyor...');
-    try {
-        await runQuery(`CREATE TABLE IF NOT EXISTS notes ( name TEXT PRIMARY KEY, content TEXT )`);
-        console.log("✅ 'notes' tablosu hazır.");
-        
-        await runQuery(`CREATE TABLE IF NOT EXISTS google_auth ( id INTEGER PRIMARY KEY DEFAULT 1, access_token TEXT, refresh_token TEXT, expiry_date INTEGER, scope TEXT )`);
-        console.log("✅ 'google_auth' tablosu hazır.");
-
-        await runQuery(`CREATE TABLE IF NOT EXISTS reminders ( id INTEGER PRIMARY KEY AUTOINCREMENT, note_name TEXT NOT NULL, cron_time TEXT NOT NULL, target_email TEXT NOT NULL, is_active INTEGER DEFAULT 1 )`);
-        console.log("✅ 'reminders' tablosu hazır.");
-
-        // GÜNCELLEME: `memories` tablosuna kullanıcı adresini saklamak için user_address sütunu eklendi.
-        await runQuery(`CREATE TABLE IF NOT EXISTS memories (
+        // Notlar tablosunu oluştur
+        db.run(`CREATE TABLE IF NOT EXISTS notes (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
-            user_address TEXT NOT NULL,
+            name TEXT UNIQUE NOT NULL,
+            content TEXT,
+            created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+            updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
+        )`, (err) => {
+            if (err) {
+                console.error('❌ Notes tablosu oluşturulurken hata:', err.message);
+                return reject(err);
+            }
+            console.log('✅ Notes tablosu hazır.');
+        });
+
+        // Anılar tablosunu oluştur
+        db.run(`CREATE TABLE IF NOT EXISTS memories (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
             irys_id TEXT NOT NULL,
             description TEXT,
             media_type TEXT,
-            createdAt TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-        )`);
-        console.log("✅ 'memories' tablosu hazır.");
+            user_address TEXT NOT NULL,
+            created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+        )`, (err) => {
+            if (err) {
+                console.error('❌ Memories tablosu oluşturulurken hata:', err.message);
+                return reject(err);
+            }
+            console.log('✅ Memories tablosu hazır.');
+        });
 
-        console.log("👍 Veritabanı kurulumu başarıyla tamamlandı.");
-        return db;
+        // Google kimlik doğrulama tablosunu oluştur
+        db.run(`CREATE TABLE IF NOT EXISTS google_auth (
+            id INTEGER PRIMARY KEY,
+            access_token TEXT,
+            refresh_token TEXT,
+            expiry_date INTEGER,
+            scope TEXT,
+            created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+            updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
+        )`, (err) => {
+            if (err) {
+                console.error('❌ Google_auth tablosu oluşturulurken hata:', err.message);
+                return reject(err);
+            }
+            console.log('✅ Google_auth tablosu hazır.');
+            
+            // Tüm tablolar başarıyla oluşturuldu
+            console.log('✅ Tüm veritabanı tabloları başarıyla hazırlandı.');
+            resolve();
+        });
+    });
+}
 
+// Veritabanı bağlantısını kapatma fonksiyonu
+function closeDB() {
+    return new Promise((resolve, reject) => {
+        db.close((err) => {
+            if (err) {
+                console.error('❌ Veritabanı kapatılırken hata:', err.message);
+                reject(err);
+            } else {
+                console.log('✅ Veritabanı bağlantısı kapatıldı.');
+                resolve();
+            }
+        });
+    });
+}
+
+// Temizlik fonksiyonu - Process sonlandığında veritabanını kapat
+process.on('SIGINT', async () => {
+    console.log('\n⚠️  Uygulama sonlandırılıyor...');
+    try {
+        await closeDB();
+        process.exit(0);
     } catch (error) {
-        console.error("❌ Veritabanı kurulumu sırasında bir hata oluştu:", error);
-        throw error;
+        console.error('❌ Temizlik sırasında hata:', error.message);
+        process.exit(1);
     }
-};
+});
 
-module.exports = { db, initializeDB };
+process.on('SIGTERM', async () => {
+    console.log('\n⚠️  Uygulama sonlandırılıyor...');
+    try {
+        await closeDB();
+        process.exit(0);
+    } catch (error) {
+        console.error('❌ Temizlik sırasında hata:', error.message);
+        process.exit(1);
+    }
+});
+
+module.exports = {
+    db,
+    initializeDB,
+    closeDB
+};

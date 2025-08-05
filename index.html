@@ -8,6 +8,8 @@
         :root { --user-bg: #007bff; --model-bg: #e9e9eb; --text-light: #ffffff; --text-dark: #000000; }
         body { font-family: system-ui, sans-serif; max-width: 700px; margin: 0 auto; padding: 20px; background-color: #f7f7f7; display: flex; flex-direction: column; height: 95vh; }
         h1 { text-align: center; color: #333; flex-shrink: 0; }
+        #language-selector { text-align: center; margin-bottom: 15px; }
+        #language-selector select { padding: 8px; border-radius: 8px; border: 1px solid #ccc; font-size: 14px; }
         #auth-container { text-align: center; margin-bottom: 15px; padding: 10px; background-color: #fff; border: 1px solid #ddd; border-radius: 8px; display: flex; justify-content: space-between; align-items: center; gap: 20px;}
         #google-auth-section { flex-grow: 1; text-align: left; }
         #wallet-auth-section { text-align: right; }
@@ -32,27 +34,46 @@
         button#submit-button { padding: 12px 22px; }
         input:disabled, button:disabled { background-color: #e9ecef; cursor: not-allowed; }
         button:disabled { background-color: #999; }
+        .language-flag { display: inline-block; margin-right: 5px; }
     </style>
 </head>
 <body>
-    <h1>Coopa Asistan</h1>
+    <h1 id="main-title">Coopa Asistan</h1>
+    
+    <!-- Dil Seçici -->
+    <div id="language-selector">
+        <select id="language-select">
+            <option value="tr">🇹🇷 Türkçe</option>
+            <option value="en">🇺🇸 English</option>
+            <option value="es">🇪🇸 Español</option>
+        </select>
+    </div>
+    
     <div id="auth-container">
-        <div id="google-auth-section"><a href="/auth/google">Google Takvim'e Bağlan</a></div>
+        <div id="google-auth-section">
+            <a href="/auth/google" id="google-auth-link">Google Takvim'e Bağlan</a>
+        </div>
         <div id="wallet-auth-section">
              <button id="connect-wallet-button">🦊 Cüzdan ile Giriş Yap</button>
              <p id="wallet-info" style="display: none;"></p>
         </div>
     </div>
+    
     <div id="chat-container"></div>
+    
     <div id="upload-section">
-        <h3>🖼️ Kişisel Anı Yükle</h3>
+        <h3 id="upload-title">🖼️ Kişisel Anı Yükle</h3>
         <form id="upload-form">
             <input type="file" name="memoryFile" id="file-input" required>
             <input type="text" name="description" id="description-input" placeholder="Dosya için kısa bir açıklama..." required>
-            <button type="submit">Anıyı Kalıcı Olarak Kaydet</button>
+            <button type="submit" id="upload-button">Anıyı Kalıcı Olarak Kaydet</button>
         </form>
     </div>
-    <div id="loading-indicator" style="text-align: center; display: none; padding: 20px;"><p>Yanıt hazırlanıyor...</p></div>
+    
+    <div id="loading-indicator" style="text-align: center; display: none; padding: 20px;">
+        <p id="loading-text">Yanıt hazırlanıyor...</p>
+    </div>
+    
     <form id="prompt-form">
         <input type="text" id="prompt-input" placeholder="Coopa'ya bir şey sor...">
         <button type="submit" id="submit-button">Gönder</button>
@@ -61,25 +82,171 @@
     </form>
 
     <script>
-        const elements = { 
-            form: document.getElementById('prompt-form'), input: document.getElementById('prompt-input'), chatContainer: document.getElementById('chat-container'), submitButton: document.getElementById('submit-button'), loadingIndicator: document.getElementById('loading-indicator'), micButton: document.getElementById('mic-button'), ttsButton: document.getElementById('tts-button'),
-            connectWalletButton: document.getElementById('connect-wallet-button'), walletInfo: document.getElementById('wallet-info'), googleAuthSection: document.getElementById('google-auth-section'), uploadForm: document.getElementById('upload-form'),
+        // Çok dilli destek sistemi
+        const translations = {
+            tr: {
+                mainTitle: "Coopa Asistan",
+                googleAuth: "Google Takvim'e Bağlan",
+                walletConnect: "🦊 Cüzdan ile Giriş Yap",
+                uploadTitle: "🖼️ Kişisel Anı Yükle",
+                descriptionPlaceholder: "Dosya için kısa bir açıklama...",
+                uploadButton: "Anıyı Kalıcı Olarak Kaydet",
+                promptPlaceholder: "Coopa'ya bir şey sor...",
+                promptPlaceholderMic: "Coopa'ya bir şey sor veya 🎤",
+                submitButton: "Gönder",
+                loadingText: "Yanıt hazırlanıyor...",
+                listeningText: "Dinliyorum...",
+                walletConnectFirst: "İşlem için lütfen önce cüzdanınızı bağlayın...",
+                walletLoginFirst: "Lütfen işlem yapmadan önce cüzdanınızı bağlayın.",
+                selectFile: "Lütfen bir dosya seçin.",
+                uploading: "Dosya yükleniyor, bu işlem biraz zaman alabilir...",
+                uploadError: "Yükleme sırasında bir hata oluştu:",
+                loginRequired: "Giriş yapmak için mesajı imzalamanız gerekmektedir.",
+                installMetaMask: "Lütfen bu özelliği kullanmak için MetaMask cüzdanını kurun.",
+                voiceLoginRequired: "Lütfen sesli komut kullanmadan önce cüzdanınızı bağlayın.",
+                speechError: "Ses tanıma hatası:",
+                loginSuccess: "Giriş Yapıldı:",
+                googleAuthSuccess: "✅ Google Takvim'e başarıyla bağlandınız!",
+                googleAuthError: "❌ Google Takvim'e bağlanırken bir hata oluştu.",
+                popupBlocked: "Tarayıcınız pop-up'ı engelledi. Başarı mesajını görmek için lütfen bu site için pop-up'lara izin verin."
+            },
+            en: {
+                mainTitle: "Coopa Assistant",
+                googleAuth: "Connect to Google Calendar",
+                walletConnect: "🦊 Login with Wallet",
+                uploadTitle: "🖼️ Upload Personal Memory",
+                descriptionPlaceholder: "Short description for the file...",
+                uploadButton: "Save Memory Permanently",
+                promptPlaceholder: "Ask Coopa something...",
+                promptPlaceholderMic: "Ask Coopa something or 🎤",
+                submitButton: "Send",
+                loadingText: "Preparing response...",
+                listeningText: "Listening...",
+                walletConnectFirst: "Please connect your wallet first for transactions...",
+                walletLoginFirst: "Please connect your wallet before proceeding.",
+                selectFile: "Please select a file.",
+                uploading: "File uploading, this may take a moment...",
+                uploadError: "An error occurred during upload:",
+                loginRequired: "You need to sign the message to log in.",
+                installMetaMask: "Please install MetaMask wallet to use this feature.",
+                voiceLoginRequired: "Please connect your wallet before using voice commands.",
+                speechError: "Speech recognition error:",
+                loginSuccess: "Logged In:",
+                googleAuthSuccess: "✅ Successfully connected to Google Calendar!",
+                googleAuthError: "❌ An error occurred while connecting to Google Calendar."
+            },
+            es: {
+                mainTitle: "Asistente Coopa",
+                googleAuth: "Conectar a Google Calendar",
+                walletConnect: "🦊 Iniciar Sesión con Wallet",
+                uploadTitle: "🖼️ Subir Memoria Personal",
+                descriptionPlaceholder: "Descripción breve del archivo...",
+                uploadButton: "Guardar Memoria Permanentemente",
+                promptPlaceholder: "Pregúntale algo a Coopa...",
+                promptPlaceholderMic: "Pregúntale algo a Coopa o 🎤",
+                submitButton: "Enviar",
+                loadingText: "Preparando respuesta...",
+                listeningText: "Escuchando...",
+                walletConnectFirst: "Por favor conecta tu wallet primero para transacciones...",
+                walletLoginFirst: "Por favor conecta tu wallet antes de continuar.",
+                selectFile: "Por favor selecciona un archivo.",
+                uploading: "Subiendo archivo, esto puede tomar un momento...",
+                uploadError: "Ocurrió un error durante la subida:",
+                loginRequired: "Necesitas firmar el mensaje para iniciar sesión.",
+                installMetaMask: "Por favor instala la wallet MetaMask para usar esta función.",
+                voiceLoginRequired: "Por favor conecta tu wallet antes de usar comandos de voz.",
+                speechError: "Error de reconocimiento de voz:",
+                loginSuccess: "Sesión Iniciada:",
+                googleAuthSuccess: "✅ ¡Conectado exitosamente a Google Calendar!",
+                googleAuthError: "❌ Ocurrió un error al conectar con Google Calendar."
+            }
         };
 
-        let conversationHistory = []; let currentUserAddress = null; let sessionSignature = null; let isWalletConnected = false; let isTtsEnabled = localStorage.getItem('ttsEnabled') === 'true'; const synth = window.speechSynthesis;
+        // Dil durumu
+        let currentLanguage = localStorage.getItem('coopaLanguage') || 'tr';
+        
+        // UI öğeleri
+        const elements = { 
+            form: document.getElementById('prompt-form'), 
+            input: document.getElementById('prompt-input'), 
+            chatContainer: document.getElementById('chat-container'), 
+            submitButton: document.getElementById('submit-button'), 
+            loadingIndicator: document.getElementById('loading-indicator'), 
+            micButton: document.getElementById('mic-button'), 
+            ttsButton: document.getElementById('tts-button'),
+            connectWalletButton: document.getElementById('connect-wallet-button'), 
+            walletInfo: document.getElementById('wallet-info'), 
+            googleAuthSection: document.getElementById('google-auth-section'), 
+            uploadForm: document.getElementById('upload-form'),
+            languageSelect: document.getElementById('language-select')
+        };
 
-        const speak = (text) => { if (!isTtsEnabled || !text) return; if (synth.speaking) synth.cancel(); const utterThis = new SpeechSynthesisUtterance(text); utterThis.lang = 'tr-TR'; synth.speak(utterThis); };
-        const toggleForm = (disabled, reason = 'loading') => { elements.input.disabled = disabled; elements.submitButton.disabled = disabled; elements.micButton.disabled = disabled; elements.ttsButton.disabled = disabled; elements.loadingIndicator.style.display = (disabled && reason === 'loading') ? 'block' : 'none'; if (disabled) { if (reason === 'wallet') elements.input.placeholder = "İşlem için lütfen önce cüzdanınızı bağlayın..."; } else { elements.input.placeholder = "Coopa'ya bir şey sor veya 🎤"; elements.input.focus(); } };
+        // Dil güncelleme fonksiyonu
+        function updateLanguage(lang) {
+            currentLanguage = lang;
+            localStorage.setItem('coopaLanguage', lang);
+            document.documentElement.lang = lang;
+            
+            // Metinleri güncelle
+            document.getElementById('main-title').textContent = translations[lang].mainTitle;
+            document.getElementById('google-auth-link').textContent = translations[lang].googleAuth;
+            elements.connectWalletButton.textContent = translations[lang].walletConnect;
+            document.getElementById('upload-title').textContent = translations[lang].uploadTitle;
+            document.getElementById('description-input').placeholder = translations[lang].descriptionPlaceholder;
+            document.getElementById('upload-button').textContent = translations[lang].uploadButton;
+            elements.submitButton.textContent = translations[lang].submitButton;
+            document.getElementById('loading-text').textContent = translations[lang].loadingText;
+            
+            if (isWalletConnected) {
+                elements.input.placeholder = translations[lang].promptPlaceholderMic;
+            } else {
+                elements.input.placeholder = translations[lang].walletConnectFirst;
+            }
+        }
+
+        // Çeviri fonksiyonu
+        function t(key) {
+            return translations[currentLanguage][key] || translations['tr'][key] || key;
+        }
+
+        let conversationHistory = []; 
+        let currentUserAddress = null; 
+        let sessionSignature = null; 
+        let isWalletConnected = false; 
+        let isTtsEnabled = localStorage.getItem('ttsEnabled') === 'true'; 
+        const synth = window.speechSynthesis;
+
+        const speak = (text) => { 
+            if (!isTtsEnabled || !text) return; 
+            if (synth.speaking) synth.cancel(); 
+            const utterThis = new SpeechSynthesisUtterance(text); 
+            utterThis.lang = currentLanguage === 'tr' ? 'tr-TR' : currentLanguage === 'es' ? 'es-ES' : 'en-US'; 
+            synth.speak(utterThis); 
+        };
+        
+        const toggleForm = (disabled, reason = 'loading') => { 
+            elements.input.disabled = disabled; 
+            elements.submitButton.disabled = disabled; 
+            elements.micButton.disabled = disabled; 
+            elements.ttsButton.disabled = disabled; 
+            elements.loadingIndicator.style.display = (disabled && reason === 'loading') ? 'block' : 'none'; 
+            if (disabled) { 
+                if (reason === 'wallet') elements.input.placeholder = t('walletConnectFirst'); 
+            } else { 
+                elements.input.placeholder = t('promptPlaceholderMic'); 
+                elements.input.focus(); 
+            } 
+        };
         
         const displayMemory = (memoryData) => {
             if (!memoryData) return;
             const messageDiv = document.createElement('div');
             messageDiv.className = 'message model-message';
-            let contentHTML = `<p>İsteğiniz üzerine bulunan anı:</p><p><em>${memoryData.description}</em></p>`;
+            let contentHTML = `<p>${currentLanguage === 'tr' ? 'İsteğiniz üzerine bulunan anı:' : currentLanguage === 'es' ? 'Memoria encontrada según su solicitud:' : 'Memory found as per your request:'}</p><p><em>${memoryData.description}</em></p>`;
             if (memoryData.decryptedDataUrl) {
                 contentHTML += `<img src="${memoryData.decryptedDataUrl}" class="memory-image" alt="${memoryData.description}">`;
             } else {
-                contentHTML += `<p>Görsel verisi bulunamadı.</p>`;
+                contentHTML += `<p>${currentLanguage === 'tr' ? 'Görsel verisi bulunamadı.' : currentLanguage === 'es' ? 'Datos visuales no encontrados.' : 'Visual data not found.'}</p>`;
             }
             messageDiv.innerHTML = contentHTML;
             elements.chatContainer.appendChild(messageDiv);
@@ -103,7 +270,12 @@
                         messageDiv.innerHTML = linkify(part.text);
                         lastModelMessageText = part.text;
                     } else if (part.functionCall) {
-                        messageDiv.innerText = `[Coopa, ${part.functionCall.name} aracını kullanıyor...]`;
+                        const toolTexts = {
+                            tr: `[Coopa, ${part.functionCall.name} aracını kullanıyor...]`,
+                            en: `[Coopa is using the ${part.functionCall.name} tool...]`,
+                            es: `[Coopa está usando la herramienta ${part.functionCall.name}...]`
+                        };
+                        messageDiv.innerText = toolTexts[currentLanguage] || toolTexts['tr'];
                         messageDiv.style.fontStyle = 'italic';
                     }
                 }
@@ -115,7 +287,10 @@
         
         const handleFormSubmit = async (event) => {
             if (event) event.preventDefault();
-            if (!isWalletConnected) { alert("Lütfen işlem yapmadan önce cüzdanınızı bağlayın."); return; }
+            if (!isWalletConnected) { 
+                alert(t('walletLoginFirst')); 
+                return; 
+            }
             const prompt = elements.input.value;
             if (!prompt.trim()) return;
             
@@ -126,8 +301,16 @@
             try {
                 const response = await fetch('/generate', {
                     method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ prompt: prompt, history: conversationHistory.slice(0, -1), userAddress: currentUserAddress, signature: sessionSignature })
+                    headers: { 
+                        'Content-Type': 'application/json',
+                        'Accept-Language': currentLanguage 
+                    },
+                    body: JSON.stringify({ 
+                        prompt: prompt, 
+                        history: conversationHistory.slice(0, -1), 
+                        userAddress: currentUserAddress, 
+                        signature: sessionSignature 
+                    })
                 });
                 const data = await response.json();
                 if (!response.ok) throw new Error(data.error || 'Sunucu hatası');
@@ -138,32 +321,173 @@
                     displayMemory(data.displayData);
                 }
             } catch (error) {
-                conversationHistory.push({ role: 'model', parts: [{ text: `Bir hata oluştu: ${error.message}` }] });
+                const errorMessages = {
+                    tr: `Bir hata oluştu: ${error.message}`,
+                    en: `An error occurred: ${error.message}`,
+                    es: `Ocurrió un error: ${error.message}`
+                };
+                conversationHistory.push({ role: 'model', parts: [{ text: errorMessages[currentLanguage] || errorMessages['tr'] }] });
                 renderHistory();
             } finally {
                 toggleForm(isWalletConnected ? false : true, 'wallet');
             }
         };
 
-        const handleLogin = async () => { if (typeof window.ethereum !== 'undefined') { try { const accounts = await window.ethereum.request({ method: 'eth_requestAccounts' }); const account = accounts[0]; const signMessage = "CoopaASI dijital kasanızın kilidini açmak ve işlem yapmak için bu mesajı imzalayın."; const signature = await window.ethereum.request({ method: 'personal_sign', params: [signMessage, account] }); currentUserAddress = account; sessionSignature = signature; isWalletConnected = true; const shortAddress = `${account.substring(0, 6)}...${account.substring(account.length - 4)}`; elements.walletInfo.textContent = `Giriş Yapıldı: ${shortAddress}`; elements.walletInfo.style.display = 'block'; elements.connectWalletButton.style.display = 'none'; toggleForm(false); } catch (error) { console.error("Giriş ve imzalama hatası:", error); alert("Giriş yapmak için mesajı imzalamanız gerekmektedir."); } } else { alert('Lütfen bu özelliği kullanmak için MetaMask cüzdanını kurun.'); } };
-        const handleUpload = async (event) => { event.preventDefault(); if (!isWalletConnected || !sessionSignature) { return alert("Lütfen dosya yüklemeden önce cüzdanınızla giriş yapın."); } const formData = new FormData(); const fileInput = document.getElementById('file-input'); const descriptionInput = document.getElementById('description-input'); if (!fileInput.files[0]) return alert("Lütfen bir dosya seçin."); formData.append('memoryFile', fileInput.files[0]); formData.append('description', descriptionInput.value); formData.append('userAddress', currentUserAddress); formData.append('signature', sessionSignature); alert('Dosya yükleniyor, bu işlem biraz zaman alabilir...'); try { const response = await fetch('/upload', { method: 'POST', body: formData }); const resultHtml = await response.text(); if (!response.ok) throw new Error(resultHtml); const newWindow = window.open(); newWindow.document.write(resultHtml); newWindow.document.close(); fileInput.value = ''; descriptionInput.value = ''; } catch (error) { alert(`Yükleme sırasında bir hata oluştu: ${error.message}`); } };
+        const handleLogin = async () => { 
+            if (typeof window.ethereum !== 'undefined') { 
+                try { 
+                    const accounts = await window.ethereum.request({ method: 'eth_requestAccounts' }); 
+                    const account = accounts[0]; 
+                    const signMessage = "CoopaASI dijital kasanızın kilidini açmak ve işlem yapmak için bu mesajı imzalayın."; 
+                    const signature = await window.ethereum.request({ method: 'personal_sign', params: [signMessage, account] }); 
+                    currentUserAddress = account; 
+                    sessionSignature = signature; 
+                    isWalletConnected = true; 
+                    const shortAddress = `${account.substring(0, 6)}...${account.substring(account.length - 4)}`; 
+                    elements.walletInfo.textContent = `${t('loginSuccess')} ${shortAddress}`; 
+                    elements.walletInfo.style.display = 'block'; 
+                    elements.connectWalletButton.style.display = 'none'; 
+                    toggleForm(false); 
+                } catch (error) { 
+                    console.error("Giriş ve imzalama hatası:", error); 
+                    alert(t('loginRequired')); 
+                } 
+            } else { 
+                alert(t('installMetaMask')); 
+            } 
+        };
+
+        const handleUpload = async (event) => { 
+    event.preventDefault(); 
+    if (!isWalletConnected || !sessionSignature) { 
+        return alert(t('walletLoginFirst')); 
+    } 
+    const formData = new FormData(); 
+    const fileInput = document.getElementById('file-input'); 
+    const descriptionInput = document.getElementById('description-input'); 
+    if (!fileInput.files[0]) return alert(t('selectFile')); 
+    formData.append('memoryFile', fileInput.files[0]); 
+    formData.append('description', descriptionInput.value); 
+    formData.append('userAddress', currentUserAddress); 
+    formData.append('signature', sessionSignature); 
+    alert(t('uploading')); 
+    try { 
+        const response = await fetch('/upload', { 
+            method: 'POST', 
+            headers: {
+                'Accept-Language': currentLanguage
+            },
+            body: formData 
+        }); 
+        const resultHtml = await response.text(); 
+        if (!response.ok) throw new Error(resultHtml); 
+
+        // === GÜNCELLENMİŞ KOD BAŞLANGICI ===
+        const newWindow = window.open(); 
+        if (newWindow) {
+            // Pop-up engellenmediyse, yeni pencereye yaz
+            newWindow.document.write(resultHtml); 
+            newWindow.document.close(); 
+        } else {
+            // Pop-up engellendiyse, kullanıcıyı uyar
+            alert(t('popupBlocked'));
+        }
+        // === GÜNCELLENMİŞ KOD SONU ===
+
+        fileInput.value = ''; 
+        descriptionInput.value = ''; 
+    } catch (error) { 
+        alert(`${t('uploadError')} ${error.message}`); 
+    } 
+};
         
+        // Event listeners
         elements.form.addEventListener('submit', handleFormSubmit);
         elements.uploadForm.addEventListener('submit', handleUpload);
         elements.connectWalletButton.addEventListener('click', handleLogin);
+        
+        // Dil değiştirici
+        elements.languageSelect.addEventListener('change', (e) => {
+            updateLanguage(e.target.value);
+        });
 
         const updateTtsButtonIcon = () => elements.ttsButton.textContent = isTtsEnabled ? '🔊' : '🔇';
         
         window.onload = () => {
+            // Dil ayarını yükle
+            elements.languageSelect.value = currentLanguage;
+            updateLanguage(currentLanguage);
+            
             toggleForm(true, 'wallet');
             updateTtsButtonIcon();
-            elements.ttsButton.addEventListener('click', () => { isTtsEnabled = !isTtsEnabled; localStorage.setItem('ttsEnabled', isTtsEnabled ? 'true' : 'false'); updateTtsButtonIcon(); if (!isTtsEnabled) synth.cancel(); });
+            
+            elements.ttsButton.addEventListener('click', () => { 
+                isTtsEnabled = !isTtsEnabled; 
+                localStorage.setItem('ttsEnabled', isTtsEnabled ? 'true' : 'false'); 
+                updateTtsButtonIcon(); 
+                if (!isTtsEnabled) synth.cancel(); 
+            });
+            
             const params = new URLSearchParams(window.location.search);
-            if (params.get('auth')) { const authStatus = params.get('auth'); const div = document.createElement('div'); div.innerText = authStatus === 'success' ? '✅ Google Takvim\'e başarıyla bağlandınız!' : '❌ Google Takvim\'e bağlanırken bir hata oluştu.'; div.style.color = authStatus === 'success' ? 'green' : 'red'; elements.googleAuthSection.innerHTML = ''; elements.googleAuthSection.appendChild(div); speak(div.innerText); }
+            if (params.get('auth')) { 
+                const authStatus = params.get('auth'); 
+                const div = document.createElement('div'); 
+                div.innerText = authStatus === 'success' ? t('googleAuthSuccess') : t('googleAuthError'); 
+                div.style.color = authStatus === 'success' ? 'green' : 'red'; 
+                elements.googleAuthSection.innerHTML = ''; 
+                elements.googleAuthSection.appendChild(div); 
+                speak(div.innerText); 
+            }
         };
         
+        // Ses tanıma desteği
         const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
-        if (SpeechRecognition) { const recognition = new SpeechRecognition(); recognition.lang = 'tr-TR'; recognition.continuous = false; elements.micButton.addEventListener('click', () => { if (!isWalletConnected) { alert("Lütfen sesli komut kullanmadan önce cüzdanınızı bağlayın."); return; } synth.cancel(); recognition.start(); }); recognition.onstart = () => { elements.micButton.classList.add('listening'); elements.input.placeholder = "Dinliyorum..."; }; recognition.onend = () => { elements.micButton.classList.remove('listening'); if (isWalletConnected) { elements.input.placeholder = "Coopa'ya bir şey sor veya 🎤"; } }; recognition.onresult = (event) => { const transcript = event.results[event.results.length - 1][0].transcript.trim(); elements.input.value = transcript; handleFormSubmit(); }; recognition.onerror = (event) => { alert('Ses tanıma hatası: ' + event.error); }; } else { elements.micButton.style.display = 'none'; }
+        if (SpeechRecognition) { 
+            const recognition = new SpeechRecognition(); 
+            recognition.continuous = false; 
+            
+            // Dil ayarını güncelle
+            const updateRecognitionLanguage = () => {
+                recognition.lang = currentLanguage === 'tr' ? 'tr-TR' : currentLanguage === 'es' ? 'es-ES' : 'en-US';
+            };
+            updateRecognitionLanguage();
+            
+            // Dil değiştiğinde ses tanıma dilini güncelle
+            elements.languageSelect.addEventListener('change', updateRecognitionLanguage);
+            
+            elements.micButton.addEventListener('click', () => { 
+                if (!isWalletConnected) { 
+                    alert(t('voiceLoginRequired')); 
+                    return; 
+                } 
+                synth.cancel(); 
+                recognition.start(); 
+            }); 
+            
+            recognition.onstart = () => { 
+                elements.micButton.classList.add('listening'); 
+                elements.input.placeholder = t('listeningText'); 
+            }; 
+            
+            recognition.onend = () => { 
+                elements.micButton.classList.remove('listening'); 
+                if (isWalletConnected) { 
+                    elements.input.placeholder = t('promptPlaceholderMic'); 
+                } 
+            }; 
+            
+            recognition.onresult = (event) => { 
+                const transcript = event.results[event.results.length - 1][0].transcript.trim(); 
+                elements.input.value = transcript; 
+                handleFormSubmit(); 
+            }; 
+            
+            recognition.onerror = (event) => { 
+                alert(`${t('speechError')} ${event.error}`); 
+            }; 
+        } else { 
+            elements.micButton.style.display = 'none'; 
+        }
     </script>
 </body>
 </html>
