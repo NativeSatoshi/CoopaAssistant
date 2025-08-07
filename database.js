@@ -49,6 +49,7 @@ function initializeDB() {
             console.log('✅ Memories tablosu hazır.');
         });
 
+        
         // Google kimlik doğrulama tablosunu oluştur
         db.run(`CREATE TABLE IF NOT EXISTS google_auth (
             id INTEGER PRIMARY KEY,

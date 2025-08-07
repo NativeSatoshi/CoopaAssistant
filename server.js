@@ -298,71 +298,67 @@ async function saveMemory(irysId, description, mediaType, userAddress, lang = 't
     }); 
 }
 // =================================================================
-// ===     *** NİHAİ ARAMA FONKSİYONU (DÖNGÜ KORUMALI) ***
+// ===     *** NİHAİ find_memory (KARARLI ÇALIŞAN VERSİYON) ***
 // =================================================================
 async function find_memory(searchText, userAddress, signature, lang = 'tr') {
     return new Promise(async (resolve) => {
         const trimmedSearchText = searchText.trim();
 
         // --- AŞAMA 1: BİREBİR EŞLEŞME ARAMASI ---
-        // Kullanıcının verdiği metnin tamamıyla eşleşen bir açıklama var mı diye kontrol et.
         const exactSql = `SELECT * FROM memories WHERE user_address = ? AND description = ?`;
         db.get(exactSql, [userAddress, trimmedSearchText], async (err, exactRow) => {
             if (err) {
                 console.error("❌ Anı aranırken (birebir eşleşme) veritabanı hatası:", err.message);
-                return resolve({ success: false, error: err.message });
+                return resolve({ error: err.message });
             }
 
             if (exactRow) {
-                // Birebir eşleşme bulundu! Doğrudan bu sonucu işle ve döngüyü kır.
                 try {
                     const gatewayUrl = `https://gateway.irys.xyz/${exactRow.irys_id}`;
                     const response = await axios.get(gatewayUrl, { responseType: 'arraybuffer' });
                     const encryptedBuffer = Buffer.from(response.data, 'binary');
                     const decryptedBuffer = decryptBuffer(encryptedBuffer, signature);
                     const decryptedDataUrl = `data:${exactRow.media_type};base64,${decryptedBuffer.toString('base64')}`;
-                    return resolve({ success: true, message: `İstediğiniz anı bulundu: "${exactRow.description}"`, data: { decryptedDataUrl, description: exactRow.description } });
+                    
+                    // DÜZELTME: "return" ifadesi eklendi.
+                    return resolve({ found: true, multiple: false, description: exactRow.description, data: { decryptedDataUrl, description: exactRow.description } });
                 } catch (error) {
                     console.error("❌ Anı deşifre edilirken hata (birebir eşleşme):", error);
-                    return resolve({ success: false, message: t('memory_decrypt_error', lang) });
+                    // DÜZELTME: "return" ifadesi eklendi.
+                    return resolve({ error: 'memory_decrypt_error' });
                 }
             }
 
-            // --- AŞAMA 2: ANAHTAR KELİME ARAMASI (Birebir eşleşme bulunamadıysa) ---
+            // --- AŞAMA 2: ANAHTAR KELİME ARAMASI (Birebir eşleşme bulunamadıysa burası çalışır) ---
             const keywords = trimmedSearchText.split(' ').filter(word => word.length > 2);
             if (keywords.length === 0) {
-                return resolve({ success: false, message: "Arama yapmak için lütfen daha belirgin kelimeler kullanın." });
+                // DÜZELTME: "return" ifadesi eklendi.
+                return resolve({ found: false });
             }
 
             const likeClauses = keywords.map(() => `description LIKE ?`).join(' OR ');
-            const keywordSql = `SELECT irys_id, description, media_type, user_address FROM memories WHERE user_address = ? AND (${likeClauses}) ORDER BY created_at DESC`;
+            const keywordSql = `SELECT * FROM memories WHERE user_address = ? AND (${likeClauses}) ORDER BY created_at DESC`;
             const queryParams = [userAddress, ...keywords.map(kw => `%${kw}%`)];
 
             db.all(keywordSql, queryParams, async (err, rows) => {
                 if (err) {
-                    console.error("❌ Anı aranırken (anahtar kelime) veritabanı hatası:", err.message);
-                    return resolve({ success: false, error: err.message });
+                    return resolve({ error: err.message });
                 }
-
                 if (!rows || rows.length === 0) {
-                    resolve({ success: false, message: `"${trimmedSearchText}" ${t('memory_not_found', lang)}` });
+                    resolve({ found: false });
                 } else if (rows.length === 1) {
                     const row = rows[0];
                     try {
                         const gatewayUrl = `https://gateway.irys.xyz/${row.irys_id}`;
                         const response = await axios.get(gatewayUrl, { responseType: 'arraybuffer' });
-                        const encryptedBuffer = Buffer.from(response.data, 'binary');
-                        const decryptedBuffer = decryptBuffer(encryptedBuffer, signature);
+                        const decryptedBuffer = Buffer.from(response.data, 'binary');
                         const decryptedDataUrl = `data:${row.media_type};base64,${decryptedBuffer.toString('base64')}`;
-                        resolve({ success: true, message: `"${row.description}" ${t('memory_found', lang)}`, data: { decryptedDataUrl, description: row.description } });
+                        resolve({ found: true, multiple: false, description: row.description, data: { decryptedDataUrl, description: row.description } });
                     } catch (error) {
-                        console.error("❌ Anı deşifre edilirken hata (anahtar kelime):", error);
-                        resolve({ success: false, message: t('memory_decrypt_error', lang) });
+                        resolve({ error: 'memory_decrypt_error' });
                     }
                 } else {
-                    const descriptions = rows.map((r, i) => `${i + 1}. "${r.description}"`).join('\n');
-                    const message = `Birden fazla eşleşen anı buldum. Lütfen hangisini istediğinizi daha belirgin bir şekilde belirtin (örn: "Einstein olanı getir"):\n\n${descriptions}`;
-                    resolve({ success: true, message: message, data: null });
+                    resolve({ found: true, multiple: true, descriptions: rows.map(r => r.description) });
                 }
             });
         });
@@ -426,59 +422,86 @@ app.post('/upload', upload.single('memoryFile'), async (req, res) => {
 });
 
 app.post('/generate', async (req, res) => {
-    try {
-        const { prompt, history, userAddress, signature } = req.body;
-        const lang = getUserLanguage(req);
-        
-        if (!userAddress || !signature) { 
-            throw new Error("İstekle birlikte kullanıcı adresi veya imza gönderilmedi."); 
-        }
-        if (!await verifySignature(fixedSignMessage, signature, userAddress)) { 
-            throw new Error(t('invalid_signature', lang)); 
-        }
-        if (!prompt) return res.status(400).json({ error: "Prompt boş olamaz." });
-        
-        let currentHistory = [...(history || []), { role: "user", parts: [{ text: prompt }] }];
-        while (true) {
-            const result = await coopaCore.generateContentFromHistory(currentHistory, lang);
-            if (!result.response?.candidates?.[0]?.content?.parts?.[0]) { 
-                throw new Error("Yapay zekadan geçersiz cevap alındı."); 
-            }
-            const part = result.response.candidates[0].content.parts[0];
+    try {
+        const { prompt, history, userAddress, signature } = req.body;
+        const lang = getUserLanguage(req);
+        
+        if (!userAddress || !signature) { 
+            throw new Error("İstekle birlikte kullanıcı adresi veya imza gönderilmedi."); 
+        }
+        if (!await verifySignature(fixedSignMessage, signature, userAddress)) { 
+            throw new Error(t('invalid_signature', lang)); 
+        }
+        if (!prompt) return res.status(400).json({ error: "Prompt boş olamaz." });
+        
+        let currentHistory = [...(history || []), { role: "user", parts: [{ text: prompt }] }];
+        let displayData = null; // Görüntülenecek veriyi tutmak için döngü dışında tanımlıyoruz.
 
-            if (part.functionCall && part.functionCall.name === 'find_memory') {
-                console.log(`[Araç Çağrısı] -> find_memory`);
-                const toolResult = await find_memory(part.functionCall.args.searchText, userAddress, signature, lang);
-                currentHistory.push({ role: "model", parts: [{ text: toolResult.message }] });
-                return res.json({ history: currentHistory, displayData: toolResult.success ? toolResult.data : null });
-            }
+        while (true) {
+            const result = await coopaCore.generateContentFromHistory(currentHistory, lang);
+            if (!result.response?.candidates?.[0]?.content?.parts?.[0]) { 
+                throw new Error("Yapay zekadan geçersiz cevap alındı."); 
+            }
+            const part = result.response.candidates[0].content.parts[0];
 
-            currentHistory.push({ role: "model", parts: [part] });
-            if (part.functionCall) {
-                console.log(`[Araç Çağrısı] -> ${part.functionCall.name}`);
-                const { name, args } = part.functionCall;
-                if (name === 'send_email') return res.json({ requires_confirmation: true, action_details: args, history: currentHistory });
-                
-                let toolResult;
-                if (name === 'get_note') { toolResult = await get_note(args.noteName, lang); }
-                else if (name === 'get_current_weather') { toolResult = await get_current_weather(args.location, lang); }
-                else if (name === 'create_note') { toolResult = await create_note(args.noteName, args.content, lang); }
-                else if (name === 'edit_note') { toolResult = await edit_note(args.noteName, args.newContent, lang); }
-                else if (name === 'schedule_task') { toolResult = await schedule_task(args, lang); }
-                else if (name === 'get_current_time') { toolResult = await get_current_time(lang); }
-                else if (name === 'create_calendar_event') { toolResult = await create_calendar_event(args.title, args.date, args.time, args.description, lang); }
-                
-                currentHistory.push({ role: "function", parts: [{ functionResponse: { name, response: { result: toolResult } } }] });
-            } else { break; }
-        }
-        coopaCore.uploadToIrys(currentHistory.slice(-2));
-        res.json({ history: currentHistory });
-    } catch (error) {
-        console.error("❌ /generate rotasında hata:", error.message);
-        const lang = getUserLanguage(req);
-        const errHistory = [...(req.body.history || []), { role: "user", parts: [{ text: req.body.prompt }] }, { role: "model", parts: [{ text: t('server_error', lang) }] }];
-        res.status(500).json({ history: errHistory });
-    }
+            // ÖNEMLİ: find_memory için olan eski özel "if" bloğu buradan kaldırıldı.
+
+            currentHistory.push({ role: "model", parts: [part] });
+
+            if (part.functionCall) {
+                console.log(`[Araç Çağrısı] -> ${part.functionCall.name}`);
+                const { name, args } = part.functionCall;
+                
+                if (name === 'send_email') {
+                     const action_details = { 
+                        to: args.to, 
+                        subject: args.subject, 
+                        body: args.body, 
+                        attachmentDescription: args.attachmentDescription 
+                    };
+                    return res.json({ requires_confirmation: true, action_details, history: currentHistory });
+                }
+                
+                let toolResult;
+                
+                if (name === 'get_note') { toolResult = await get_note(args.noteName, lang); }
+                else if (name === 'get_current_weather') { toolResult = await get_current_weather(args.location, lang); }
+                else if (name === 'create_note') { toolResult = await create_note(args.noteName, args.content, lang); }
+                else if (name === 'edit_note') { toolResult = await edit_note(args.noteName, args.newContent, lang); }
+                else if (name === 'schedule_task') { toolResult = await schedule_task(args, lang, userAddress, signature); }
+                else if (name === 'get_current_time') { toolResult = await get_current_time(lang); }
+                else if (name === 'create_calendar_event') { toolResult = await create_calendar_event(args.title, args.date, args.time, args.description, lang); }
+                // YENİ EKLENEN KISIM: find_memory artık standart bir araç gibi burada işleniyor.
+                else if (name === 'find_memory') {
+                    const memoryResult = await find_memory(args.searchText, userAddress, signature, lang);
+
+                    // Yapay zeka için sonucun temiz bir kopyasını oluşturuyoruz.
+                    const resultForAI = { ...memoryResult };
+                    delete resultForAI.data; // Büyük 'data' özelliğini siliyoruz.
+                    
+                    // Yapay zeka sadece bu temiz sonucu görüyor.
+                    toolResult = resultForAI;
+                    
+                    // Eğer tek bir resim bulunduysa, bunu arayüzde göstermek için ayırıyoruz.
+                    if (memoryResult.found && !memoryResult.multiple) {
+                        displayData = memoryResult.data;
+                    }
+                }
+                
+                currentHistory.push({ role: "function", parts: [{ functionResponse: { name, response: { result: toolResult } } }] });
+            } else {
+                break; // Eğer model bir araç çağırmadıysa, bu son cevaptır ve döngüden çıkılır.
+            }
+        }
+        coopaCore.uploadToIrys(currentHistory.slice(-2));
+        // Nihai cevap geçmişini ve varsa görüntülenecek veriyi frontend'e gönderiyoruz.
+        res.json({ history: currentHistory, displayData: displayData });
+    } catch (error) {
+        console.error("❌ /generate rotasında hata:", error.message);
+        const lang = getUserLanguage(req);
+        const errHistory = [...(req.body.history || []), { role: "user", parts: [{ text: req.body.prompt }] }, { role: "model", parts: [{ text: t('server_error', lang) }] }];
+        res.status(500).json({ history: errHistory });
+    }
 });
 
 app.post('/execute-action', async (req, res) => {
