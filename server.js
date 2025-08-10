@@ -14,6 +14,25 @@ const CryptoJS = require("crypto-js");
 const app = express();
 const port = 3000;
 
+// Demo modu kontrol fonksiyonu - BURAYA EKLE (require'lardan sonra)
+function checkAdminAccess(userAddress) {
+    const adminAddresses = process.env.ADMIN_WALLET_ADDRESS?.toLowerCase() || "";
+    
+    if (!adminAddresses) {
+        console.warn('[UYARI] Admin cüzdan adresleri .env dosyasında tanımlanmamış!');
+        return false;
+    }
+    
+    // Virgülle ayrılmış adresleri diziye çevir
+    const adminList = adminAddresses.split(',').map(addr => addr.trim());
+    const userAddr = userAddress.toLowerCase();
+    
+    console.log(`[Demo Kontrol] Kullanıcı: ${userAddr}`);
+    console.log(`[Demo Kontrol] ${adminList.length} admin kayıtlı`);
+    
+    return adminList.includes(userAddr);
+}
+
 // DİL DESTEĞİ SİSTEMİ
 const translations = {
     tr: {
@@ -64,7 +83,7 @@ const translations = {
         missing_info: "Missing information: File, address or signature not specified.",
         server_error: "An error occurred: Server error"
     },
-    es: {
+es: {
         welcome: "¡Hola! ¿Cómo puedo ayudarte?",
         weather_error: "no se pudo obtener información meteorológica para",
         email_sent: "Correo enviado exitosamente a:",
@@ -87,17 +106,150 @@ const translations = {
         invalid_signature: "Firma inválida. Falló la autenticación.",
         missing_info: "Información faltante: Archivo, dirección o firma no especificados.",
         server_error: "Ocurrió un error: Error del servidor"
-    }
+    },
+fr: {
+        welcome: "Bonjour ! Comment puis-je vous aider ?",
+        weather_error: "Impossible d'obtenir les informations météo pour",
+        email_sent: "E-mail envoyé avec succès :",
+        email_error: "Erreur lors de l'envoi de l'e-mail :",
+        note_saved: "note sauvegardée. Nouveau contenu :",
+        note_not_found: "Aucune note trouvée avec le nom",
+        note_empty: "(le contenu de la note est vide)",
+        note_db_error: "Erreur de base de données lors de la lecture de la note :",
+        current_time: "Il est actuellement",
+        current_date: "date",
+        calendar_added: "événement ajouté à votre calendrier.",
+        calendar_error: "Impossible de créer l'événement du calendrier :",
+        task_scheduled: "Tâche programmée avec succès.",
+        task_reminder: "sujet à",
+        memory_saved: "mémoire sauvegardée dans la base de données pour l'utilisateur à l'adresse",
+        memory_found: "mémoire trouvée avec description",
+        memory_not_found: "Aucune mémoire trouvée correspondant à",
+        memory_decrypt_error: "Mémoire trouvée mais impossible à déchiffrer.",
+        upload_success: "Mémoire cryptée et sauvegardée définitivement avec succès !",
+        invalid_signature: "Signature invalide. Authentification échouée.",
+        missing_info: "Informations manquantes : Fichier, adresse ou signature non spécifiés.",
+        server_error: "Une erreur s'est produite : Erreur serveur"
+    },
+it: {
+        welcome: "Ciao! Come posso aiutarti?",
+        weather_error: "Impossibile ottenere informazioni meteo per",
+        email_sent: "Email inviata con successo:",
+        email_error: "Errore nell'invio dell'email:",
+        note_saved: "nota salvata. Nuovo contenuto:",
+        note_not_found: "Nessuna nota trovata con il nome",
+        note_empty: "(il contenuto della nota è vuoto)",
+        note_db_error: "Errore del database durante la lettura della nota:",
+        current_time: "Ora sono le",
+        current_date: "data",
+        calendar_added: "evento aggiunto al tuo calendario.",
+        calendar_error: "Impossibile creare l'evento del calendario:",
+        task_scheduled: "Attività programmata con successo.",
+        task_reminder: "oggetto alle",
+        memory_saved: "memoria salvata nel database per l'utente all'indirizzo",
+        memory_found: "memoria trovata con descrizione",
+        memory_not_found: "Nessuna memoria trovata corrispondente a",
+        memory_decrypt_error: "Memoria trovata ma impossibile da decifrare.",
+        upload_success: "Memoria crittografata e salvata permanentemente con successo!",
+        invalid_signature: "Firma non valida. Autenticazione fallita.",
+        missing_info: "Informazioni mancanti: File, indirizzo o firma non specificati.",
+        server_error: "Si è verificato un errore: Errore del server"
+    },
+zh: {
+        welcome: "你好！我能为您做什么？",
+        weather_error: "无法获取天气信息",
+        email_sent: "邮件发送成功：",
+        email_error: "发送邮件时出错：",
+        note_saved: "笔记已保存。新内容：",
+        note_not_found: "未找到名为",
+        note_empty: "（笔记内容为空）",
+        note_db_error: "读取笔记时发生数据库错误：",
+        current_time: "现在是",
+        current_date: "日期",
+        calendar_added: "事件已添加到您的日历。",
+        calendar_error: "无法创建日历事件：",
+        task_scheduled: "任务安排成功。",
+        task_reminder: "主题在",
+        memory_saved: "地址用户的记忆已保存到数据库。",
+        memory_found: "找到描述为",
+        memory_not_found: "未找到匹配的记忆",
+        memory_decrypt_error: "找到记忆但无法解密。",
+        upload_success: "记忆已成功加密并永久保存！",
+        invalid_signature: "无效签名。身份验证失败。",
+        missing_info: "信息不完整：未指定文件、地址或签名。",
+        server_error: "发生错误：服务器错误"
+    },
+de: {
+        welcome: "Hallo! Wie kann ich Ihnen helfen?",
+        weather_error: "Wetterinformationen für",
+        email_sent: "E-Mail erfolgreich gesendet:",
+        email_error: "Fehler beim Senden der E-Mail:",
+        note_saved: "Notiz gespeichert. Neuer Inhalt:",
+        note_not_found: "Keine Notiz mit dem Namen gefunden",
+        note_empty: "(der Notizinhalt ist leer)",
+        note_db_error: "Datenbankfehler beim Lesen der Notiz:",
+        current_time: "Es ist jetzt",
+        current_date: "Datum",
+        calendar_added: "Ereignis zu Ihrem Kalender hinzugefügt.",
+        calendar_error: "Kalenderereignis konnte nicht erstellt werden:",
+        task_scheduled: "Aufgabe erfolgreich geplant.",
+        task_reminder: "Betreff um",
+        memory_saved: "Erinnerung in der Datenbank für Benutzer an Adresse gespeichert",
+        memory_found: "Erinnerung mit Beschreibung gefunden",
+        memory_not_found: "Keine passende Erinnerung gefunden für",
+        memory_decrypt_error: "Erinnerung gefunden, aber kann nicht entschlüsselt werden.",
+        upload_success: "Erinnerung erfolgreich verschlüsselt und dauerhaft gespeichert!",
+        invalid_signature: "Ungültige Signatur. Authentifizierung fehlgeschlagen.",
+        missing_info: "Fehlende Informationen: Datei, Adresse oder Signatur nicht angegeben.",
+        server_error: "Ein Fehler ist aufgetreten: Server-Fehler"
+    },
+ru: {
+        welcome: "Привет! Как я могу вам помочь?",
+        weather_error: "Не удалось получить информацию о погоде для",
+        email_sent: "Письмо успешно отправлено:",
+        email_error: "Ошибка при отправке письма:",
+        note_saved: "заметка сохранена. Новое содержание:",
+        note_not_found: "Заметка с именем не найдена",
+        note_empty: "(содержание заметки пустое)",
+        note_db_error: "Ошибка базы данных при чтении заметки:",
+        current_time: "Сейчас",
+        current_date: "дата",
+        calendar_added: "событие добавлено в ваш календарь.",
+        calendar_error: "Не удалось создать событие календаря:",
+        task_scheduled: "Задача успешно запланирована.",
+        task_reminder: "тема в",
+        memory_saved: "память сохранена в базе данных для пользователя по адресу",
+        memory_found: "найдена память с описанием",
+        memory_not_found: "Не найдено подходящей памяти для",
+        memory_decrypt_error: "Память найдена, но не может быть расшифрована.",
+        upload_success: "Память успешно зашифрована и сохранена навсегда!",
+        invalid_signature: "Недействительная подпись. Аутентификация не удалась.",
+        missing_info: "Отсутствует информация: Файл, адрес или подпись не указаны.",
+        server_error: "Произошла ошибка: Ошибка сервера"
+    }
+    
 };
 
 // Dil belirleme fonksiyonu
 function getUserLanguage(req) {
-    const lang = req.headers['accept-language'];
-    if (lang) {
-        if (lang.includes('tr')) return 'tr';
-        if (lang.includes('es')) return 'es';
-    }
-    return 'en'; // varsayılan
+    // Önce kullanıcının seçtiği dili kontrol et
+    const userSelectedLang = req.body.lang || req.query.lang;
+    if (userSelectedLang) {
+        return userSelectedLang;
+    }
+    
+    // Fallback olarak browser dilini kontrol et
+    const browserLang = req.headers['accept-language'];
+    if (browserLang) {
+        if (browserLang.includes('tr')) return 'tr';
+        if (browserLang.includes('es')) return 'es';
+        if (browserLang.includes('fr')) return 'fr';
+        if (browserLang.includes('it')) return 'it';
+        if (browserLang.includes('zh')) return 'zh';
+        if (browserLang.includes('de')) return 'de';
+        if (browserLang.includes('ru')) return 'ru';
+    }
+    return 'en'; // varsayılan
 }
 
 function t(key, lang = 'tr') {
@@ -114,8 +266,55 @@ const upload = multer({ storage: storage });
 const oauth2Client = new google.auth.OAuth2(process.env.GOOGLE_CLIENT_ID, process.env.GOOGLE_CLIENT_SECRET, process.env.GOOGLE_REDIRECT_URI);
 
 // --- YARDIMCI FONKSİYONLAR ---
-const encryptBuffer = (buffer, key) => { const wordArray = CryptoJS.lib.WordArray.create(buffer); const encrypted = CryptoJS.AES.encrypt(wordArray, key).toString(); return Buffer.from(encrypted, 'utf-8'); };
-const decryptBuffer = (encryptedBuffer, key) => { const encryptedString = encryptedBuffer.toString('utf-8'); const decrypted = CryptoJS.AES.decrypt(encryptedString, key); const typedArray = new Uint8Array(decrypted.words.length * 4); for (let i = 0; i < decrypted.words.length; i++) { typedArray[i*4] = (decrypted.words[i] >> 24) & 0xff; typedArray[i*4+1] = (decrypted.words[i] >> 16) & 0xff; typedArray[i*4+2] = (decrypted.words[i] >> 8) & 0xff; typedArray[i*4+3] = decrypted.words[i] & 0xff; } return Buffer.from(typedArray.buffer, 0, decrypted.sigBytes); };
+// server.js dosyasındaki eski encryptBuffer ve decryptBuffer fonksiyonlarını silip
+// yerlerine bu YENİ ve DAHA SAĞLAM versiyonları yapıştırın.
+
+const encryptBuffer = (buffer, key) => {
+    // Dosya tamponunu (Buffer) doğrudan CryptoJS'un anlayacağı WordArray formatına çeviriyoruz.
+    const wordArray = CryptoJS.lib.WordArray.create(buffer);
+    // WordArray'i AES ile şifreliyoruz.
+    const encrypted = CryptoJS.AES.encrypt(wordArray, key);
+    // Şifrelenmiş veriyi, güvenli bir metin formatı olan Base64'e çeviriyoruz.
+    // Bu, verinin bozulmadan saklanmasını ve taşınmasını sağlar.
+    return Buffer.from(encrypted.toString(), 'utf-8');
+};
+
+// server.js dosyasındaki decryptBuffer fonksiyonunu bu YENİ versiyonla değiştirin.
+
+const decryptBuffer = (encryptedBuffer, key) => {
+    console.log("\n--- ŞİFRE ÇÖZME (DEBUG) BAŞLADI ---");
+    try {
+        console.log(`[DEBUG] 1. Gelen şifreli verinin boyutu: ${encryptedBuffer.length} byte`);
+
+        const encryptedString = encryptedBuffer.toString('utf-8');
+        console.log(`[DEBUG] 2. Metne çevrilen şifreli veri (ilk 30 karakter): '${encryptedString.substring(0, 30)}...'`);
+
+        const decrypted = CryptoJS.AES.decrypt(encryptedString, key);
+        // Deşifre edilen verinin boyutunu kontrol edelim. 0'dan büyük olmalı.
+        console.log(`[DEBUG] 3. CryptoJS deşifre işlemi sonucu (içerik boyutu): ${decrypted.sigBytes} byte`);
+
+        if (decrypted.sigBytes <= 0) {
+            console.error("[DEBUG] HATA: Deşifre işlemi boş veri döndürdü! Anahtar veya şifreli veri hatalı olabilir.");
+            console.log("--- ŞİFRE ÇÖZME (DEBUG) BAŞARISIZ OLDU ---\n");
+            return Buffer.from(''); // Boş buffer döndür
+        }
+
+        const hexString = decrypted.toString(CryptoJS.enc.Hex);
+        console.log(`[DEBUG] 4. Hex formatına çevrilen veri (ilk 30 karakter): '${hexString.substring(0, 30)}...'`);
+
+        const finalBuffer = Buffer.from(hexString, 'hex');
+        console.log(`[DEBUG] 5. Sonuç olarak üretilen Buffer boyutu: ${finalBuffer.length} byte`);
+
+        console.log("--- ŞİFRE ÇÖZME (DEBUG) BAŞARIYLA TAMAMLANDI ---\n");
+        return finalBuffer;
+
+    } catch (error) {
+        console.error("[DEBUG] HATA: Şifre çözme sırasında beklenmedik bir hata oluştu!", error);
+        console.log("--- ŞİFRE ÇÖZME (DEBUG) BAŞARISIZ OLDU ---\n");
+        return Buffer.from(''); // Hata durumunda boş buffer döndür
+    }
+};
+
 const fixedSignMessage = "CoopaASI dijital kasanızın kilidini açmak ve işlem yapmak için bu mesajı imzalayın.";
 
 async function verifySignature(message, signature, expectedAddress) { 
@@ -283,11 +482,10 @@ async function schedule_task(args, lang = 'tr') {
 // =================================================================
 // ===               *** HATA DÜZELTME ALANI SONU *** ===
 // =================================================================
-
-async function saveMemory(irysId, description, mediaType, userAddress, lang = 'tr') { 
+async function saveMemory(txId, description, mediaType, userAddress, lang = 'tr') { 
     return new Promise((resolve, reject) => { 
-        const sql = `INSERT INTO memories (irys_id, description, media_type, user_address) VALUES (?, ?, ?, ?)`; 
-        db.run(sql, [irysId, description, mediaType, userAddress], function (err) { 
+        const sql = `INSERT INTO memories (tx_id, description, media_type, user_address) VALUES (?, ?, ?, ?)`; 
+        db.run(sql, [txId, description, mediaType, userAddress], function (err) { 
             if (err) { 
                 console.error("Veritabanına anı kaydedilirken hata:", err.message); 
                 return reject(err); 
@@ -297,9 +495,9 @@ async function saveMemory(irysId, description, mediaType, userAddress, lang = 't
         }); 
     }); 
 }
-// =================================================================
-// ===     *** NİHAİ find_memory (KARARLI ÇALIŞAN VERSİYON) ***
-// =================================================================
+
+// server.js dosyasındaki find_memory fonksiyonunu bu YENİ versiyonla değiştirin.
+
 async function find_memory(searchText, userAddress, signature, lang = 'tr') {
     return new Promise(async (resolve) => {
         const trimmedSearchText = searchText.trim();
@@ -314,7 +512,7 @@ async function find_memory(searchText, userAddress, signature, lang = 'tr') {
 
             if (exactRow) {
                 try {
-                    const gatewayUrl = `https://gateway.irys.xyz/${exactRow.irys_id}`;
+                    const gatewayUrl = `https://arweave.net/${exactRow.tx_id}`;
                     const response = await axios.get(gatewayUrl, { responseType: 'arraybuffer' });
                     const encryptedBuffer = Buffer.from(response.data, 'binary');
                     const decryptedBuffer = decryptBuffer(encryptedBuffer, signature);
@@ -349,7 +547,7 @@ async function find_memory(searchText, userAddress, signature, lang = 'tr') {
                 } else if (rows.length === 1) {
                     const row = rows[0];
                     try {
-                        const gatewayUrl = `https://gateway.irys.xyz/${row.irys_id}`;
+                        const gatewayUrl = `https://arweave.net/${row.tx_id}`;
                         const response = await axios.get(gatewayUrl, { responseType: 'arraybuffer' });
                         const decryptedBuffer = Buffer.from(response.data, 'binary');
                         const decryptedDataUrl = `data:${row.media_type};base64,${decryptedBuffer.toString('base64')}`;
@@ -398,19 +596,43 @@ app.post('/upload', upload.single('memoryFile'), async (req, res) => {
         if (!await verifySignature(fixedSignMessage, signature, userAddress)) { 
             return res.status(401).send(t('invalid_signature', lang)); 
         } 
+
+  // --- DEMO MODU KONTROLÜ EKLE ---
+        if (!checkAdminAccess(userAddress)) {
+            console.log(`[Demo] ${userAddress} görsel yükleme denedi - engellendi`);
+            return res.status(403).json({ 
+                success: false, 
+                error: "🔒 Bu bir demo versiyonudur. Görsel yükleme admin erişimi gerektirir. Tam erişim için bizimle iletişime geçin."
+            });
+        }
+        console.log(`[Admin İşlem] ${userAddress} görsel yüklüyor - izin verildi`);
+        // --- KONTROL SONU ---
+
+
         const encryptedBuffer = encryptBuffer(file.buffer, signature); 
         const tags = [{ name: "Content-Type", value: "text/plain" }]; 
         const receipt = await coopaCore.uploadFileToIrys(encryptedBuffer, tags); 
         if (!receipt) { 
-            throw new Error("Irys'e şifreli yükleme başarısız oldu."); 
+            throw new Error("Turbo'ya şifreli yükleme başarısız oldu."); 
         } 
         await saveMemory(receipt.id, description, file.mimetype, userAddress, lang); 
-        const gatewayUrl = `https://gateway.irys.xyz/${receipt.id}`; 
+        const gatewayUrl = `https://arweave.net/${receipt.id}`; 
         
         const successMessages = {
-            tr: `<div style="font-family: sans-serif; padding: 20px;"><h1>✅ ${t('upload_success', 'tr')}</h1><p><b>Açıklama:</b> ${description}</p><p><b>Irys İşlem ID:</b> ${receipt.id}</p><p><a href="${gatewayUrl}" target="_blank">Kaydedilen Şifreli Dosyayı Irys'te Görüntüle</a></p><br><a href="/">Sohbete Geri Dön</a></div>`,
-            en: `<div style="font-family: sans-serif; padding: 20px;"><h1>✅ ${t('upload_success', 'en')}</h1><p><b>Description:</b> ${description}</p><p><b>Irys Transaction ID:</b> ${receipt.id}</p><p><a href="${gatewayUrl}" target="_blank">View Encrypted File on Irys</a></p><br><a href="/">Back to Chat</a></div>`,
-            es: `<div style="font-family: sans-serif; padding: 20px;"><h1>✅ ${t('upload_success', 'es')}</h1><p><b>Descripción:</b> ${description}</p><p><b>ID de Transacción Irys:</b> ${receipt.id}</p><p><a href="${gatewayUrl}" target="_blank">Ver Archivo Cifrado en Irys</a></p><br><a href="/">Volver al Chat</a></div>`
+            tr: `<div style="font-family: sans-serif; padding: 20px;"><h1>✅ ${t('upload_success', 'tr')}</h1><p><b>Açıklama:</b> ${description}</p><p><b>Arweave İşlem ID:</b> ${receipt.id}</p><p><a href="${gatewayUrl}" target="_blank">Kaydedilen Şifreli Dosyayı Arweave'de Görüntüle</a></p><br><a href="/">Sohbete Geri Dön</a></div>`,
+            en: `<div style="font-family: sans-serif; padding: 20px;"><h1>✅ ${t('upload_success', 'en')}</h1><p><b>Description:</b> ${description}</p><p><b>Arweave Transaction ID:</b> ${receipt.id}</p><p><a href="${gatewayUrl}" target="_blank">View Saved Encrypted File on Arweave</a></p><br><a href="/">Back to Chat</a></div>`,
+
+            es: `<div style="font-family: sans-serif; padding: 20px;"><h1>✅ ${t('upload_success', 'es')}</h1><p><b>Descripción:</b> ${description}</p><p><b>ID de Transacción Arweave:</b> ${receipt.id}</p><p><a href="${gatewayUrl}" target="_blank">Ver Archivo Cifrado Guardado en Arweave</a></p><br><a href="/">Volver al Chat</a></div>`,
+
+            fr: `<div style="font-family: sans-serif; padding: 20px;"><h1>✅ ${t('upload_success', 'fr')}</h1><p><b>Description :</b> ${description}</p><p><b>ID de Transaction Arweave :</b> ${receipt.id}</p><p><a href="${gatewayUrl}" target="_blank">Voir le Fichier Crypté Sauvegardé sur Arweave</a></p><br><a href="/">Retour au Chat</a></div>`,
+
+            it: `<div style="font-family: sans-serif; padding: 20px;"><h1>✅ ${t('upload_success', 'it')}</h1><p><b>Descrizione:</b> ${description}</p><p><b>ID Transazione Arweave:</b> ${receipt.id}</p><p><a href="${gatewayUrl}" target="_blank">Visualizza File Crittografato Salvato su Arweave</a></p><br><a href="/">Torna alla Chat</a></div>`,
+
+            zh: `<div style="font-family: sans-serif; padding: 20px;"><h1>✅ ${t('upload_success', 'zh')}</h1><p><b>描述：</b> ${description}</p><p><b>Arweave 交易 ID：</b> ${receipt.id}</p><p><a href="${gatewayUrl}" target="_blank">在 Arweave 上查看已保存的加密文件</a></p><br><a href="/">返回聊天</a></div>`,
+
+           de: `<div style="font-family: sans-serif; padding: 20px;"><h1>✅ ${t('upload_success', 'de')}</h1><p><b>Beschreibung:</b> ${description}</p><p><b>Arweave Transaktions-ID:</b> ${receipt.id}</p><p><a href="${gatewayUrl}" target="_blank">Gespeicherte verschlüsselte Datei auf Arweave anzeigen</a></p><br><a href="/">Zurück zum Chat</a></div>`,
+
+           ru: `<div style="font-family: sans-serif; padding: 20px;"><h1>✅ ${t('upload_success', 'ru')}</h1><p><b>Описание:</b> ${description}</p><p><b>ID Транзакции Arweave:</b> ${receipt.id}</p><p><a href="${gatewayUrl}" target="_blank">Просмотреть сохранённый зашифрованный файл на Arweave</a></p><br><a href="/">Вернуться к чату</a></div>`
         };
         
         res.send(successMessages[lang] || successMessages['en']); 
@@ -433,6 +655,84 @@ app.post('/generate', async (req, res) => {
             throw new Error(t('invalid_signature', lang)); 
         }
         if (!prompt) return res.status(400).json({ error: "Prompt boş olamaz." });
+        
+        // --- DEMO MODU KONTROLÜ ---
+        if (!checkAdminAccess(userAddress)) {
+            console.log(`[Demo] ${userAddress} AI sohbet denedi - demo cevabı veriliyor`);
+            
+            const demoMessages = {
+                tr: `🔒 **COOPA AI Demo Modu**
+
+Merhaba! Bu COOPA AI'nın halka açık demo versiyonu.
+
+**Demo'da kullanabileceğiniz özellikler:**
+✅ Cüzdan bağlantısı
+✅ Arayüz keşfi  
+✅ Genel navigasyon
+
+**Admin erişimi ile mevcut özellikler:**
+🔒 AI destekli akıllı sohbet
+🔒 Gelişmiş hafıza arama
+🔒 Arweave entegrasyonu
+🔒 Akıllı araçlar (hava durumu, notlar, takvim)
+
+Tam erişim için bizimle iletişime geçin!`,
+                
+                en: `🔒 **COOPA AI Demo Mode**
+
+Hello! This is the public demo version of COOPA AI.
+
+**Available features in demo:**
+✅ Wallet connection
+✅ Interface exploration
+✅ General navigation
+
+**Features available with admin access:**
+🔒 AI-powered smart chat
+🔒 Advanced memory search
+🔒 Arweave integration  
+🔒 Smart tools (weather, notes, calendar)
+
+Contact us for full access!`,
+                
+                es: `🔒 **Modo Demo de COOPA AI**
+
+¡Hola! Esta es la versión demo pública de COOPA AI.
+
+**Características disponibles en demo:**
+✅ Conexión de billetera
+✅ Exploración de interfaz
+✅ Navegación general
+
+**Características disponibles con acceso admin:**
+🔒 Chat inteligente con IA
+🔒 Búsqueda avanzada de memoria
+🔒 Integración Arweave
+🔒 Herramientas inteligentes (clima, notas, calendario)
+
+¡Contáctanos para acceso completo!`
+            };
+            
+            const demoResponse = {
+                role: "model", 
+                parts: [{ 
+                    text: demoMessages[lang] || demoMessages['en']
+                }]
+            };
+            
+            const demoHistory = [
+                ...(history || []), 
+                { role: "user", parts: [{ text: prompt }] },
+                demoResponse
+            ];
+            
+            return res.json({ 
+                history: demoHistory,
+                displayData: null 
+            });
+        }
+        console.log(`[Admin Sohbet] ${userAddress} AI ile sohbet ediyor - izin verildi`);
+        // --- KONTROL SONU ---
         
         let currentHistory = [...(history || []), { role: "user", parts: [{ text: prompt }] }];
         let displayData = null; // Görüntülenecek veriyi tutmak için döngü dışında tanımlıyoruz.
@@ -544,4 +844,4 @@ const startServer = async () => {
     }
 };
 
-startServer();
+startServer()

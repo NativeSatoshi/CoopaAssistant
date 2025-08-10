@@ -47,13 +47,18 @@
 <body>
     <h1 id="main-title">Coopa Asistan</h1>
     
-    <div id="language-selector">
-        <select id="language-select">
-            <option value="tr">🇹🇷 Türkçe</option>
-            <option value="en">🇺🇸 English</option>
-            <option value="es">🇪🇸 Español</option>
-        </select>
-    </div>
+  <div id="language-selector">
+    <select id="language-select">
+        <option value="tr">🇹🇷 Türkçe</option>
+        <option value="en">🇺🇸 English</option>
+        <option value="es">🇪🇸 Español</option>
+        <option value="fr">🇫🇷 Français</option>
+        <option value="it">🇮🇹 Italiano</option>
+        <option value="zh">🇨🇳 中文</option>
+        <option value="de">🇩🇪 Deutsch</option>
+        <option value="ru">🇷🇺 Русский</option>
+    </select>
+</div>
     
     <div id="auth-container">
         <div id="google-auth-section">
@@ -182,7 +187,152 @@
                 chooseFileButton: "Seleccionar Archivo",
                 noFileChosen: "Ningún archivo seleccionado",
                 logoutTitle: "Cerrar Sesión"
-            }
+            },
+            fr: {
+    mainTitle: "Assistant Coopa",
+    googleAuth: "Se connecter à Google Calendar",
+    walletConnect: "🦊 Se connecter avec Wallet",
+    uploadTitle: "🖼️ Télécharger Mémoire Personnelle",
+    descriptionPlaceholder: "Brève description du fichier...",
+    uploadButton: "Sauvegarder la Mémoire Définitivement",
+    promptPlaceholder: "Demandez quelque chose à Coopa...",
+    promptPlaceholderMic: "Demandez quelque chose à Coopa ou 🎤",
+    submitButton: "Envoyer",
+    loadingText: "Préparation de la réponse...",
+    listeningText: "Écoute...",
+    walletConnectFirst: "Veuillez d'abord connecter votre wallet pour les transactions...",
+    walletLoginFirst: "Veuillez connecter votre wallet avant de faire des transactions.",
+    selectFile: "Veuillez sélectionner un fichier.",
+    uploading: "Téléchargement du fichier, cela peut prendre du temps...",
+    uploadError: "Une erreur s'est produite lors du téléchargement:",
+    loginRequired: "Vous devez signer le message pour vous connecter.",
+    installMetaMask: "Veuillez installer le wallet MetaMask pour utiliser cette fonctionnalité.",
+    voiceLoginRequired: "Veuillez connecter votre wallet avant d'utiliser les commandes vocales.",
+    speechError: "Erreur de reconnaissance vocale:",
+    loginSuccess: "Connecté:",
+    googleAuthSuccess: "✅ Connecté avec succès à Google Calendar!",
+    googleAuthError: "❌ Une erreur s'est produite lors de la connexion à Google Calendar.",
+    popupBlocked: "Votre navigateur a bloqué le popup. Veuillez autoriser les popups pour ce site pour voir le message de succès.",
+    chooseFileButton: "Choisir un Fichier",
+    noFileChosen: "Aucun fichier choisi",
+    logoutTitle: "Déconnexion"
+},
+it: {
+    mainTitle: "Assistente Coopa",
+    googleAuth: "Connetti a Google Calendar",
+    walletConnect: "🦊 Accedi con Wallet",
+    uploadTitle: "🖼️ Carica Memoria Personale",
+    descriptionPlaceholder: "Breve descrizione del file...",
+    uploadButton: "Salva Memoria Permanentemente",
+    promptPlaceholder: "Chiedi qualcosa a Coopa...",
+    promptPlaceholderMic: "Chiedi qualcosa a Coopa o 🎤",
+    submitButton: "Invia",
+    loadingText: "Preparando risposta...",
+    listeningText: "Ascoltando...",
+    walletConnectFirst: "Per favore connetti prima il tuo wallet per le transazioni...",
+    walletLoginFirst: "Per favore connetti il tuo wallet prima di fare transazioni.",
+    selectFile: "Per favore seleziona un file.",
+    uploading: "Caricamento file, questo potrebbe richiedere del tempo...",
+    uploadError: "Si è verificato un errore durante il caricamento:",
+    loginRequired: "Devi firmare il messaggio per accedere.",
+    installMetaMask: "Per favore installa il wallet MetaMask per utilizzare questa funzionalità.",
+    voiceLoginRequired: "Per favore connetti il tuo wallet prima di usare i comandi vocali.",
+    speechError: "Errore di riconoscimento vocale:",
+    loginSuccess: "Accesso Effettuato:",
+    googleAuthSuccess: "✅ Connesso con successo a Google Calendar!",
+    googleAuthError: "❌ Si è verificato un errore durante la connessione a Google Calendar.",
+    popupBlocked: "Il tuo browser ha bloccato il popup. Per favore consenti i popup per questo sito per vedere il messaggio di successo.",
+    chooseFileButton: "Scegli File",
+    noFileChosen: "Nessun file scelto",
+    logoutTitle: "Disconnetti"
+},
+zh: {
+    mainTitle: "Coopa 助手",
+    googleAuth: "连接到 Google 日历",
+    walletConnect: "🦊 使用钱包登录",
+    uploadTitle: "🖼️ 上传个人记忆",
+    descriptionPlaceholder: "文件的简短描述...",
+    uploadButton: "永久保存记忆",
+    promptPlaceholder: "向 Coopa 提问...",
+    promptPlaceholderMic: "向 Coopa 提问或 🎤",
+    submitButton: "发送",
+    loadingText: "正在准备回复...",
+    listeningText: "正在聆听...",
+    walletConnectFirst: "请先连接您的钱包进行交易...",
+    walletLoginFirst: "请在进行交易前连接您的钱包。",
+    selectFile: "请选择一个文件。",
+    uploading: "文件上传中，这可能需要一些时间...",
+    uploadError: "上传过程中发生错误：",
+    loginRequired: "您需要签署消息才能登录。",
+    installMetaMask: "请安装 MetaMask 钱包以使用此功能。",
+    voiceLoginRequired: "请在使用语音命令前连接您的钱包。",
+    speechError: "语音识别错误：",
+    loginSuccess: "已登录：",
+    googleAuthSuccess: "✅ 成功连接到 Google 日历！",
+    googleAuthError: "❌ 连接 Google 日历时发生错误。",
+    popupBlocked: "您的浏览器阻止了弹出窗口。请为此站点允许弹出窗口以查看成功消息。",
+    chooseFileButton: "选择文件",
+    noFileChosen: "未选择文件",
+    logoutTitle: "登出"
+},
+de: {
+    mainTitle: "Coopa Assistent",
+    googleAuth: "Mit Google Kalender verbinden",
+    walletConnect: "🦊 Mit Wallet anmelden",
+    uploadTitle: "🖼️ Persönliche Erinnerung hochladen",
+    descriptionPlaceholder: "Kurze Beschreibung der Datei...",
+    uploadButton: "Erinnerung dauerhaft speichern",
+    promptPlaceholder: "Fragen Sie Coopa etwas...",
+    promptPlaceholderMic: "Fragen Sie Coopa etwas oder 🎤",
+    submitButton: "Senden",
+    loadingText: "Antwort wird vorbereitet...",
+    listeningText: "Höre zu...",
+    walletConnectFirst: "Bitte verbinden Sie zuerst Ihr Wallet für Transaktionen...",
+    walletLoginFirst: "Bitte verbinden Sie Ihr Wallet vor Transaktionen.",
+    selectFile: "Bitte wählen Sie eine Datei aus.",
+    uploading: "Datei wird hochgeladen, dies kann etwas dauern...",
+    uploadError: "Ein Fehler beim Hochladen ist aufgetreten:",
+    loginRequired: "Sie müssen die Nachricht signieren, um sich anzumelden.",
+    installMetaMask: "Bitte installieren Sie das MetaMask Wallet, um diese Funktion zu nutzen.",
+    voiceLoginRequired: "Bitte verbinden Sie Ihr Wallet vor der Nutzung von Sprachbefehlen.",
+    speechError: "Spracherkennungsfehler:",
+    loginSuccess: "Angemeldet:",
+    googleAuthSuccess: "✅ Erfolgreich mit Google Kalender verbunden!",
+    googleAuthError: "❌ Ein Fehler beim Verbinden mit Google Kalender ist aufgetreten.",
+    popupBlocked: "Ihr Browser hat das Popup blockiert. Bitte erlauben Sie Popups für diese Seite, um die Erfolgsmeldung zu sehen.",
+    chooseFileButton: "Datei Wählen",
+    noFileChosen: "Keine Datei gewählt",
+    logoutTitle: "Abmelden"
+},
+ru: {
+    mainTitle: "Помощник Coopa",
+    googleAuth: "Подключиться к Google Календарю",
+    walletConnect: "🦊 Войти через Кошелёк",
+    uploadTitle: "🖼️ Загрузить Личную Память",
+    descriptionPlaceholder: "Краткое описание файла...",
+    uploadButton: "Сохранить Память Навсегда",
+    promptPlaceholder: "Спросите что-то у Coopa...",
+    promptPlaceholderMic: "Спросите что-то у Coopa или 🎤",
+    submitButton: "Отправить",
+    loadingText: "Подготовка ответа...",
+    listeningText: "Слушаю...",
+    walletConnectFirst: "Пожалуйста, сначала подключите ваш кошелёк для транзакций...",
+    walletLoginFirst: "Пожалуйста, подключите ваш кошелёк перед совершением транзакций.",
+    selectFile: "Пожалуйста, выберите файл.",
+    uploading: "Загрузка файла, это может занять некоторое время...",
+    uploadError: "Произошла ошибка при загрузке:",
+    loginRequired: "Вам нужно подписать сообщение для входа.",
+    installMetaMask: "Пожалуйста, установите кошелёк MetaMask для использования этой функции.",
+    voiceLoginRequired: "Пожалуйста, подключите ваш кошелёк перед использованием голосовых команд.",
+    speechError: "Ошибка распознавания речи:",
+    loginSuccess: "Вход выполнен:",
+    googleAuthSuccess: "✅ Успешно подключен к Google Календарю!",
+    googleAuthError: "❌ Произошла ошибка при подключении к Google Календарю.",
+    popupBlocked: "Ваш браузер заблокировал всплывающее окно. Пожалуйста, разрешите всплывающие окна для этого сайта, чтобы увидеть сообщение об успехе.",
+    chooseFileButton: "Выбрать Файл",
+    noFileChosen: "Файл не выбран",
+    logoutTitle: "Выйти"
+}
         };
 
         let currentLanguage = localStorage.getItem('coopaLanguage') || 'tr';
@@ -327,33 +477,46 @@
             renderHistory();
             toggleForm(true, 'loading');
             elements.input.value = '';
+
             try {
-                const response = await fetch('/generate', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json', 'Accept-Language': currentLanguage },
-                    body: JSON.stringify({ prompt: prompt, history: conversationHistory.slice(0, -1), userAddress: currentUserAddress, signature: sessionSignature })
-                });
-                const data = await response.json();
-                if (!response.ok) throw new Error(data.error || 'Sunucu hatası');
-                
-                conversationHistory = data.history;
-                renderHistory();
-                if (data.displayData) {
-                    displayMemory(data.displayData);
-                }
-                sessionStorage.setItem('coopaChatHistory', JSON.stringify(conversationHistory));
-            } catch (error) {
-                const errorMessages = {
-                    tr: `Bir hata oluştu: ${error.message}`,
-                    en: `An error occurred: ${error.message}`,
-                    es: `Ocurrió un error: ${error.message}`
-                };
-                conversationHistory.push({ role: 'model', parts: [{ text: errorMessages[currentLanguage] || errorMessages['tr'] }] });
-                renderHistory();
-                sessionStorage.setItem('coopaChatHistory', JSON.stringify(conversationHistory));
-            } finally {
-                toggleForm(isWalletConnected ? false : true, 'wallet');
-            }
+    const response = await fetch('/generate', {
+        method: 'POST',
+        headers: { 
+            'Content-Type': 'application/json', 
+            'Accept-Language': currentLanguage 
+        },
+        body: JSON.stringify({ 
+            prompt: prompt, 
+            history: conversationHistory.slice(0, -1), 
+            userAddress: currentUserAddress, 
+            signature: sessionSignature,
+            lang: currentLanguage  // Seçili dili body'de gönder
+        })
+    });
+    const data = await response.json();
+    if (!response.ok) throw new Error(data.error || 'Sunucu hatası');
+                     
+    conversationHistory = data.history;
+    renderHistory();
+    if (data.displayData) {
+        displayMemory(data.displayData);
+    }
+    sessionStorage.setItem('coopaChatHistory', JSON.stringify(conversationHistory));
+} catch (error) {
+    const errorMessages = {
+        tr: `Bir hata oluştu: ${error.message}`,
+        en: `An error occurred: ${error.message}`,
+        es: `Ocurrió un error: ${error.message}`
+    };
+    conversationHistory.push({ 
+        role: 'model', 
+        parts: [{ text: errorMessages[currentLanguage] || errorMessages['tr'] }] 
+    });
+    renderHistory();
+    sessionStorage.setItem('coopaChatHistory', JSON.stringify(conversationHistory));
+} finally {
+    toggleForm(isWalletConnected ? false : true, 'wallet');
+}
         };
 
         const handleLogout = () => {

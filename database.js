@@ -36,7 +36,7 @@ function initializeDB() {
         // Anılar tablosunu oluştur
         db.run(`CREATE TABLE IF NOT EXISTS memories (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
-            irys_id TEXT NOT NULL,
+            tx_id TEXT NOT NULL,
             description TEXT,
             media_type TEXT,
             user_address TEXT NOT NULL,
