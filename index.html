@@ -395,13 +395,32 @@ ru: {
         let isTtsEnabled = localStorage.getItem('ttsEnabled') === 'true'; 
         const synth = window.speechSynthesis;
 
-        const speak = (text) => { 
-            if (!isTtsEnabled || !text) return; 
-            if (synth.speaking) synth.cancel(); 
-            const utterThis = new SpeechSynthesisUtterance(text); 
-            utterThis.lang = currentLanguage === 'tr' ? 'tr-TR' : currentLanguage === 'es' ? 'es-ES' : 'en-US'; 
-            synth.speak(utterThis); 
-        };
+        const speak = (text) => {
+    if (!isTtsEnabled || !text) return;
+    
+    // Her zaman önce mevcut konuşmayı iptal et
+    synth.cancel();
+    
+    // Kısa bir gecikme ekle (tarayıcının temizlemesi için)
+    setTimeout(() => {
+        const utterThis = new SpeechSynthesisUtterance(text);
+        
+        // Dil kodları
+        switch(currentLanguage) {
+            case 'tr': utterThis.lang = 'tr-TR'; break;
+            case 'en': utterThis.lang = 'en-US'; break;
+            case 'es': utterThis.lang = 'es-ES'; break;
+            case 'fr': utterThis.lang = 'fr-FR'; break;
+            case 'it': utterThis.lang = 'it-IT'; break;
+            case 'zh': utterThis.lang = 'zh-CN'; break;
+            case 'de': utterThis.lang = 'de-DE'; break;
+            case 'ru': utterThis.lang = 'ru-RU'; break;
+            default: utterThis.lang = 'en-US';
+        }
+        
+        synth.speak(utterThis);
+    }, 100);
+};
         
         const toggleForm = (disabled, reason = 'loading') => { 
             elements.input.disabled = disabled; 
@@ -432,92 +451,101 @@ ru: {
             elements.chatContainer.scrollTop = elements.chatContainer.scrollHeight;
         };
 
-        const renderHistory = () => {
-            elements.chatContainer.innerHTML = '';
-            let lastModelMessageText = '';
-            conversationHistory.forEach(message => {
-                if (message.role === 'function' || !message.parts?.[0]) return;
-                const messageDiv = document.createElement('div');
-                const part = message.parts[0];
-                if (message.role === 'user') {
-                    messageDiv.className = 'message user-message';
-                    messageDiv.innerText = part.text;
-                } else if (message.role === 'model') {
-                    messageDiv.className = 'message model-message';
-                    if (part.text) {
-                        const linkify = (text) => text.replace(/(https?:\/\/[^\s]+)/g, (url) => `<a href="${url}" target="_blank">${url}</a>`);
-                        messageDiv.innerHTML = linkify(part.text);
-                        lastModelMessageText = part.text;
-                    } else if (part.functionCall) {
-                        const toolTexts = {
-                            tr: `[Coopa, ${part.functionCall.name} aracını kullanıyor...]`,
-                            en: `[Coopa is using the ${part.functionCall.name} tool...]`,
-                            es: `[Coopa está usando la herramienta ${part.functionCall.name}...]`
-                        };
-                        messageDiv.innerText = toolTexts[currentLanguage] || toolTexts['tr'];
-                        messageDiv.style.fontStyle = 'italic';
-                    }
-                }
-                elements.chatContainer.appendChild(messageDiv);
-            });
-            elements.chatContainer.scrollTop = elements.chatContainer.scrollHeight;
-            speak(lastModelMessageText);
-        };
-        
-        const handleFormSubmit = async (event) => {
-            if (event) event.preventDefault();
-            if (!isWalletConnected) { 
-                alert(t('walletLoginFirst')); 
-                return; 
-            }
-            const prompt = elements.input.value;
-            if (!prompt.trim()) return;
-            
-            conversationHistory.push({ role: 'user', parts: [{ text: prompt }] });
-            renderHistory();
-            toggleForm(true, 'loading');
-            elements.input.value = '';
 
-            try {
-    const response = await fetch('/generate', {
-        method: 'POST',
-        headers: { 
-            'Content-Type': 'application/json', 
-            'Accept-Language': currentLanguage 
-        },
-        body: JSON.stringify({ 
-            prompt: prompt, 
-            history: conversationHistory.slice(0, -1), 
-            userAddress: currentUserAddress, 
-            signature: sessionSignature,
-            lang: currentLanguage  // Seçili dili body'de gönder
-        })
+        const renderHistory = (isNewMessage = false) => {
+    elements.chatContainer.innerHTML = '';
+    let lastModelMessageText = '';
+    conversationHistory.forEach(message => {
+        if (message.role === 'function' || !message.parts?.[0]) return;
+        const messageDiv = document.createElement('div');
+        const part = message.parts[0];
+        if (message.role === 'user') {
+            messageDiv.className = 'message user-message';
+            messageDiv.innerText = part.text;
+        } else if (message.role === 'model') {
+            messageDiv.className = 'message model-message';
+            if (part.text) {
+                const linkify = (text) => text.replace(/(https?:\/\/[^\s]+)/g, (url) => `<a href="${url}" target="_blank">${url}</a>`);
+                messageDiv.innerHTML = linkify(part.text);
+                lastModelMessageText = part.text;
+            } else if (part.functionCall) {
+                const toolTexts = {
+                    tr: `[Coopa, ${part.functionCall.name} aracını kullanıyor...]`,
+                    en: `[Coopa is using the ${part.functionCall.name} tool...]`,
+                    es: `[Coopa está usando la herramienta ${part.functionCall.name}...]`
+                };
+                messageDiv.innerText = toolTexts[currentLanguage] || toolTexts['tr'];
+                messageDiv.style.fontStyle = 'italic';
+            }
+        }
+        elements.chatContainer.appendChild(messageDiv);
     });
-    const data = await response.json();
-    if (!response.ok) throw new Error(data.error || 'Sunucu hatası');
-                     
-    conversationHistory = data.history;
-    renderHistory();
-    if (data.displayData) {
-        displayMemory(data.displayData);
+    elements.chatContainer.scrollTop = elements.chatContainer.scrollHeight;
+    
+    // Sadece yeni AI mesajı geldiğinde sesli oku
+    if (isNewMessage && lastModelMessageText && lastModelMessageText.trim()) {
+        synth.cancel();
+        setTimeout(() => synth.cancel(), 50);
+        setTimeout(() => {
+            speak(lastModelMessageText);
+        }, 100);
     }
-    sessionStorage.setItem('coopaChatHistory', JSON.stringify(conversationHistory));
-} catch (error) {
-    const errorMessages = {
-        tr: `Bir hata oluştu: ${error.message}`,
-        en: `An error occurred: ${error.message}`,
-        es: `Ocurrió un error: ${error.message}`
-    };
-    conversationHistory.push({ 
-        role: 'model', 
-        parts: [{ text: errorMessages[currentLanguage] || errorMessages['tr'] }] 
-    });
-    renderHistory();
-    sessionStorage.setItem('coopaChatHistory', JSON.stringify(conversationHistory));
-} finally {
-    toggleForm(isWalletConnected ? false : true, 'wallet');
-}
+};
+        
+    const handleFormSubmit = async (event) => {
+    if (event) event.preventDefault();
+    if (!isWalletConnected) { 
+        alert(t('walletLoginFirst')); 
+        return; 
+    }
+    const prompt = elements.input.value;
+    if (!prompt.trim()) return;
+    
+    conversationHistory.push({ role: 'user', parts: [{ text: prompt }] });
+    renderHistory(); // Loading sırasında ses yok
+    toggleForm(true, 'loading');
+    elements.input.value = '';
+
+    try {
+        const response = await fetch('/generate', {
+            method: 'POST',
+            headers: { 
+                'Content-Type': 'application/json', 
+                'Accept-Language': currentLanguage 
+            },
+            body: JSON.stringify({ 
+                prompt: prompt, 
+                history: conversationHistory.slice(0, -1), 
+                userAddress: currentUserAddress, 
+                signature: sessionSignature,
+                lang: currentLanguage  // Seçili dili body'de gönder
+            })
+        });
+        const data = await response.json();
+        if (!response.ok) throw new Error(data.error || 'Sunucu hatası');
+                         
+        conversationHistory = data.history;
+        renderHistory(true); // YENİ AI MESAJI - SES VAR
+        if (data.displayData) {
+            displayMemory(data.displayData);
+        }
+        sessionStorage.setItem('coopaChatHistory', JSON.stringify(conversationHistory));
+    } catch (error) {
+        const errorMessages = {
+            tr: `Bir hata oluştu: ${error.message}`,
+            en: `An error occurred: ${error.message}`,
+            es: `Ocurrió un error: ${error.message}`
         };
+        conversationHistory.push({ 
+            role: 'model', 
+            parts: [{ text: errorMessages[currentLanguage] || errorMessages['tr'] }] 
+        });
+        renderHistory(true); // HATA MESAJI - SES VAR
+        sessionStorage.setItem('coopaChatHistory', JSON.stringify(conversationHistory));
+    } finally {
+        toggleForm(isWalletConnected ? false : true, 'wallet');
+    }
+};
 
         const handleLogout = () => {
             currentUserAddress = null;
@@ -712,6 +740,8 @@ ru: {
             recognition.onresult = (event) => { 
                 const transcript = event.results[event.results.length - 1][0].transcript.trim(); 
                 elements.input.value = transcript; 
+                synth.cancel();
+                setTimeout(() => synth.cancel(), 50);
                 handleFormSubmit(); 
             }; 
             

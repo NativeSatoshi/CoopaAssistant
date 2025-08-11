@@ -58,4 +58,4 @@ To get a local copy up and running, follow these simple steps.
 
 Selçuk Gence - [N1001sg@gmail.com](mailto:N1001sg@gmail.com)
 
-Project Link: `[PROJENİZİN GITHUB LİNKİ GELECEKTE BURAYA EKLENECEK]`
+Project Link: [CoopaASI GitHub Deposu](https://github.com/NativeSatoshi/CoopoASI)

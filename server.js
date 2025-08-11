@@ -659,9 +659,9 @@ app.post('/generate', async (req, res) => {
         // --- DEMO MODU KONTROLÜ ---
         if (!checkAdminAccess(userAddress)) {
             console.log(`[Demo] ${userAddress} AI sohbet denedi - demo cevabı veriliyor`);
-            
+
             const demoMessages = {
-                tr: `🔒 **COOPA AI Demo Modu**
+    tr: `🔒 **COOPA AI Demo Modu**
 
 Merhaba! Bu COOPA AI'nın halka açık demo versiyonu.
 
@@ -677,8 +677,8 @@ Merhaba! Bu COOPA AI'nın halka açık demo versiyonu.
 🔒 Akıllı araçlar (hava durumu, notlar, takvim)
 
 Tam erişim için bizimle iletişime geçin!`,
-                
-                en: `🔒 **COOPA AI Demo Mode**
+    
+    en: `🔒 **COOPA AI Demo Mode**
 
 Hello! This is the public demo version of COOPA AI.
 
@@ -694,8 +694,8 @@ Hello! This is the public demo version of COOPA AI.
 🔒 Smart tools (weather, notes, calendar)
 
 Contact us for full access!`,
-                
-                es: `🔒 **Modo Demo de COOPA AI**
+    
+    es: `🔒 **Modo Demo de COOPA AI**
 
 ¡Hola! Esta es la versión demo pública de COOPA AI.
 
@@ -710,9 +710,96 @@ Contact us for full access!`,
 🔒 Integración Arweave
 🔒 Herramientas inteligentes (clima, notas, calendario)
 
-¡Contáctanos para acceso completo!`
-            };
+¡Contáctanos para acceso completo!`,
+
+    fr: `🔒 **Mode Démo COOPA AI**
+
+Bonjour ! Ceci est la version démo publique de COOPA AI.
+
+**Fonctionnalités disponibles en démo:**
+✅ Connexion portefeuille
+✅ Exploration interface
+✅ Navigation générale
+
+**Fonctionnalités disponibles avec accès admin:**
+🔒 Chat intelligent alimenté par IA
+🔒 Recherche mémoire avancée
+🔒 Intégration Arweave
+🔒 Outils intelligents (météo, notes, calendrier)
+
+Contactez-nous pour un accès complet !`,
+
+    it: `🔒 **Modalità Demo COOPA AI**
+
+Ciao! Questa è la versione demo pubblica di COOPA AI.
+
+**Funzionalità disponibili nella demo:**
+✅ Connessione portafoglio
+✅ Esplorazione interfaccia
+✅ Navigazione generale
+
+**Funzionalità disponibili con accesso admin:**
+🔒 Chat intelligente alimentata da AI
+🔒 Ricerca memoria avanzata
+🔒 Integrazione Arweave
+🔒 Strumenti intelligenti (meteo, note, calendario)
+
+Contattaci per l'accesso completo!`,
+
+    zh: `🔒 **COOPA AI 演示模式**
+
+您好！这是 COOPA AI 的公开演示版本。
+
+**演示中可用功能:**
+✅ 钱包连接
+✅ 界面探索
+✅ 常规导航
+
+**管理员权限可用功能:**
+🔒 AI 驱动的智能聊天
+🔒 高级内存搜索
+🔒 Arweave 集成
+🔒 智能工具（天气、笔记、日历）
+
+联系我们获取完整访问权限！`,
+
+    de: `🔒 **COOPA AI Demo-Modus**
+
+Hallo! Dies ist die öffentliche Demo-Version von COOPA AI.
+
+**Verfügbare Funktionen in der Demo:**
+✅ Wallet-Verbindung
+✅ Interface-Erkundung
+✅ Allgemeine Navigation
+
+**Funktionen mit Admin-Zugriff verfügbar:**
+🔒 KI-gestützter intelligenter Chat
+🔒 Erweiterte Speichersuche
+🔒 Arweave-Integration
+🔒 Intelligente Tools (Wetter, Notizen, Kalender)
+
+Kontaktieren Sie uns für vollen Zugriff!`,
+
+    ru: `🔒 **Демо-режим COOPA AI**
+
+Привет! Это публичная демо-версия COOPA AI.
+
+**Доступные функции в демо:**
+✅ Подключение кошелька
+✅ Исследование интерфейса
+✅ Общая навигация
+
+**Функции, доступные с правами администратора:**
+🔒 Умный чат на базе ИИ
+🔒 Расширенный поиск по памяти
+🔒 Интеграция Arweave
+🔒 Умные инструменты (погода, заметки, календарь)
+
+Свяжитесь с нами для полного доступа!`
+};
             
+
+
             const demoResponse = {
                 role: "model", 
                 parts: [{ 
