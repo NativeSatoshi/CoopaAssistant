@@ -417,11 +417,12 @@ async function create_calendar_event(title, date, time, description = '', lang =
             eventDateStr = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`; 
         } else { 
             eventDateStr = date; 
-        } 
-        const eventDateTime = new Date(`${eventDateStr}T${time}`); 
-        if (isNaN(eventDateTime.getTime())) { 
-            throw new Error(`Geçersiz tarih/saat formatı.`); 
-        } 
+        }  
+
+        const eventDateTime = new Date(`${eventDateStr}T${time}+03:00`);
+if (isNaN(eventDateTime.getTime())) {
+    throw new Error(`Geçersiz tarih/saat formatı.`);
+}
         const eventEndTime = new Date(eventDateTime.getTime() + 60 * 60 * 1000); 
         const event = { summary: title, description, start: { dateTime: eventDateTime.toISOString(), timeZone: 'Europe/Istanbul' }, end: { dateTime: eventEndTime.toISOString(), timeZone: 'Europe/Istanbul' } }; 
         const response = await calendar.events.insert({ calendarId: 'primary', resource: event }); 
