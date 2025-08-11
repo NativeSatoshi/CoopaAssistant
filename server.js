@@ -398,7 +398,7 @@ async function get_current_time(lang = 'tr') {
     return { success: true, timeInfo: `${t('current_time', lang)} ${timeString}, ${t('current_date', lang)} ${dateString}.` }; 
 }
 
-async function create_calendar_event(title, date, time, description = '', lang = 'tr') { 
+async function create_calendar_event(title, date, time, description = '', lang = 'tr', timezone = 'Europe/Istanbul') { 
     try { 
         const tokens = await new Promise((resolve, reject) => { 
             db.get(`SELECT * FROM google_auth WHERE id = 1`, (err, row) => { 
@@ -412,13 +412,13 @@ async function create_calendar_event(title, date, time, description = '', lang =
         oauth2Client.setCredentials({ refresh_token: tokens.refresh_token }); 
         const calendar = google.calendar({ version: 'v3', auth: oauth2Client });   
 
-        let eventDateStr; 
-if (!date || date.toLowerCase() === 'bugün' || date.toLowerCase() === 'today' || date.toLowerCase() === 'hoy') { 
+let eventDateStr;
+if (!date || date.toLowerCase() === 'bugün' || date.toLowerCase() === 'today' || date.toLowerCase() === 'hoy') {
     const today = new Date();
-    const turkeyDate = new Date(today.getTime() + (3 * 60 * 60 * 1000)); // UTC+3 için
-    eventDateStr = `${turkeyDate.getFullYear()}-${String(turkeyDate.getMonth() + 1).padStart(2, '0')}-${String(turkeyDate.getDate()).padStart(2, '0')}`; 
-} else { 
-    eventDateStr = date; 
+    const userDate = new Date(today.toLocaleString("en-US", {timeZone: timezone}));
+    eventDateStr = `${userDate.getFullYear()}-${String(userDate.getMonth() + 1).padStart(2, '0')}-${String(userDate.getDate()).padStart(2, '0')}`;
+} else {
+    eventDateStr = date;
 }
 
 const eventDateTime = new Date(`${eventDateStr}T${time}+03:00`);
@@ -427,7 +427,7 @@ if (isNaN(eventDateTime.getTime())) {
 }
 
         const eventEndTime = new Date(eventDateTime.getTime() + 60 * 60 * 1000); 
-        const event = { summary: title, description, start: { dateTime: eventDateTime.toISOString(), timeZone: 'Europe/Istanbul' }, end: { dateTime: eventEndTime.toISOString(), timeZone: 'Europe/Istanbul' } }; 
+        const event = { summary: title, description, start: { dateTime: eventDateTime.toISOString(), timeZone: timezone }, end: { dateTime: eventEndTime.toISOString(), timeZone: timezone } }; 
         const response = await calendar.events.insert({ calendarId: 'primary', resource: event }); 
         return { success: true, message: `"${title}" ${t('calendar_added', lang)}`, event_link: response.data.htmlLink }; 
     } catch (error) { 
@@ -861,7 +861,8 @@ Kontaktieren Sie uns für vollen Zugriff!`,
                 else if (name === 'edit_note') { toolResult = await edit_note(args.noteName, args.newContent, lang); }
                 else if (name === 'schedule_task') { toolResult = await schedule_task(args, lang, userAddress, signature); }
                 else if (name === 'get_current_time') { toolResult = await get_current_time(lang); }
-                else if (name === 'create_calendar_event') { toolResult = await create_calendar_event(args.title, args.date, args.time, args.description, lang); }
+                else if (name === 'create_calendar_event') { toolResult = await create_calendar_event(args.title, args.date, args.time, args.description, lang, req.body.timezone || 'Europe/Istanbul');
+ }
                 // YENİ EKLENEN KISIM: find_memory artık standart bir araç gibi burada işleniyor.
                 else if (name === 'find_memory') {
                     const memoryResult = await find_memory(args.searchText, userAddress, signature, lang);

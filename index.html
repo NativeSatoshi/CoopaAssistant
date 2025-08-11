@@ -498,6 +498,10 @@ ru: {
         alert(t('walletLoginFirst')); 
         return; 
     }
+
+    // Timezone tespiti - BU SATIRI EKLEYİN
+    const userTimezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
+
     const prompt = elements.input.value;
     if (!prompt.trim()) return;
     
@@ -518,7 +522,8 @@ ru: {
                 history: conversationHistory.slice(0, -1), 
                 userAddress: currentUserAddress, 
                 signature: sessionSignature,
-                lang: currentLanguage  // Seçili dili body'de gönder
+                lang: currentLanguage,  // Seçili dili body'de gönder
+                timezone: userTimezone  // Timezone'u da gönder
             })
         });
         const data = await response.json();
