@@ -410,16 +410,18 @@ async function create_calendar_event(title, date, time, description = '', lang =
             throw new Error("Google kimlik doğrulaması bulunamadı. Lütfen arayüzden yetki verin."); 
         } 
         oauth2Client.setCredentials({ refresh_token: tokens.refresh_token }); 
-        const calendar = google.calendar({ version: 'v3', auth: oauth2Client }); 
-        let eventDateStr; 
-        if (!date || date.toLowerCase() === 'bugün' || date.toLowerCase() === 'today' || date.toLowerCase() === 'hoy') { 
-            const today = new Date(); 
-            eventDateStr = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`; 
-        } else { 
-            eventDateStr = date; 
-        }     
+        const calendar = google.calendar({ version: 'v3', auth: oauth2Client });   
 
-const eventDateTime = new Date(`${eventDateStr}T${time}`);
+        let eventDateStr; 
+if (!date || date.toLowerCase() === 'bugün' || date.toLowerCase() === 'today' || date.toLowerCase() === 'hoy') { 
+    const today = new Date();
+    const turkeyDate = new Date(today.getTime() + (3 * 60 * 60 * 1000)); // UTC+3 için
+    eventDateStr = `${turkeyDate.getFullYear()}-${String(turkeyDate.getMonth() + 1).padStart(2, '0')}-${String(turkeyDate.getDate()).padStart(2, '0')}`; 
+} else { 
+    eventDateStr = date; 
+}
+
+const eventDateTime = new Date(`${eventDateStr}T${time}+03:00`);
 if (isNaN(eventDateTime.getTime())) {
     throw new Error(`Geçersiz tarih/saat formatı.`);
 }
