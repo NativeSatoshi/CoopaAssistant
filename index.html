@@ -45,6 +45,7 @@
     </style>
 </head>
 <body>
+    
     <h1 id="main-title">Coopa Asistan</h1>
     
   <div id="language-selector">
@@ -436,34 +437,42 @@ ru: {
             } 
         };
 
-        const displayMemory = (memoryData) => {
+        // index.html dosyasındaki mevcut displayMemory fonksiyonunu SİLİN ve yerine bunu YAPIŞTIRIN.
+
+// index.html içine - mevcut displayMemory fonksiyonuyla değiştirin
+const displayMemory = (memoryData) => {
     if (!memoryData || !memoryData.decryptedDataUrl) return;
 
     const messageDiv = document.createElement('div');
     messageDiv.className = 'message model-message';
-    
-    // Temel mesaj içeriğini oluştur
-    let contentHTML = `<p>${currentLanguage === 'tr' ? 'İsteğiniz üzerine bulunan anı:' : currentLanguage === 'es' ? 'Memoria encontrada según su solicitud:' : 'Memory found as per your request:'}</p><p><em>${memoryData.description}</em></p>`;
-    
-    // Sunucudan gelen medya türünü alıyoruz. Eğer yoksa genel bir tür atıyoruz.
+
+    let contentHTML = `<p>${currentLanguage === 'tr' ? 'İsteğiniz üzerine bulunan anı:' : 'Memory found as per your request:'}</p><p><em>${memoryData.description}</em></p>`;
+
     const mediaType = memoryData.mediaType || 'application/octet-stream'; 
     const dataUrl = memoryData.decryptedDataUrl;
+    const description = memoryData.description || 'file';
 
-    // Medya türüne göre doğru HTML etiketini seç
-    if (mediaType.startsWith('image/')) {
-        // Bu bir resim dosyası
-        contentHTML += `<img src="${dataUrl}" class="memory-image" alt="${memoryData.description}" style="max-width: 100%; border-radius: 12px; margin-top: 10px;">`;
+    // Eğer medya türü genel bir türse ("bilinmeyen"), açıklama içinde resim uzantısı arayarak
+    // bunun bir resim olup olmadığını anlamaya çalışalım.
+    let isLikelyImage = mediaType.startsWith('image/');
+    if (!isLikelyImage && mediaType === 'application/octet-stream') {
+        const descLowerCase = description.toLowerCase();
+        if (descLowerCase.endsWith('.jpg') || descLowerCase.endsWith('.jpeg') || descLowerCase.endsWith('.png') || descLowerCase.endsWith('.gif') || descLowerCase.endsWith('.webp')) {
+            isLikelyImage = true;
+        }
+    }
+
+    if (isLikelyImage) {
+        contentHTML += `<img src="${dataUrl}" class="memory-image" alt="${description}" style="max-width: 100%; border-radius: 12px; margin-top: 10px;">`;
+        contentHTML += `<div style="text-align: right; margin-top: 5px; font-size: 12px;"><a href="${dataUrl}" download="${description || 'coopa-image'}">Görseli İndir</a></div>`;
     } else if (mediaType.startsWith('video/')) {
-        // Bu bir video dosyası
         contentHTML += `<video src="${dataUrl}" controls class="memory-video" style="max-width: 100%; border-radius: 12px; margin-top: 10px;"></video>`;
     } else if (mediaType === 'application/pdf') {
-        // Bu bir PDF dosyası
         contentHTML += `<embed src="${dataUrl}" type="application/pdf" width="100%" height="500px" class="memory-pdf" style="border: 1px solid #ddd; border-radius: 12px; margin-top: 10px;">`;
     } else {
-        // Diğer tüm dosya türleri için bir indirme linki göster
         contentHTML += `<div style="margin-top: 10px; padding: 15px; background-color: #f0f0f0; border-radius: 8px;">
-                            <p><strong>İndirilebilir Dosya:</strong> ${memoryData.description}</p>
-                            <a href="${dataUrl}" download="${memoryData.description || 'coopa-memory-file'}">Dosyayı İndir</a>
+                            <p><strong>İndirilebilir Dosya:</strong> ${description}</p>
+                            <a href="${dataUrl}" download="${description.replace(/[^a-z0-9.]/gi, '_').toLowerCase() || 'coopa-memory-file'}">Dosyayı İndir</a>
                        </div>`;
     }
 
@@ -594,7 +603,7 @@ ru: {
                 try { 
                     const accounts = await window.ethereum.request({ method: 'eth_requestAccounts' }); 
                     const account = accounts[0]; 
-                    const signMessage = "CoopaASI dijital kasanızın kilidini açmak ve işlem yapmak için bu mesajı imzalayın."; 
+                    const signMessage = "Bu, CoopaASI için kalıcı şifreleme anahtarımı oluşturacak ve bu anahtar başka bir amaç için kullanılmayacaktır.";
                     const signature = await window.ethereum.request({ method: 'personal_sign', params: [signMessage, account] }); 
                     currentUserAddress = account; 
                     sessionSignature = signature; 

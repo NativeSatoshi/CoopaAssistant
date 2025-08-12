@@ -315,7 +315,20 @@ const decryptBuffer = (encryptedBuffer, key) => {
     }
 };
 
-const fixedSignMessage = "CoopaASI dijital kasanızın kilidini açmak ve işlem yapmak için bu mesajı imzalayın.";
+const fixedSignMessage = "Bu, CoopaASI için kalıcı şifreleme anahtarımı oluşturacak ve bu anahtar başka bir amaç için kullanılmayacaktır.";
+
+// server.js dosyasının üst kısımlarına, diğer yardımcı fonksiyonların yanına ekleyin.
+
+// Metin şifreleme için yeni yardımcı fonksiyon
+const encryptString = (text, key) => {
+    return CryptoJS.AES.encrypt(text, key).toString();
+};
+
+// Metin deşifreleme için yeni yardımcı fonksiyon
+const decryptString = (ciphertext, key) => {
+    const bytes = CryptoJS.AES.decrypt(ciphertext, key);
+    return bytes.toString(CryptoJS.enc.Utf8);
+};
 
 async function verifySignature(message, signature, expectedAddress) { 
     try { 
@@ -502,67 +515,75 @@ async function saveMemory(txId, description, mediaType, userAddress, lang = 'tr'
 
 // server.js dosyasındaki find_memory fonksiyonunu bu YENİ versiyonla değiştirin.
 
+// server.js içine - mevcut find_memory fonksiyonuyla değiştirin
+// server.js içine - mevcut find_memory fonksiyonuyla değiştirin
 async function find_memory(searchText, userAddress, signature, lang = 'tr') {
-    return new Promise(async (resolve) => {
-        const trimmedSearchText = searchText.trim();
-
-        // --- AŞAMA 1: BİREBİR EŞLEŞME ARAMASI ---
-        const exactSql = `SELECT * FROM memories WHERE user_address = ? AND description = ?`;
-        db.get(exactSql, [userAddress, trimmedSearchText], async (err, exactRow) => {
+    return new Promise((resolve) => {
+        const sql = `SELECT * FROM memories WHERE user_address = ? ORDER BY created_at DESC`;
+        
+        db.all(sql, [userAddress], async (err, rows) => {
             if (err) {
-                console.error("❌ Anı aranırken (birebir eşleşme) veritabanı hatası:", err.message);
+                console.error("❌ Anı aranırken veritabanı hatası:", err.message);
                 return resolve({ error: err.message });
             }
 
-            if (exactRow) {
+            if (!rows || rows.length === 0) {
+                return resolve({ found: false, message: "Hiç anı kaydınız bulunmuyor." });
+            }
+
+            const searchKeywords = searchText.toLowerCase().split(' ').filter(word => word.length > 2);
+            let bestMatch = null;
+            let maxScore = 0;
+
+            for (const row of rows) {
                 try {
-                    const gatewayUrl = `https://arweave.net/${exactRow.tx_id}`;
+                    const decryptedDescription = decryptString(row.description, signature);
+                    if (!decryptedDescription) {
+                        console.warn(`[UYARI] Bir anının şifresi çözülemedi (TX_ID: ${row.tx_id}). Farklı bir oturumda kaydedilmiş olabilir.`);
+                        continue;
+                    }
+
+                    const descriptionLowerCase = decryptedDescription.toLowerCase();
+                    let currentScore = 0;
+                    for (const keyword of searchKeywords) {
+                        if (descriptionLowerCase.includes(keyword)) {
+                            currentScore++;
+                        }
+                    }
+
+                    if (currentScore > maxScore) {
+                        maxScore = currentScore;
+                        bestMatch = row;
+                    }
+                } catch (e) {
+                    continue; 
+                }
+            }
+
+            if (bestMatch && maxScore > 0) {
+                try {
+                    const finalDescription = decryptString(bestMatch.description, signature);
+                    console.log(`✅ En iyi anı eşleşmesi bulundu: "${finalDescription}". Veri Arweave'den çekiliyor...`);
+                    
+                    const gatewayUrl = `https://arweave.net/${bestMatch.tx_id}`;
                     const response = await axios.get(gatewayUrl, { responseType: 'arraybuffer' });
+                    
                     const encryptedBuffer = Buffer.from(response.data, 'binary');
                     const decryptedBuffer = decryptBuffer(encryptedBuffer, signature);
-                    const decryptedDataUrl = `data:${exactRow.media_type};base64,${decryptedBuffer.toString('base64')}`;
+                    const decryptedDataUrl = `data:${bestMatch.media_type};base64,${decryptedBuffer.toString('base64')}`;
                     
-                    // DÜZELTME: "return" ifadesi eklendi.
-                    return resolve({ found: true, multiple: false, description: exactRow.description, data: { decryptedDataUrl, description: exactRow.description } });
+                    return resolve({ 
+                        found: true, 
+                        description: finalDescription, 
+                        data: { decryptedDataUrl, description: finalDescription, mediaType: bestMatch.media_type } 
+                    });
                 } catch (error) {
-                    console.error("❌ Anı deşifre edilirken hata (birebir eşleşme):", error);
-                    // DÜZELTME: "return" ifadesi eklendi.
-                    return resolve({ error: 'memory_decrypt_error' });
+                    console.error("❌ Anı Arweave'den çekilirken veya deşifre edilirken hata:", error);
+                    return resolve({ error: t('memory_decrypt_error', lang) });
                 }
             }
-
-            // --- AŞAMA 2: ANAHTAR KELİME ARAMASI (Birebir eşleşme bulunamadıysa burası çalışır) ---
-            const keywords = trimmedSearchText.split(' ').filter(word => word.length > 2);
-            if (keywords.length === 0) {
-                // DÜZELTME: "return" ifadesi eklendi.
-                return resolve({ found: false });
-            }
-
-            const likeClauses = keywords.map(() => `description LIKE ?`).join(' OR ');
-            const keywordSql = `SELECT * FROM memories WHERE user_address = ? AND (${likeClauses}) ORDER BY created_at DESC`;
-            const queryParams = [userAddress, ...keywords.map(kw => `%${kw}%`)];
-
-            db.all(keywordSql, queryParams, async (err, rows) => {
-                if (err) {
-                    return resolve({ error: err.message });
-                }
-                if (!rows || rows.length === 0) {
-                    resolve({ found: false });
-                } else if (rows.length === 1) {
-                    const row = rows[0];
-                    try {
-                        const gatewayUrl = `https://arweave.net/${row.tx_id}`;
-                        const response = await axios.get(gatewayUrl, { responseType: 'arraybuffer' });
-                        const decryptedBuffer = Buffer.from(response.data, 'binary');
-                        const decryptedDataUrl = `data:${row.media_type};base64,${decryptedBuffer.toString('base64')}`;
-                        resolve({ found: true, multiple: false, description: row.description, data: { decryptedDataUrl, description: row.description } });
-                    } catch (error) {
-                        resolve({ error: 'memory_decrypt_error' });
-                    }
-                } else {
-                    resolve({ found: true, multiple: true, descriptions: rows.map(r => r.description) });
-                }
-            });
+            
+            resolve({ found: false, message: `'${searchText}' ile eşleşen bir anı bulunamadı.` });
         });
     });
 }
@@ -619,7 +640,9 @@ app.post('/upload', upload.single('memoryFile'), async (req, res) => {
         if (!receipt) { 
             throw new Error("Turbo'ya şifreli yükleme başarısız oldu."); 
         } 
-        await saveMemory(receipt.id, description, file.mimetype, userAddress, lang); 
+        // Açıklamayı veritabanına kaydetmeden önce şifreliyoruz.
+        const encryptedDescription = encryptString(description, signature);
+        await saveMemory(receipt.id, encryptedDescription, file.mimetype, userAddress, lang);
         const gatewayUrl = `https://arweave.net/${receipt.id}`; 
         
         const successMessages = {
