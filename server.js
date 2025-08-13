@@ -354,17 +354,59 @@ async function get_current_weather(location, lang = 'tr') {
     } 
 }
 
-async function send_email(to, subject, body, lang = 'tr') { 
-    try { 
-        const user = process.env.GMAIL_USER; 
-        const pass = process.env.GMAIL_APP_PASSWORD; 
-        if (!user || !pass) throw new Error("Gmail kullanıcı adı veya Uygulama Şifresi .env dosyasında eksik."); 
-        let transporter = nodemailer.createTransport({ host: "smtp.gmail.com", port: 465, secure: true, auth: { user, pass } }); 
-        await transporter.sendMail({ from: `"Coopa Asistan" <${user}>`, to, subject, text: body }); 
-        return { success: true, message: `${t('email_sent', lang)} ${to}` }; 
-    } catch (error) { 
-        return { success: false, error: `${t('email_error', lang)} ${error.message}` }; 
-    } 
+// server.js dosyasındaki eski send_email fonksiyonunu silip yerine bunu yapıştırın.
+
+async function send_email(args, userAddress, signature, lang = 'tr') {
+    const { to, subject, body, attachmentDescription } = args;
+    try {
+        const user = process.env.GMAIL_USER;
+        const pass = process.env.GMAIL_APP_PASSWORD;
+        if (!user || !pass) throw new Error("Gmail kullanıcı adı veya Uygulama Şifresi .env dosyasında eksik.");
+
+        let transporter = nodemailer.createTransport({ host: "smtp.gmail.com", port: 465, secure: true, auth: { user, pass } });
+
+        const mailOptions = {
+            from: `"Coopa Asistan" <${user}>`,
+            to,
+            subject,
+            text: body,
+            attachments: [] // Eklentiler için boş bir dizi oluştur
+        };
+
+        // Eğer kullanıcı bir eklenti istediyse...
+        if (attachmentDescription) {
+            console.log(`[E-posta Eklentisi] "${attachmentDescription}" anısı aranıyor...`);
+
+            // find_memory fonksiyonunu kullanarak anıyı buluyoruz.
+            const memoryResult = await find_memory(attachmentDescription, userAddress, signature, lang);
+
+            if (memoryResult.found && memoryResult.data && memoryResult.data.decryptedDataUrl) {
+                console.log(`[E-posta Eklentisi] Anı bulundu. E-postaya ekleniyor...`);
+
+                // Data URL'i (data:image/png;base64,iVBOR...) Buffer'a çeviriyoruz.
+                const dataUrlParts = memoryResult.data.decryptedDataUrl.split(',');
+                const mimeType = dataUrlParts[0].match(/:(.*?);/)[1];
+                const buffer = Buffer.from(dataUrlParts[1], 'base64');
+
+                mailOptions.attachments.push({
+                    filename: memoryResult.description.replace(/[^a-z0-9]/gi, '_').toLowerCase() || 'attachment',
+                    content: buffer,
+                    contentType: mimeType
+                });
+            } else {
+                console.warn(`[E-posta Eklentisi] "${attachmentDescription}" anısı bulunamadı veya veri bozuk. E-posta ek olmadan gönderilecek.`);
+                // İsteğe bağlı: Anı bulunamazsa e-postanın sonuna not ekle
+                mailOptions.text += `\n\n(Not: İstediğiniz "${attachmentDescription}" anısı bulunamadığı için e-postaya eklenemedi.)`;
+            }
+        }
+
+        await transporter.sendMail(mailOptions);
+        return { success: true, message: `${t('email_sent', lang)} ${to}` };
+
+    } catch (error) {
+        console.error(`[E-posta Hatası] Hata: ${error.message}`);
+        return { success: false, error: `${t('email_error', lang)} ${error.message}` };
+    }
 }
 
 async function create_note(noteName, content, lang = 'tr') { 
@@ -452,49 +494,84 @@ if (isNaN(eventDateTime.getTime())) {
 // =================================================================
 // ===                 *** HATA DÜZELTME ALANI *** ===
 // =================================================================
-async function schedule_task(args, lang = 'tr') { 
-    const { noteName, subject, body, time } = args; 
-    if (!time) { 
-        return { success: false, message: "Görevi zamanlamak için bir saat belirtmelisiniz." }; 
-    } 
-    const [hour, minute] = time.split(':'); 
-    if (isNaN(hour) || isNaN(minute)) { 
-        return { success: false, message: "Geçersiz zaman formatı. Lütfen 'HH:MM' formatında belirtin." }; 
-    } 
-    const cronTime = `${minute} ${hour} * * *`; 
-    const targetEmail = process.env.MY_EMAIL_ADDRESS; 
-    if (!targetEmail) { 
-        return { success: false, message: "Hedef e-posta adresi MY_EMAIL_ADDRESS .env dosyasında bulunamadı." }; 
-    } 
-    let emailSubject = subject; 
-    let emailBody = body; 
-    if (noteName) { 
-        const noteContent = await get_note(noteName, lang); 
-        if (noteContent.includes(t('note_not_found', lang)) || noteContent.includes(t('note_db_error', lang))) { 
-            return { success: false, message: `'${noteName}' isimli not bulunamadığı için görev zamanlanamadı.` }; 
-        } 
-        emailSubject = `Coopa Hatırlatıcısı: ${noteName}`; 
-        emailBody = `Hatırlatma:\n\n${noteContent}`; 
-    } 
-    if (!emailSubject || !emailBody) { 
-        return { success: false, message: "E-postayı zamanlamak için konu ve içerik bilgisi gereklidir." }; 
-    } 
-    console.log(`[Zamanlayıcı] Yeni görev zamanlandı. Konu: ${emailSubject}, Zaman: ${cronTime}`); 
-    const task = cron.schedule(cronTime, async () => { 
-        console.log(`[Zamanlayıcı] Zamanlanmış görev tetiklendi. E-posta gönderiliyor: "${emailSubject}"`);
-        
-        // DÜZELTME: send_email fonksiyonundan dönen sonuç yakalanıyor ve kontrol ediliyor.
-        const result = await send_email(targetEmail, emailSubject, emailBody, lang); 
-        
-        if (result.success) {
-            console.log(`[Zamanlayıcı] ✅ E-posta başarıyla gönderildi. Mesaj: ${result.message}`);
-        } else {
-            console.error(`[Zamanlayıcı] ❌ E-posta gönderilirken hata oluştu: ${result.error}`);
-        }
+async function schedule_task(args, userAddress, signature, lang = 'tr') {
+    // AI'dan gelebilecek TÜM olası parametreleri alıyoruz
+    const { noteName, time, fileName, fileDescription, subject, body } = args;
 
-        task.stop(); 
-    }, { timezone: "Europe/Istanbul", scheduled: true }); 
-    return { success: true, message: `${t('task_scheduled', lang)} "${emailSubject}" ${t('task_reminder', lang)} ${time}'da size hatırlatılacak.` }; 
+    if (!time) {
+        return { success: false, message: "Görevi zamanlamak için bir saat belirtmelisiniz." };
+    }
+
+    const [hour, minute] = time.split(':');
+    if (isNaN(hour) || isNaN(minute)) {
+        return { success: false, message: "Geçersiz zaman formatı. Lütfen 'HH:MM' formatında belirtin." };
+    }
+
+    const cronTime = `${minute} ${hour} * * *`;
+    // Görevi tanımlayan daha açıklayıcı bir değişken
+    const taskIdentifier = noteName || fileName || fileDescription || subject || 'İsimsiz Görev';
+    console.log(`[Zamanlayıcı] Görev ayarlanıyor. Zaman: ${cronTime}, Görev: '${taskIdentifier}'`);
+
+    const task = cron.schedule(cronTime, async () => {
+        
+        console.log(`[Zamanlayıcı] ZAMAN GELDİ! '${taskIdentifier}' görevi tetiklendi.`);
+        
+        const targetEmail = process.env.MY_EMAIL_ADDRESS;
+        let emailSubject = '';
+        let emailBody = '';
+        let attachmentDescription = null;
+
+        try {
+            // Senaryo 1: Bu bir NOT GÖREVİ ise...
+            if (noteName) {
+                console.log(`[Zamanlayıcı] '${noteName}' notu veritabanından şimdi alınıyor...`);
+                const noteContent = await get_note(noteName, lang); 
+
+                if (noteContent.includes(t('note_not_found', lang)) || noteContent.includes(t('note_db_error', lang))) {
+                    throw new Error(`Zamanlanmış görev için '${noteName}' notu bulunamadı.`);
+                }
+                emailSubject = `Coopa Not Hatırlatıcısı: ${noteName}`;
+                emailBody = `Hatırlatmanız gereken notun içeriği aşağıdadır:\n\n"${noteContent}"`;
+            } 
+            // Senaryo 2: Bu bir DOSYA GÖREVİ ise...
+            else if (fileName || fileDescription) {
+                console.log(`[Zamanlayıcı] '${taskIdentifier}' dosyası için e-posta hazırlanıyor...`);
+                emailSubject = `Coopa Dosya Hatırlatıcısı: ${taskIdentifier}`;
+                emailBody = `İstediğiniz "${taskIdentifier}" anısı e-postaya eklenmiştir.`;
+                attachmentDescription = taskIdentifier;
+            }
+            // YENİ EKLENEN Senaryo 3: Bu basit bir E-POSTA GÖREVİ ise...
+            else if (subject && body) {
+                console.log(`[Zamanlayıcı] Basit e-posta için içerik hazırlanıyor...`);
+                emailSubject = subject; // AI'dan gelen konuyu kullan
+                emailBody = body;       // AI'dan gelen içeriği kullan
+            }
+            // Hiçbir senaryo eşleşmezse
+            else {
+                 throw new Error("Zamanlanmış görev için yeterli bilgi bulunamadı (not, dosya veya e-posta içeriği eksik).");
+            }
+
+            console.log(`[Zamanlayıcı] E-posta gönderiliyor... Konu: ${emailSubject}`);
+            const emailArgs = { to: targetEmail, subject: emailSubject, body: emailBody, attachmentDescription };
+            const result = await send_email(emailArgs, userAddress, signature, lang);
+
+            if (result.success) {
+                console.log(`[Zamanlayıcı] ✅ E-posta başarıyla gönderildi.`);
+            } else {
+                console.log(`[Zamanlayıcı] ❌ E-posta gönderilemedi.`);
+            }
+
+        } catch (error) {
+            console.error(`[Zamanlayıcı] ❌ Zamanlanmış görev yürütülürken bir hata oluştu:`, error.message);
+        } finally {
+            task.stop();
+            console.log(`[Zamanlayıcı] '${taskIdentifier}' görevi tamamlandı ve durduruldu.`);
+        }
+
+    }, { timezone: "Europe/Istanbul", scheduled: true });
+
+    // Kullanıcıya hemen verilecek olan cevap
+    return { success: true, message: `'${taskIdentifier}' görevi, saat ${time} için başarıyla zamanlandı.` };
 }
 // =================================================================
 // ===               *** HATA DÜZELTME ALANI SONU *** ===
@@ -586,6 +663,65 @@ async function find_memory(searchText, userAddress, signature, lang = 'tr') {
             resolve({ found: false, message: `'${searchText}' ile eşleşen bir anı bulunamadı.` });
         });
     });
+}
+
+// server.js içine, find_memory fonksiyonunun altına bu yeni fonksiyonu ekleyin.
+
+async function send_email_with_attachment(args, userAddress, signature, lang = 'tr') {
+    const { to, subject, body, attachmentDescription } = args;
+    try {
+        const user = process.env.GMAIL_USER;
+        const pass = process.env.GMAIL_APP_PASSWORD;
+        if (!user || !pass) throw new Error("Gmail credentials missing in .env file.");
+
+        let transporter = nodemailer.createTransport({ host: "smtp.gmail.com", port: 465, secure: true, auth: { user, pass } });
+        
+        const mailOptions = {
+            from: `"Coopa Assistant" <${user}>`,
+            to,
+            subject,
+            text: body,
+            attachments: []
+        };
+
+        if (attachmentDescription) {
+            console.log(`[Email Attachment] Searching for memory: "${attachmentDescription}"`);
+            // Zamanlanmış görevler için gerçek kullanıcı bilgilerini kullan
+let actualUserAddress = userAddress;
+let actualSignature = signature;
+
+if (userAddress === 'system' || userAddress === 'scheduled') {
+    // Zamanlanmış görev: anıyı tüm kullanıcılarda ara veya varsayılan kullanıcıyı kullan
+    actualUserAddress = null; // veya process.env.DEFAULT_USER_ADDRESS
+    actualSignature = null;   // veya process.env.DEFAULT_SIGNATURE
+}
+
+const memoryResult = await find_memory(attachmentDescription, userAddress, signature, lang);
+            if (memoryResult.found && memoryResult.data && memoryResult.data.decryptedDataUrl) {
+                console.log(`[Email Attachment] Memory found. Attaching to email...`);
+                
+                const dataUrlParts = memoryResult.data.decryptedDataUrl.split(',');
+                const mimeType = dataUrlParts[0].match(/:(.*?);/)[1];
+                const buffer = Buffer.from(dataUrlParts[1], 'base64');
+
+                mailOptions.attachments.push({
+                    filename: (memoryResult.description.replace(/[^a-z0-9]/gi, '_').toLowerCase() || 'attachment') + `.${mimeType.split('/')[1] || 'dat'}`,
+                    content: buffer,
+                    contentType: mimeType
+                });
+            } else {
+                console.warn(`[Email Attachment] Memory "${attachmentDescription}" not found. Sending email without attachment.`);
+                mailOptions.text += `\n\n(Note: The requested memory "${attachmentDescription}" could not be found and was not attached.)`;
+            }
+        }
+        
+        await transporter.sendMail(mailOptions);
+        return { success: true, message: `${t('email_sent', lang)} ${to}` };
+
+    } catch (error) {
+        console.error(`[Email Error] Details: ${error.message}`);
+        return { success: false, error: `${t('email_error', lang)} ${error.message}` };
+    }
 }
 
 // --- ROTALAR ---
@@ -862,51 +998,111 @@ Kontaktieren Sie uns für vollen Zugriff!`,
 
             currentHistory.push({ role: "model", parts: [part] });
 
-            if (part.functionCall) {
-                console.log(`[Araç Çağrısı] -> ${part.functionCall.name}`);
-                const { name, args } = part.functionCall;
-                
-                if (name === 'send_email') {
-                     const action_details = { 
-                        to: args.to, 
-                        subject: args.subject, 
-                        body: args.body, 
-                        attachmentDescription: args.attachmentDescription 
-                    };
-                    return res.json({ requires_confirmation: true, action_details, history: currentHistory });
-                }
-                
-                let toolResult;
-                
-                if (name === 'get_note') { toolResult = await get_note(args.noteName, lang); }
-                else if (name === 'get_current_weather') { toolResult = await get_current_weather(args.location, lang); }
-                else if (name === 'create_note') { toolResult = await create_note(args.noteName, args.content, lang); }
-                else if (name === 'edit_note') { toolResult = await edit_note(args.noteName, args.newContent, lang); }
-                else if (name === 'schedule_task') { toolResult = await schedule_task(args, lang, userAddress, signature); }
-                else if (name === 'get_current_time') { toolResult = await get_current_time(lang); }
-                else if (name === 'create_calendar_event') { toolResult = await create_calendar_event(args.title, args.date, args.time, args.description, lang, req.body.timezone || 'Europe/Istanbul');
- }
-                // YENİ EKLENEN KISIM: find_memory artık standart bir araç gibi burada işleniyor.
-                else if (name === 'find_memory') {
-                    const memoryResult = await find_memory(args.searchText, userAddress, signature, lang);
+            // server.js dosyasındaki mevcut if (part.functionCall) { ... } bloğunu
+// komple silip yerine bu yeni versiyonu yapıştırın.
 
-                    // Yapay zeka için sonucun temiz bir kopyasını oluşturuyoruz.
-                    const resultForAI = { ...memoryResult };
-                    delete resultForAI.data; // Büyük 'data' özelliğini siliyoruz.
+if (part.functionCall) {
+    console.log(`[Araç Çağrısı] -> ${part.functionCall.name}`);
+    const { name, args } = part.functionCall;
+    
+    let toolResult;
+    
+    // Araçları işleyen ana kontrol bloğu
+    if (name === 'get_note') {
+        toolResult = await get_note(args.noteName, lang);
+    } 
+    else if (name === 'get_current_weather') {
+        toolResult = await get_current_weather(args.location, lang);
+    } 
+    else if (name === 'create_note') {
+        toolResult = await create_note(args.noteName, args.content, lang);
+    } 
+    else if (name === 'edit_note') {
+        toolResult = await edit_note(args.noteName, args.newContent, lang);
+    } 
+    else if (name === 'schedule_task') {
+    // Yapay zekadan gelen argümanları olduğu gibi, değiştirmeden fonksiyona iletiyoruz.
+    // Fonksiyonun kendisi not mu dosya mı olduğunu ayırt edecektir.
+    toolResult = await schedule_task(args, userAddress, signature, lang);
+}
+    else if (name === 'get_current_time') {
+        toolResult = await get_current_time(lang);
+    } 
+    else if (name === 'create_calendar_event') {
+        toolResult = await create_calendar_event(args.title, args.date, args.time, args.description, lang);
+    } 
+    else if (name === 'find_memory') {
+        const memoryResult = await find_memory(args.searchText, userAddress, signature, lang);
+        
+        // Yapay zeka için sonucun temiz bir kopyasını oluşturuyoruz.
+        const resultForAI = { ...memoryResult };
+        delete resultForAI.data; // Büyük 'data' özelliğini siliyoruz.
+        
+        toolResult = resultForAI;
+        
+        // Eğer tek bir anı bulunduysa, bunu arayüzde göstermek için ayırıyoruz.
+        if (memoryResult.found && !memoryResult.multiple) {
+            displayData = memoryResult.data;
+        }
+    }
+    // --- YENİ EKLENEN E-POSTA KONTROLÜ ---
+    else if (name === 'send_email') {
+        toolResult = await (async () => {
+            const { to, subject, body, attachmentDescription } = args;
+            try {
+                const user = process.env.GMAIL_USER;
+                const pass = process.env.GMAIL_APP_PASSWORD;
+                if (!user || !pass) throw new Error("Gmail credentials missing in .env file.");
+
+                let transporter = nodemailer.createTransport({ host: "smtp.gmail.com", port: 465, secure: true, auth: { user, pass } });
+                
+                const mailOptions = {
+                    from: `"Coopa Assistant" <${user}>`,
+                    to,
+                    subject,
+                    text: body,
+                    attachments: []
+                };
+
+                if (attachmentDescription) {
+                    console.log(`[Email Attachment] Searching for memory: "${attachmentDescription}"`);
                     
-                    // Yapay zeka sadece bu temiz sonucu görüyor.
-                    toolResult = resultForAI;
-                    
-                    // Eğer tek bir resim bulunduysa, bunu arayüzde göstermek için ayırıyoruz.
-                    if (memoryResult.found && !memoryResult.multiple) {
-                        displayData = memoryResult.data;
+                    const memoryResult = await find_memory(attachmentDescription, userAddress, signature, lang);
+
+                    if (memoryResult.found && memoryResult.data && memoryResult.data.decryptedDataUrl) {
+                        console.log(`[Email Attachment] Memory found. Attaching to email...`);
+                        
+                        const dataUrlParts = memoryResult.data.decryptedDataUrl.split(',');
+                        const mimeType = dataUrlParts[0].match(/:(.*?);/)[1];
+                        const buffer = Buffer.from(dataUrlParts[1], 'base64');
+
+                        mailOptions.attachments.push({
+                            filename: (memoryResult.description.replace(/[^a-z0-9]/gi, '_').toLowerCase() || 'attachment') + `.${mimeType.split('/')[1] || 'dat'}`,
+                            content: buffer,
+                            contentType: mimeType
+                        });
+                    } else {
+                        console.warn(`[Email Attachment] Memory "${attachmentDescription}" not found. Sending email without attachment.`);
+                        mailOptions.text += `\n\n(Note: The requested memory "${attachmentDescription}" could not be found and was not attached.)`;
                     }
                 }
                 
-                currentHistory.push({ role: "function", parts: [{ functionResponse: { name, response: { result: toolResult } } }] });
-            } else {
-                break; // Eğer model bir araç çağırmadıysa, bu son cevaptır ve döngüden çıkılır.
+                await transporter.sendMail(mailOptions);
+                return { success: true, message: `${t('email_sent', lang)} ${to}` };
+
+            } catch (error) {
+                console.error(`[Email Error] Details: ${error.message}`);
+                return { success: false, error: `${t('email_error', lang)} ${error.message}` };
             }
+        })();
+    }
+    // --- E-POSTA KONTROLÜ SONU ---
+
+    currentHistory.push({ role: "function", parts: [{ functionResponse: { name, response: { result: toolResult } } }] });
+
+} else {
+    break; // Eğer model bir araç çağırmadıysa, bu son cevaptır ve döngüden çıkılır.
+}
         }
         coopaCore.uploadToIrys(currentHistory.slice(-2));
         // Nihai cevap geçmişini ve varsa görüntülenecek veriyi frontend'e gönderiyoruz.

@@ -5,7 +5,6 @@ const { GoogleGenerativeAI } = require("@google/generative-ai");
 const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
 
 // Çok dilli sistem talimatları
-
 const systemInstructions = {
     tr: `Sen, Coopa adında yardımsever ve proaktif bir dijital asistansın.
     1. Sohbet: Kullanıcı genel soru sorarsa, ASLA araç kullanma.
@@ -74,8 +73,17 @@ const toolsMultilingual = {
 //...
 { 
     name: "send_email", 
-    description: "Bir e-postayı ŞİMDİ, YANİ ANINDA gönderir. Asla gelecekteki bir zaman için kullanılmaz. Zamanlama ve planlama için schedule_task aracı kullanılmalıdır.", 
-    parameters: { type: "OBJECT", properties: { to: { type: "STRING" }, subject: { type: "STRING" }, body: { type: "STRING" } }, required: ["to", "subject", "body"] } 
+    description: "Bir e-postayı ŞİMDİ gönderir. Bir anıyı ek olarak göndermek için 'attachmentDescription' parametresi kullanılır.", 
+    parameters: { 
+        type: "OBJECT", 
+        properties: { 
+            to: { type: "STRING" }, 
+            subject: { type: "STRING" }, 
+            body: { type: "STRING" },
+            attachmentDescription: { type: "STRING", description: "E-postaya eklenecek olan, daha önce kaydedilmiş bir anının açıklaması (örn: 'İstanbul ve Galata')." }
+        }, 
+        required: ["to", "subject", "body"] 
+    } 
 },
 //...
 { 
@@ -107,7 +115,20 @@ const toolsMultilingual = {
         {
             functionDeclarations: [
                 { name: "get_current_weather", description: "Gets current weather information for a specified city.", parameters: { type: "OBJECT", properties: { location: { type: "STRING" } }, required: ["location"] } },
-                { name: "send_email", description: "Sends an email to specified recipient with specified subject and content.", parameters: { type: "OBJECT", properties: { to: { type: "STRING" }, subject: { type: "STRING" }, body: { type: "STRING" } }, required: ["to", "subject", "body"] } },
+                { 
+    name: "send_email", 
+    description: "Sends an email NOW. Use the 'attachmentDescription' parameter to send a memory as an attachment.", 
+    parameters: { 
+        type: "OBJECT", 
+        properties: { 
+            to: { type: "STRING" }, 
+            subject: { type: "STRING" }, 
+            body: { type: "STRING" },
+            attachmentDescription: { type: "STRING", description: "The description of a previously saved memory to attach to the email (e.g., 'Istanbul and Galata')." }
+        }, 
+        required: ["to", "subject", "body"] 
+    } 
+},
                 { name: "create_note", description: "Creates a new note from scratch or completely overwrites an existing note.", parameters: { type: "OBJECT", properties: { noteName: { type: "STRING" }, content: { type: "STRING" } }, required: ["noteName"] } },
                 { name: "edit_note", description: "Adds new information to the end of an existing note's content.", parameters: { type: "OBJECT", properties: { noteName: { type: "STRING" }, newContent: { type: "STRING" } }, required: ["noteName", "newContent"] } },
                 { name: "get_note", description: "Retrieves the content of a previously created note by name.", parameters: { type: "OBJECT", properties: { noteName: { type: "STRING" } }, required: ["noteName"] } },
@@ -132,10 +153,20 @@ const toolsMultilingual = {
         {
             functionDeclarations: [
                 //...
-{ 
-    name: "send_email", 
-    description: "Envía un correo electrónico AHORA, es decir, INMEDIATAMENTE. Nunca debe usarse para un momento futuro. Para envíos programados, se debe usar la herramienta 'schedule_task'.", 
-    parameters: { type: "OBJECT", properties: { to: { type: "STRING" }, subject: { type: "STRING" }, body: { type: "STRING" } }, required: ["to", "subject", "body"] } 
+{
+  "name": "schedule_task",
+  "description": "Programa un correo electrónico o recordatorio para una hora específica en el FUTURO. Se puede usar 'attachmentDescription' para adjuntar un recuerdo al correo electrónico.",
+  "parameters": {
+    "type": "OBJECT",
+    "properties": {
+      "time": { "type": "STRING", "description": "en formato 'HH:MM'" },
+      "noteName": { "type": "STRING" },
+      "subject": { "type": "STRING" },
+      "body": { "type": "STRING" },
+      "attachmentDescription": { "type": "STRING", "description": "Una descripción de un recuerdo guardado previamente para adjuntar al correo electrónico." }
+    },
+    "required": ["time"]
+  }
 },
 //...
 { 
@@ -168,7 +199,21 @@ const toolsMultilingual = {
     {
         functionDeclarations: [
             { name: "get_current_weather", description: "Obtient les informations météorologiques actuelles pour une ville spécifiée.", parameters: { type: "OBJECT", properties: { location: { type: "STRING" } }, required: ["location"] } },
-            { name: "send_email", description: "Envoie un email MAINTENANT, INSTANTANÉMENT. Jamais utilisé pour les horaires futurs. Pour programmer, l'outil schedule_task doit être utilisé.", parameters: { type: "OBJECT", properties: { to: { type: "STRING" }, subject: { type: "STRING" }, body: { type: "STRING" } }, required: ["to", "subject", "body"] } },
+            {
+  "name": "schedule_task",
+  "description": "Planifie un e-mail ou un rappel pour une heure spécifique dans le FUTUR. 'attachmentDescription' peut être utilisé pour joindre un souvenir à l'e-mail.",
+  "parameters": {
+    "type": "OBJECT",
+    "properties": {
+      "time": { "type": "STRING", "description": "au format 'HH:MM'" },
+      "noteName": { "type": "STRING" },
+      "subject": { "type": "STRING" },
+      "body": { "type": "STRING" },
+      "attachmentDescription": { "type": "STRING", "description": "Une description d'un souvenir précédemment enregistré à joindre à l'e-mail." }
+    },
+    "required": ["time"]
+  }
+},
             { name: "schedule_task", description: "Programme/planifie un email ou rappel pour une heure FUTURE spécifique. Si l'utilisateur utilise des expressions comme 'à', 'plus tard', 'soir', cet outil DOIT être sélectionné.", parameters: { type: "OBJECT", properties: { time: { type: "STRING", description: "au format 'HH:MM'" }, noteName: { type: "STRING" }, subject: { type: "STRING" }, body: { type: "STRING" } }, required: ["time"] } },
             { name: "create_note", description: "Crée une nouvelle note à partir de zéro ou écrase complètement une note existante.", parameters: { type: "OBJECT", properties: { noteName: { type: "STRING" }, content: { type: "STRING" } }, required: ["noteName"] } },
             { name: "edit_note", description: "Ajoute de nouvelles informations à la fin du contenu d'une note existante.", parameters: { type: "OBJECT", properties: { noteName: { type: "STRING" }, newContent: { type: "STRING" } }, required: ["noteName", "newContent"] } },
@@ -183,7 +228,21 @@ it: [
     {
         functionDeclarations: [
             { name: "get_current_weather", description: "Ottiene informazioni meteorologiche attuali per una città specificata.", parameters: { type: "OBJECT", properties: { location: { type: "STRING" } }, required: ["location"] } },
-            { name: "send_email", description: "Invia un'email ORA, ISTANTANEAMENTE. Mai utilizzato per orari futuri. Per programmare, deve essere utilizzato lo strumento schedule_task.", parameters: { type: "OBJECT", properties: { to: { type: "STRING" }, subject: { type: "STRING" }, body: { type: "STRING" } }, required: ["to", "subject", "body"] } },
+            {
+  "name": "schedule_task",
+  "description": "Pianifica un'e-mail o un promemoria per un'ora specifica nel FUTURO. È possibile utilizzare 'attachmentDescription' per allegare un ricordo all'e-mail.",
+  "parameters": {
+    "type": "OBJECT",
+    "properties": {
+      "time": { "type": "STRING", "description": "in formato 'HH:MM'" },
+      "noteName": { "type": "STRING" },
+      "subject": { "type": "STRING" },
+      "body": { "type": "STRING" },
+      "attachmentDescription": { "type": "STRING", "description": "Una descrizione di un ricordo salvato in precedenza da allegare all'e-mail." }
+    },
+    "required": ["time"]
+  }
+},
             { name: "schedule_task", description: "Programma/pianifica un'email o promemoria per un orario FUTURO specifico. Se l'utente usa espressioni come 'alle', 'dopo', 'sera', questo strumento DEVE essere selezionato.", parameters: { type: "OBJECT", properties: { time: { type: "STRING", description: "nel formato 'HH:MM'" }, noteName: { type: "STRING" }, subject: { type: "STRING" }, body: { type: "STRING" } }, required: ["time"] } },
             { name: "create_note", description: "Crea una nuova nota da zero o sovrascrive completamente una nota esistente.", parameters: { type: "OBJECT", properties: { noteName: { type: "STRING" }, content: { type: "STRING" } }, required: ["noteName"] } },
             { name: "edit_note", description: "Aggiunge nuove informazioni alla fine del contenuto di una nota esistente.", parameters: { type: "OBJECT", properties: { noteName: { type: "STRING" }, newContent: { type: "STRING" } }, required: ["noteName", "newContent"] } },
@@ -198,7 +257,21 @@ zh: [
     {
         functionDeclarations: [
             { name: "get_current_weather", description: "获取指定城市的当前天气信息。", parameters: { type: "OBJECT", properties: { location: { type: "STRING" } }, required: ["location"] } },
-            { name: "send_email", description: "现在、立即发送电子邮件。绝不用于未来时间。对于调度和计划，应使用 schedule_task 工具。", parameters: { type: "OBJECT", properties: { to: { type: "STRING" }, subject: { type: "STRING" }, body: { type: "STRING" } }, required: ["to", "subject", "body"] } },
+            {
+  "name": "schedule_task",
+  "description": "为将来的特定时间安排电子邮件或提醒。可以使用“attachmentDescription”将记忆附加到电子邮件中。",
+  "parameters": {
+    "type": "OBJECT",
+    "properties": {
+      "time": { "type": "STRING", "description": "格式为“HH:MM”" },
+      "noteName": { "type": "STRING" },
+      "subject": { "type": "STRING" },
+      "body": { "type": "STRING" },
+      "attachmentDescription": { "type": "STRING", "description": "要附加到电子邮件的先前保存的记忆的描述。" }
+    },
+    "required": ["time"]
+  }
+},
             { name: "schedule_task", description: "为特定的未来时间安排/计划电子邮件或提醒。如果用户使用'在'、'稍后'、'晚上'等时间表达，必须选择此工具。", parameters: { type: "OBJECT", properties: { time: { type: "STRING", description: "'HH:MM' 格式" }, noteName: { type: "STRING" }, subject: { type: "STRING" }, body: { type: "STRING" } }, required: ["time"] } },
             { name: "create_note", description: "从头创建全新笔记或完全覆盖现有笔记。", parameters: { type: "OBJECT", properties: { noteName: { type: "STRING" }, content: { type: "STRING" } }, required: ["noteName"] } },
             { name: "edit_note", description: "在现有笔记内容的末尾添加新信息。", parameters: { type: "OBJECT", properties: { noteName: { type: "STRING" }, newContent: { type: "STRING" } }, required: ["noteName", "newContent"] } },
@@ -213,7 +286,21 @@ de: [
     {
         functionDeclarations: [
             { name: "get_current_weather", description: "Ruft aktuelle Wetterinformationen für eine bestimmte Stadt ab.", parameters: { type: "OBJECT", properties: { location: { type: "STRING" } }, required: ["location"] } },
-            { name: "send_email", description: "Sendet eine E-Mail JETZT, SOFORT. Nie für zukünftige Zeiten verwendet. Für Terminplanung sollte das schedule_task-Tool verwendet werden.", parameters: { type: "OBJECT", properties: { to: { type: "STRING" }, subject: { type: "STRING" }, body: { type: "STRING" } }, required: ["to", "subject", "body"] } },
+            {
+  "name": "schedule_task",
+  "description": "Plant eine E-Mail oder eine Erinnerung für eine bestimmte Zeit in der ZUKUNFT. 'attachmentDescription' kann verwendet werden, um eine Erinnerung an die E-Mail anzuhängen.",
+  "parameters": {
+    "type": "OBJECT",
+    "properties": {
+      "time": { "type": "STRING", "description": "im Format 'HH:MM'" },
+      "noteName": { "type": "STRING" },
+      "subject": { "type": "STRING" },
+      "body": { "type": "STRING" },
+      "attachmentDescription": { "type": "STRING", "description": "Eine Beschreibung einer zuvor gespeicherten Erinnerung, die an die E-Mail angehängt werden soll." }
+    },
+    "required": ["time"]
+  }
+},
             { name: "schedule_task", description: "Plant/terminiert eine E-Mail oder Erinnerung für eine bestimmte ZUKÜNFTIGE Zeit. Wenn der Benutzer Zeitausdrücke wie 'um', 'später', 'abends' verwendet, MUSS dieses Tool ausgewählt werden.", parameters: { type: "OBJECT", properties: { time: { type: "STRING", description: "im 'HH:MM' Format" }, noteName: { type: "STRING" }, subject: { type: "STRING" }, body: { type: "STRING" } }, required: ["time"] } },
             { name: "create_note", description: "Erstellt eine völlig neue Notiz von Grund auf oder überschreibt eine bestehende Notiz vollständig.", parameters: { type: "OBJECT", properties: { noteName: { type: "STRING" }, content: { type: "STRING" } }, required: ["noteName"] } },
             { name: "edit_note", description: "Fügt neue Informationen am Ende des Inhalts einer bestehenden Notiz hinzu.", parameters: { type: "OBJECT", properties: { noteName: { type: "STRING" }, newContent: { type: "STRING" } }, required: ["noteName", "newContent"] } },
@@ -228,7 +315,21 @@ ru: [
     {
         functionDeclarations: [
             { name: "get_current_weather", description: "Получает текущую информацию о погоде для указанного города.", parameters: { type: "OBJECT", properties: { location: { type: "STRING" } }, required: ["location"] } },
-            { name: "send_email", description: "Отправляет email СЕЙЧАС, МГНОВЕННО. Никогда не используется для будущего времени. Для планирования следует использовать инструмент schedule_task.", parameters: { type: "OBJECT", properties: { to: { type: "STRING" }, subject: { type: "STRING" }, body: { type: "STRING" } }, required: ["to", "subject", "body"] } },
+            {
+  "name": "schedule_task",
+  "description": "Планирует электронное письмо или напоминание на определенное время в БУДУЩЕМ. 'attachmentDescription' можно использовать для прикрепления воспоминания к электронному письму.",
+  "parameters": {
+    "type": "OBJECT",
+    "properties": {
+      "time": { "type": "STRING", "description": "в формате «ЧЧ:ММ»" },
+      "noteName": { "type": "STRING" },
+      "subject": { "type": "STRING" },
+      "body": { "type": "STRING" },
+      "attachmentDescription": { "type": "STRING", "description": "Описание ранее сохраненного воспоминания для прикрепления к электронному письму." }
+    },
+    "required": ["time"]
+  }
+},
             { name: "schedule_task", description: "Планирует/назначает email или напоминание на определенное БУДУЩЕЕ время. Если пользователь использует выражения времени как 'в', 'позже', 'вечером', этот инструмент ДОЛЖЕН быть выбран.", parameters: { type: "OBJECT", properties: { time: { type: "STRING", description: "в формате 'HH:MM'" }, noteName: { type: "STRING" }, subject: { type: "STRING" }, body: { type: "STRING" } }, required: ["time"] } },
             { name: "create_note", description: "Создает совершенно новую заметку с нуля или полностью перезаписывает существующую заметку.", parameters: { type: "OBJECT", properties: { noteName: { type: "STRING" }, content: { type: "STRING" } }, required: ["noteName"] } },
             { name: "edit_note", description: "Добавляет новую информацию в конец содержимого существующей заметки.", parameters: { type: "OBJECT", properties: { noteName: { type: "STRING" }, newContent: { type: "STRING" } }, required: ["noteName", "newContent"] } },
