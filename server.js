@@ -35,200 +35,284 @@ function checkAdminAccess(userAddress) {
 
 // DİL DESTEĞİ SİSTEMİ
 const translations = {
-    tr: {
-        welcome: "Merhaba! Size nasıl yardımcı olabilirim?",
-        weather_error: "için hava durumu bilgisi alınamadı.",
-        email_sent: "E-posta başarıyla gönderildi:",
-        email_error: "E-posta gönderilirken hata oluştu:",
-        note_saved: "notu kaydedildi. Yeni içerik:",
-        note_not_found: "isminde bir not bulunamadı.",
-        note_empty: "(notun içeriği boş)",
-        note_db_error: "notunu okurken bir veritabanı hatası oluştu:",
-        current_time: "Şu an saat",
-        current_date: "tarih",
-        calendar_added: "etkinliği takviminize eklendi.",
-        calendar_error: "Takvim etkinliği oluşturulamadı:",
-        task_scheduled: "Görev başarıyla zamanlandı.",
-        task_reminder: "konusu saat",
-        memory_saved: "adresli kullanıcı için anı veritabanına kaydedildi.",
-        memory_found: "açıklamalı anı bulundu.",
-        memory_not_found: "ile eşleşen bir anı bulunamadı.",
-        memory_decrypt_error: "Anı bulundu ancak deşifre edilemedi.",
-        upload_success: "Anı Başarıyla Şifrelenerek Kalıcı Olarak Kaydedildi!",
-        invalid_signature: "Geçersiz imza. Kimlik doğrulanamadı.",
-        missing_info: "Eksik bilgi: Dosya, adres veya imza belirtilmemiş.",
-        server_error: "Bir hata oluştu: Sunucu hatası"
-    },
-    en: {
-        welcome: "Hello! How can I help you?",
-        weather_error: "weather information could not be retrieved for",
-        email_sent: "Email sent successfully to:",
-        email_error: "Error sending email:",
-        note_saved: "note saved. New content:",
-        note_not_found: "No note found with the name",
-        note_empty: "(note content is empty)",
-        note_db_error: "Database error while reading note:",
-        current_time: "It's currently",
-        current_date: "date",
-        calendar_added: "event added to your calendar.",
-        calendar_error: "Could not create calendar event:",
-        task_scheduled: "Task scheduled successfully.",
-        task_reminder: "subject at",
-        memory_saved: "Memory saved to database for user address:",
-        memory_found: "Memory found with description:",
-        memory_not_found: "No memory found matching",
-        memory_decrypt_error: "Memory found but could not be decrypted.",
-        upload_success: "Memory Successfully Encrypted and Permanently Saved!",
-        invalid_signature: "Invalid signature. Authentication failed.",
-        missing_info: "Missing information: File, address or signature not specified.",
-        server_error: "An error occurred: Server error"
-    },
-es: {
-        welcome: "¡Hola! ¿Cómo puedo ayudarte?",
-        weather_error: "no se pudo obtener información meteorológica para",
-        email_sent: "Correo enviado exitosamente a:",
-        email_error: "Error al enviar correo:",
-        note_saved: "nota guardada. Nuevo contenido:",
-        note_not_found: "No se encontró ninguna nota con el nombre",
-        note_empty: "(el contenido de la nota está vacío)",
-        note_db_error: "Error de base de datos al leer la nota:",
-        current_time: "Actualmente son las",
-        current_date: "fecha",
-        calendar_added: "evento agregado a tu calendario.",
-        calendar_error: "No se pudo crear el evento del calendario:",
-        task_scheduled: "Tarea programada exitosamente.",
-        task_reminder: "asunto a las",
-        memory_saved: "Memoria guardada en la base de datos para la dirección del usuario:",
-        memory_found: "Memoria encontrada con descripción:",
-        memory_not_found: "No se encontró memoria que coincida con",
-        memory_decrypt_error: "Memoria encontrada pero no se pudo descifrar.",
-        upload_success: "¡Memoria Cifrada y Guardada Permanentemente con Éxito!",
-        invalid_signature: "Firma inválida. Falló la autenticación.",
-        missing_info: "Información faltante: Archivo, dirección o firma no especificados.",
-        server_error: "Ocurrió un error: Error del servidor"
-    },
-fr: {
-        welcome: "Bonjour ! Comment puis-je vous aider ?",
-        weather_error: "Impossible d'obtenir les informations météo pour",
-        email_sent: "E-mail envoyé avec succès :",
-        email_error: "Erreur lors de l'envoi de l'e-mail :",
-        note_saved: "note sauvegardée. Nouveau contenu :",
-        note_not_found: "Aucune note trouvée avec le nom",
-        note_empty: "(le contenu de la note est vide)",
-        note_db_error: "Erreur de base de données lors de la lecture de la note :",
-        current_time: "Il est actuellement",
-        current_date: "date",
-        calendar_added: "événement ajouté à votre calendrier.",
-        calendar_error: "Impossible de créer l'événement du calendrier :",
-        task_scheduled: "Tâche programmée avec succès.",
-        task_reminder: "sujet à",
-        memory_saved: "mémoire sauvegardée dans la base de données pour l'utilisateur à l'adresse",
-        memory_found: "mémoire trouvée avec description",
-        memory_not_found: "Aucune mémoire trouvée correspondant à",
-        memory_decrypt_error: "Mémoire trouvée mais impossible à déchiffrer.",
-        upload_success: "Mémoire cryptée et sauvegardée définitivement avec succès !",
-        invalid_signature: "Signature invalide. Authentification échouée.",
-        missing_info: "Informations manquantes : Fichier, adresse ou signature non spécifiés.",
-        server_error: "Une erreur s'est produite : Erreur serveur"
+    tr: {
+        "welcome": "Merhaba! Size nasıl yardımcı olabilirim?",
+        "weather_error": "için hava durumu bilgisi alınamadı.",
+        "email_sent": "E-posta başarıyla gönderildi:",
+        "email_error": "E-posta gönderilirken hata oluştu:",
+        "note_saved": "notu kaydedildi. Yeni içerik:",
+        "note_not_found": "isminde bir not bulunamadı.",
+        "note_empty": "(notun içeriği boş)",
+        "note_db_error": "notunu okurken bir veritabanı hatası oluştu:",
+        "current_time": "Şu an saat",
+        "current_date": "tarih",
+        "calendar_added": "etkinliği takviminize eklendi.",
+        "calendar_error": "Takvim etkinliği oluşturulamadı:",
+        "task_scheduled": "Görev başarıyla zamanlandı.",
+        "task_reminder": "konusu saat",
+        "memory_saved": "adresli kullanıcı için anı veritabanına kaydedildi.",
+        "memory_found": "açıklamalı anı bulundu.",
+        "memory_not_found": "ile eşleşen bir anı bulunamadı.",
+        "memory_search_not_found": "'{searchText}' ile eşleşen bir anı bulunamadı.",
+        "memory_decrypt_error": "Anı bulundu ancak deşifre edilemedi.",
+        "upload_success": "Anı Başarıyla Şifrelenerek Kalıcı Olarak Kaydedildi!",
+        "invalid_signature": "Geçersiz imza. Kimlik doğrulanamadı.",
+        "missing_info": "Eksik bilgi: Dosya, adres veya imza belirtilmemiş.",
+        "server_error": "Bir hata oluştu: Sunucu hatası",
+        "task_missing_time": "Görevi zamanlamak için bir saat belirtmelisiniz.",
+        "task_invalid_time": "Geçersiz zaman formatı. Lütfen 'HH:MM' formatında belirtin.",
+        "task_note_subject": "Coopa Not Hatırlatıcısı: {noteName}",
+        "task_note_body": "Hatırlatmanız gereken notun içeriği aşağıdadır:\n\n\"{noteContent}\"",
+        "task_file_subject": "Coopa Dosya Hatırlatıcısı: {attachmentDescription}",
+        "task_file_body": "İstediğiniz \"{attachmentDescription}\" anısı e-postaya eklenmiştir.",
+        "task_error_insufficient_info": "Zamanlanmış görev için yeterli bilgi bulunamadı (not, dosya veya e-posta içeriği eksik).",
+        "task_success_message": "'{taskIdentifier}' görevi, saat {time} için başarıyla zamanlandı.",
+        "email_attachment_not_found": "(Not: İstediğiniz \"{attachmentDescription}\" anısı bulunamadığı için e-postaya eklenemedi.)"
     },
-it: {
-        welcome: "Ciao! Come posso aiutarti?",
-        weather_error: "Impossibile ottenere informazioni meteo per",
-        email_sent: "Email inviata con successo:",
-        email_error: "Errore nell'invio dell'email:",
-        note_saved: "nota salvata. Nuovo contenuto:",
-        note_not_found: "Nessuna nota trovata con il nome",
-        note_empty: "(il contenuto della nota è vuoto)",
-        note_db_error: "Errore del database durante la lettura della nota:",
-        current_time: "Ora sono le",
-        current_date: "data",
-        calendar_added: "evento aggiunto al tuo calendario.",
-        calendar_error: "Impossibile creare l'evento del calendario:",
-        task_scheduled: "Attività programmata con successo.",
-        task_reminder: "oggetto alle",
-        memory_saved: "memoria salvata nel database per l'utente all'indirizzo",
-        memory_found: "memoria trovata con descrizione",
-        memory_not_found: "Nessuna memoria trovata corrispondente a",
-        memory_decrypt_error: "Memoria trovata ma impossibile da decifrare.",
-        upload_success: "Memoria crittografata e salvata permanentemente con successo!",
-        invalid_signature: "Firma non valida. Autenticazione fallita.",
-        missing_info: "Informazioni mancanti: File, indirizzo o firma non specificati.",
-        server_error: "Si è verificato un errore: Errore del server"
+    en: {
+        "welcome": "Hello! How can I help you?",
+        "weather_error": "Weather information could not be retrieved for",
+        "email_sent": "Email successfully sent:",
+        "email_error": "An error occurred while sending the email:",
+        "note_saved": "note has been saved. New content:",
+        "note_not_found": "A note with the name was not found.",
+        "note_empty": "(note content is empty)",
+        "note_db_error": "A database error occurred while reading the note:",
+        "current_time": "The current time is",
+        "current_date": "the date is",
+        "calendar_added": "event has been added to your calendar.",
+        "calendar_error": "Could not create calendar event:",
+        "task_scheduled": "Task scheduled successfully.",
+        "task_reminder": "subject at",
+        "memory_saved": "Memory saved to the database for user with address.",
+        "memory_found": "Memory with description found.",
+        "memory_not_found": "No memory matching was found.",
+        "memory_search_not_found": "No memory matching '{searchText}' was found.",
+        "memory_decrypt_error": "Memory found but could not be decrypted.",
+        "upload_success": "Memory Successfully Encrypted and Permanently Saved!",
+        "invalid_signature": "Invalid signature. Authentication failed.",
+        "missing_info": "Missing information: File, address, or signature not specified.",
+        "server_error": "An error occurred: Server error",
+        "task_missing_time": "You must specify a time to schedule the task.",
+        "task_invalid_time": "Invalid time format. Please use 'HH:MM' format.",
+        "task_note_subject": "Coopa Note Reminder: {noteName}",
+        "task_note_body": "Here is the content of the note you wanted to be reminded of:\n\n\"{noteContent}\"",
+        "task_file_subject": "Coopa File Reminder: {attachmentDescription}",
+        "task_file_body": "The memory \"{attachmentDescription}\" you requested has been attached to the email.",
+        "task_error_insufficient_info": "Insufficient information for scheduled task (missing note, file, or email content).",
+        "task_success_message": "The task '{taskIdentifier}' has been successfully scheduled for {time}.",
+        "email_attachment_not_found": "(Note: The requested memory \"{attachmentDescription}\" could not be found and was not attached to the email.)"
     },
-zh: {
-        welcome: "你好！我能为您做什么？",
-        weather_error: "无法获取天气信息",
-        email_sent: "邮件发送成功：",
-        email_error: "发送邮件时出错：",
-        note_saved: "笔记已保存。新内容：",
-        note_not_found: "未找到名为",
-        note_empty: "（笔记内容为空）",
-        note_db_error: "读取笔记时发生数据库错误：",
-        current_time: "现在是",
-        current_date: "日期",
-        calendar_added: "事件已添加到您的日历。",
-        calendar_error: "无法创建日历事件：",
-        task_scheduled: "任务安排成功。",
-        task_reminder: "主题在",
-        memory_saved: "地址用户的记忆已保存到数据库。",
-        memory_found: "找到描述为",
-        memory_not_found: "未找到匹配的记忆",
-        memory_decrypt_error: "找到记忆但无法解密。",
-        upload_success: "记忆已成功加密并永久保存！",
-        invalid_signature: "无效签名。身份验证失败。",
-        missing_info: "信息不完整：未指定文件、地址或签名。",
-        server_error: "发生错误：服务器错误"
+    es: {
+        "welcome": "¡Hola! ¿Cómo puedo ayudarte?",
+        "weather_error": "No se pudo obtener la información del tiempo para",
+        "email_sent": "Correo electrónico enviado con éxito:",
+        "email_error": "Ocurrió un error al enviar el correo electrónico:",
+        "note_saved": "la nota ha sido guardada. Nuevo contenido:",
+        "note_not_found": "No se encontró una nota con el nombre.",
+        "note_empty": "(el contenido de la nota está vacío)",
+        "note_db_error": "Ocurrió un error en la base de datos al leer la nota:",
+        "current_time": "La hora actual es",
+        "current_date": "la fecha es",
+        "calendar_added": "el evento ha sido añadido a tu calendario.",
+        "calendar_error": "No se pudo crear el evento del calendario:",
+        "task_scheduled": "Tarea programada con éxito.",
+        "task_reminder": "asunto a las",
+        "memory_saved": "Recuerdo guardado en la base de datos para el usuario con la dirección.",
+        "memory_found": "Se encontró el recuerdo con la descripción.",
+        "memory_not_found": "No se encontró ningún recuerdo que coincida con.",
+        "memory_search_not_found": "No se encontró ningún recuerdo que coincida con '{searchText}'.",
+        "memory_decrypt_error": "Se encontró el recuerdo pero no se pudo descifrar.",
+        "upload_success": "¡Recuerdo Cifrado y Guardado Permanentemente con Éxito!",
+        "invalid_signature": "Firma no válida. No se pudo autenticar.",
+        "missing_info": "Información faltante: No se especificó archivo, dirección o firma.",
+        "server_error": "Ocurrió un error: Error del servidor",
+        "task_missing_time": "Debes especificar una hora para programar la tarea.",
+        "task_invalid_time": "Formato de hora no válido. Por favor, usa el formato 'HH:MM'.",
+        "task_note_subject": "Recordatorio de Nota de Coopa: {noteName}",
+        "task_note_body": "Aquí está el contenido de la nota que querías que te recordaran:\n\n\"{noteContent}\"",
+        "task_file_subject": "Recordatorio de Archivo de Coopa: {attachmentDescription}",
+        "task_file_body": "El recuerdo \"{attachmentDescription}\" que solicitaste ha sido adjuntado al correo electrónico.",
+        "task_error_insufficient_info": "Información insuficiente para la tarea programada (falta nota, archivo o contenido de correo electrónico).",
+        "task_success_message": "La tarea '{taskIdentifier}' ha sido programada con éxito para las {time}.",
+        "email_attachment_not_found": "(Nota: El recuerdo solicitado \"{attachmentDescription}\" no se pudo encontrar y no se ha adjuntado al correo electrónico.)"
     },
-de: {
-        welcome: "Hallo! Wie kann ich Ihnen helfen?",
-        weather_error: "Wetterinformationen für",
-        email_sent: "E-Mail erfolgreich gesendet:",
-        email_error: "Fehler beim Senden der E-Mail:",
-        note_saved: "Notiz gespeichert. Neuer Inhalt:",
-        note_not_found: "Keine Notiz mit dem Namen gefunden",
-        note_empty: "(der Notizinhalt ist leer)",
-        note_db_error: "Datenbankfehler beim Lesen der Notiz:",
-        current_time: "Es ist jetzt",
-        current_date: "Datum",
-        calendar_added: "Ereignis zu Ihrem Kalender hinzugefügt.",
-        calendar_error: "Kalenderereignis konnte nicht erstellt werden:",
-        task_scheduled: "Aufgabe erfolgreich geplant.",
-        task_reminder: "Betreff um",
-        memory_saved: "Erinnerung in der Datenbank für Benutzer an Adresse gespeichert",
-        memory_found: "Erinnerung mit Beschreibung gefunden",
-        memory_not_found: "Keine passende Erinnerung gefunden für",
-        memory_decrypt_error: "Erinnerung gefunden, aber kann nicht entschlüsselt werden.",
-        upload_success: "Erinnerung erfolgreich verschlüsselt und dauerhaft gespeichert!",
-        invalid_signature: "Ungültige Signatur. Authentifizierung fehlgeschlagen.",
-        missing_info: "Fehlende Informationen: Datei, Adresse oder Signatur nicht angegeben.",
-        server_error: "Ein Fehler ist aufgetreten: Server-Fehler"
+    fr: {
+        "welcome": "Bonjour ! Comment puis-je vous aider ?",
+        "weather_error": "Les informations météorologiques n'ont pas pu être récupérées pour",
+        "email_sent": "E-mail envoyé avec succès :",
+        "email_error": "Une erreur est survenue lors de l'envoi de l'e-mail :",
+        "note_saved": "la note a été enregistrée. Nouveau contenu :",
+        "note_not_found": "Aucune note portant le nom n'a été trouvée.",
+        "note_empty": "(le contenu de la note est vide)",
+        "note_db_error": "Une erreur de base de données est survenue lors de la lecture de la note :",
+        "current_time": "L'heure actuelle est",
+        "current_date": "la date est le",
+        "calendar_added": "l'événement a été ajouté à votre calendrier.",
+        "calendar_error": "Impossible de créer l'événement de calendrier :",
+        "task_scheduled": "Tâche planifiée avec succès.",
+        "task_reminder": "sujet à",
+        "memory_saved": "Souvenir enregistré dans la base de données pour l'utilisateur avec l'adresse.",
+        "memory_found": "Souvenir avec la description trouvé.",
+        "memory_not_found": "Aucun souvenir correspondant à n'a été trouvé.",
+        "memory_search_not_found": "Aucun souvenir correspondant à '{searchText}' n'a été trouvé.",
+        "memory_decrypt_error": "Souvenir trouvé mais n'a pas pu être déchiffré.",
+        "upload_success": "Souvenir Chiffré et Enregistré de Manière Permanente avec Succès !",
+        "invalid_signature": "Signature invalide. Authentification échouée.",
+        "missing_info": "Informations manquantes : Fichier, adresse ou signature non spécifiés.",
+        "server_error": "Une erreur est survenue : Erreur de serveur",
+        "task_missing_time": "Vous devez spécifier une heure pour planifier la tâche.",
+        "task_invalid_time": "Format d'heure invalide. Veuillez utiliser le format 'HH:MM'.",
+        "task_note_subject": "Rappel de Note Coopa : {noteName}",
+        "task_note_body": "Voici le contenu de la note dont vous vouliez vous souvenir :\n\n\"{noteContent}\"",
+        "task_file_subject": "Rappel de Fichier Coopa : {attachmentDescription}",
+        "task_file_body": "Le souvenir \"{attachmentDescription}\" que vous avez demandé a été joint à l'e-mail.",
+        "task_error_insufficient_info": "Informations insuffisantes pour la tâche planifiée (note, fichier ou contenu d'e-mail manquant).",
+        "task_success_message": "La tâche '{taskIdentifier}' a été planifiée avec succès pour {time}.",
+        "email_attachment_not_found": "(Remarque : Le souvenir demandé \"{attachmentDescription}\" n'a pas pu être trouvé et n'a pas été joint à l'e-mail.)"
     },
-ru: {
-        welcome: "Привет! Как я могу вам помочь?",
-        weather_error: "Не удалось получить информацию о погоде для",
-        email_sent: "Письмо успешно отправлено:",
-        email_error: "Ошибка при отправке письма:",
-        note_saved: "заметка сохранена. Новое содержание:",
-        note_not_found: "Заметка с именем не найдена",
-        note_empty: "(содержание заметки пустое)",
-        note_db_error: "Ошибка базы данных при чтении заметки:",
-        current_time: "Сейчас",
-        current_date: "дата",
-        calendar_added: "событие добавлено в ваш календарь.",
-        calendar_error: "Не удалось создать событие календаря:",
-        task_scheduled: "Задача успешно запланирована.",
-        task_reminder: "тема в",
-        memory_saved: "память сохранена в базе данных для пользователя по адресу",
-        memory_found: "найдена память с описанием",
-        memory_not_found: "Не найдено подходящей памяти для",
-        memory_decrypt_error: "Память найдена, но не может быть расшифрована.",
-        upload_success: "Память успешно зашифрована и сохранена навсегда!",
-        invalid_signature: "Недействительная подпись. Аутентификация не удалась.",
-        missing_info: "Отсутствует информация: Файл, адрес или подпись не указаны.",
-        server_error: "Произошла ошибка: Ошибка сервера"
+    it: {
+        "welcome": "Ciao! Come posso aiutarti?",
+        "weather_error": "Impossibile recuperare le informazioni meteo per",
+        "email_sent": "Email inviata con successo:",
+        "email_error": "Si è verificato un errore durante l'invio dell'email:",
+        "note_saved": "la nota è stata salvata. Nuovo contenuto:",
+        "note_not_found": "Nessuna nota con il nome è stata trovata.",
+        "note_empty": "(il contenuto della nota è vuoto)",
+        "note_db_error": "Si è verificato un errore del database durante la lettura della nota:",
+        "current_time": "L'ora attuale è",
+        "current_date": "la data è il",
+        "calendar_added": "l'evento è stato aggiunto al tuo calendario.",
+        "calendar_error": "Impossibile creare l'evento del calendario:",
+        "task_scheduled": "Attività pianificata con successo.",
+        "task_reminder": "soggetto alle",
+        "memory_saved": "Ricordo salvato nel database per l'utente con indirizzo.",
+        "memory_found": "Trovato ricordo con descrizione.",
+        "memory_not_found": "Nessun ricordo corrispondente a è stato trovato.",
+        "memory_search_not_found": "Nessun ricordo corrispondente a '{searchText}' è stato trovato.",
+        "memory_decrypt_error": "Ricordo trovato ma non è stato possibile decifrarlo.",
+        "upload_success": "Ricordo Cifrato e Salvato Permanentemente con Successo!",
+        "invalid_signature": "Firma non valida. Autenticazione non riuscita.",
+        "missing_info": "Informazioni mancanti: File, indirizzo o firma non specificati.",
+        "server_error": "Si è verificato un errore: Errore del server",
+        "task_missing_time": "Devi specificare un'ora per pianificare l'attività.",
+        "task_invalid_time": "Formato dell'ora non valido. Si prega di usare il formato 'HH:MM'.",
+        "task_note_subject": "Promemoria Nota Coopa: {noteName}",
+        "task_note_body": "Ecco il contenuto della nota di cui volevi essere ricordato:\n\n\"{noteContent}\"",
+        "task_file_subject": "Promemoria File Coopa: {attachmentDescription}",
+        "task_file_body": "Il ricordo \"{attachmentDescription}\" che hai richiesto è stato allegato all'email.",
+        "task_error_insufficient_info": "Informazioni insufficienti per l'attività pianificata (manca nota, file o contenuto email).",
+        "task_success_message": "L'attività '{taskIdentifier}' è stata pianificata con successo per le {time}.",
+        "email_attachment_not_found": "(Nota: il ricordo richiesto \"{attachmentDescription}\" non è stato trovato e non è stato allegato all'email.)"
+    },
+    zh: {
+        "welcome": "你好！我能为你做些什么？",
+        "weather_error": "无法获取天气信息",
+        "email_sent": "电子邮件已成功发送：",
+        "email_error": "发送电子邮件时出错：",
+        "note_saved": "笔记已保存。新内容：",
+        "note_not_found": "找不到名为的笔记。",
+        "note_empty": "（笔记内容为空）",
+        "note_db_error": "读取笔记时发生数据库错误：",
+        "current_time": "现在的时间是",
+        "current_date": "日期是",
+        "calendar_added": "活动已添加到您的日历中。",
+        "calendar_error": "无法创建日历活动：",
+        "task_scheduled": "任务已成功安排。",
+        "task_reminder": "主题于",
+        "memory_saved": "已为地址为的用户将记忆保存到数据库。",
+        "memory_found": "已找到描述为的记忆。",
+        "memory_not_found": "未找到匹配的记忆。",
+        "memory_search_not_found": "未找到与“{searchText}”匹配的记忆。",
+        "memory_decrypt_error": "找到但无法解密记忆。",
+        "upload_success": "记忆已成功加密并永久保存！",
+        "invalid_signature": "无效签名。身份验证失败。",
+        "missing_info": "信息缺失：未指定文件、地址或签名。",
+        "server_error": "发生错误：服务器错误",
+        "task_missing_time": "您必须指定时间才能安排任务。",
+        "task_invalid_time": "无效的时间格式。请使用'HH:MM'格式。",
+        "task_note_subject": "Coopa 笔记提醒：{noteName}",
+        "task_note_body": "这是您希望被提醒的笔记内容：\n\n“{noteContent}”",
+        "task_file_subject": "Coopa 文件提醒：{attachmentDescription}",
+        "task_file_body": "您请求的“{attachmentDescription}”记忆已附加到电子邮件中。",
+        "task_error_insufficient_info": "计划任务信息不足（缺少笔记、文件或电子邮件内容）。",
+        "task_success_message": "任务“{taskIdentifier}”已成功安排在 {time}。",
+        "email_attachment_not_found": "(注意：无法找到您请求的记忆“{attachmentDescription}”，因此未附加到电子邮件中。)"
+    },
+    de: {
+        "welcome": "Hallo! Wie kann ich Ihnen helfen?",
+        "weather_error": "Wetterinformationen konnten nicht für abgerufen werden.",
+        "email_sent": "E-Mail erfolgreich gesendet:",
+        "email_error": "Beim Senden der E-Mail ist ein Fehler aufgetreten:",
+        "note_saved": "Notiz wurde gespeichert. Neuer Inhalt:",
+        "note_not_found": "Eine Notiz mit dem Namen wurde nicht gefunden.",
+        "note_empty": "(Notizinhalt ist leer)",
+        "note_db_error": "Beim Lesen der Notiz ist ein Datenbankfehler aufgetreten:",
+        "current_time": "Es ist",
+        "current_date": "das Datum ist der",
+        "calendar_added": "Ereignis wurde Ihrem Kalender hinzugefügt.",
+        "calendar_error": "Kalenderereignis konnte nicht erstellt werden:",
+        "task_scheduled": "Aufgabe erfolgreich geplant.",
+        "task_reminder": "Betreff um",
+        "memory_saved": "Erinnerung für Benutzer mit Adresse in der Datenbank gespeichert.",
+        "memory_found": "Erinnerung mit Beschreibung gefunden.",
+        "memory_not_found": "Keine passende Erinnerung für gefunden.",
+        "memory_search_not_found": "Keine Erinnerung passend zu '{searchText}' gefunden.",
+        "memory_decrypt_error": "Erinnerung gefunden, konnte aber nicht entschlüsselt werden.",
+        "upload_success": "Erinnerung Erfolgreich Verschlüsselt und Dauerhaft Gespeichert!",
+        "invalid_signature": "Ungültige Signatur. Authentifizierung fehlgeschlagen.",
+        "missing_info": "Fehlende Informationen: Datei, Adresse oder Signatur nicht angegeben.",
+        "server_error": "Ein Fehler ist aufgetreten: Serverfehler",
+        "task_missing_time": "Sie müssen eine Zeit angeben, um die Aufgabe zu planen.",
+        "task_invalid_time": "Ungültiges Zeitformat. Bitte verwenden Sie das 'HH:MM'-Format.",
+        "task_note_subject": "Coopa-Notizerinnerung: {noteName}",
+        "task_note_body": "Hier ist der Inhalt der Notiz, an die Sie erinnert werden wollten:\n\n„{noteContent}“",
+        "task_file_subject": "Coopa-Dateierinnerung: {attachmentDescription}",
+        "task_file_body": "Die von Ihnen angeforderte Erinnerung „{attachmentDescription}“ wurde der E-Mail angehängt.",
+        "task_error_insufficient_info": "Unzureichende Informationen für die geplante Aufgabe (fehlende Notiz, Datei oder E-Mail-Inhalt).",
+        "task_success_message": "Die Aufgabe '{taskIdentifier}' wurde erfolgreich für {time} geplant.",
+        "email_attachment_not_found": "(Hinweis: Die angeforderte Erinnerung \"{attachmentDescription}\" konnte nicht gefunden werden und wurde der E-Mail nicht beigefügt.)"
+    },
+    ru: {
+        "welcome": "Здравствуйте! Чем я могу вам помочь?",
+        "weather_error": "Не удалось получить информацию о погоде для",
+        "email_sent": "Электронное письмо успешно отправлено:",
+        "email_error": "Произошла ошибка при отправке электронного письма:",
+        "note_saved": "заметка сохранена. Новое содержание:",
+        "note_not_found": "Заметка с таким названием не найдена.",
+        "note_empty": "(содержимое заметки пусто)",
+        "note_db_error": "Произошла ошибка базы данных при чтении заметки:",
+        "current_time": "Текущее время",
+        "current_date": "сегодня",
+        "calendar_added": "событие добавлено в ваш календарь.",
+        "calendar_error": "Не удалось создать событие в календаре:",
+        "task_scheduled": "Задача успешно запланирована.",
+        "task_reminder": "тема в",
+        "memory_saved": "Воспоминание сохранено в базе данных для пользователя с адресом.",
+        "memory_found": "Найдено воспоминание с описанием.",
+        "memory_not_found": "Не найдено воспоминание, соответствующее.",
+        "memory_search_not_found": "Не найдено воспоминание, соответствующее '{searchText}'.",
+        "memory_decrypt_error": "Воспоминание найдено, но не может быть расшифровано.",
+        "upload_success": "Воспоминание Успешно Зашифровано и Постоянно Сохранено!",
+        "invalid_signature": "Неверная подпись. Аутентификация не удалась.",
+        "missing_info": "Отсутствует информация: не указан файл, адрес или подпись.",
+        "server_error": "Произошла ошибка: Ошибка сервера",
+        "task_missing_time": "Вы должны указать время для планирования задачи.",
+        "task_invalid_time": "Неверный формат времени. Пожалуйста, используйте формат 'ЧЧ:ММ'.",
+        "task_note_subject": "Напоминание о заметке Coopa: {noteName}",
+        "task_note_body": "Вот содержание заметки, о которой вы хотели получить напоминание:\n\n«{noteContent}»",
+        "task_file_subject": "Напоминание о файле Coopa: {attachmentDescription}",
+        "task_file_body": "Запрошенное вами воспоминание «{attachmentDescription}» прикреплено к электронному письму.",
+        "task_error_insufficient_info": "Недостаточно информации для запланированной задачи (отсутствует заметка, файл или содержимое письма).",
+        "task_success_message": "Задача «{taskIdentifier}» успешно запланирована на {time}.",
+        "email_attachment_not_found": "(Примечание: запрошенное воспоминание «{attachmentDescription}» не найдено и не было прикреплено к электронному письму.)"
     }
-    
 };
+
+// t() fonksiyonu, kullandığı translations objesinden SONRA gelmeli.
+function t(key, lang = 'tr') { // DOĞRU YER BURASI
+    return translations[lang][key] || translations['tr'][key] || key;
+}
 
 // Dil belirleme fonksiyonu
 function getUserLanguage(req) {
@@ -252,9 +336,7 @@ function getUserLanguage(req) {
     return 'en'; // varsayılan
 }
 
-function t(key, lang = 'tr') {
-    return translations[lang][key] || translations['tr'][key] || key;
-}
+
 
 // GÜNCELLEME: body-parser limitlerini artırıyoruz.
 app.use(express.json({ limit: '50mb' }));
@@ -354,8 +436,6 @@ async function get_current_weather(location, lang = 'tr') {
     } 
 }
 
-// server.js dosyasındaki eski send_email fonksiyonunu silip yerine bunu yapıştırın.
-
 async function send_email(args, userAddress, signature, lang = 'tr') {
     const { to, subject, body, attachmentDescription } = args;
     try {
@@ -370,20 +450,15 @@ async function send_email(args, userAddress, signature, lang = 'tr') {
             to,
             subject,
             text: body,
-            attachments: [] // Eklentiler için boş bir dizi oluştur
+            attachments: []
         };
 
-        // Eğer kullanıcı bir eklenti istediyse...
         if (attachmentDescription) {
             console.log(`[E-posta Eklentisi] "${attachmentDescription}" anısı aranıyor...`);
-
-            // find_memory fonksiyonunu kullanarak anıyı buluyoruz.
             const memoryResult = await find_memory(attachmentDescription, userAddress, signature, lang);
 
             if (memoryResult.found && memoryResult.data && memoryResult.data.decryptedDataUrl) {
                 console.log(`[E-posta Eklentisi] Anı bulundu. E-postaya ekleniyor...`);
-
-                // Data URL'i (data:image/png;base64,iVBOR...) Buffer'a çeviriyoruz.
                 const dataUrlParts = memoryResult.data.decryptedDataUrl.split(',');
                 const mimeType = dataUrlParts[0].match(/:(.*?);/)[1];
                 const buffer = Buffer.from(dataUrlParts[1], 'base64');
@@ -395,8 +470,9 @@ async function send_email(args, userAddress, signature, lang = 'tr') {
                 });
             } else {
                 console.warn(`[E-posta Eklentisi] "${attachmentDescription}" anısı bulunamadı veya veri bozuk. E-posta ek olmadan gönderilecek.`);
-                // İsteğe bağlı: Anı bulunamazsa e-postanın sonuna not ekle
-                mailOptions.text += `\n\n(Not: İstediğiniz "${attachmentDescription}" anısı bulunamadığı için e-postaya eklenemedi.)`;
+                // DİKKAT: Bu satır, `t()` fonksiyonunu kullanacak şekilde güncellendi.
+                const notFoundText = t('email_attachment_not_found', lang).replace('{attachmentDescription}', attachmentDescription);
+                mailOptions.text += `\n\n${notFoundText}`;
             }
         }
 
@@ -495,21 +571,19 @@ if (isNaN(eventDateTime.getTime())) {
 // ===                 *** HATA DÜZELTME ALANI *** ===
 // =================================================================
 async function schedule_task(args, userAddress, signature, lang = 'tr') {
-    // AI'dan gelebilecek TÜM olası parametreleri alıyoruz
-    const { noteName, time, fileName, fileDescription, subject, body } = args;
+    const { noteName, time, subject, body, attachmentDescription } = args;
 
     if (!time) {
-        return { success: false, message: "Görevi zamanlamak için bir saat belirtmelisiniz." };
+        return { success: false, message: t('task_missing_time', lang) };
     }
 
     const [hour, minute] = time.split(':');
     if (isNaN(hour) || isNaN(minute)) {
-        return { success: false, message: "Geçersiz zaman formatı. Lütfen 'HH:MM' formatında belirtin." };
+        return { success: false, message: t('task_invalid_time', lang) };
     }
 
     const cronTime = `${minute} ${hour} * * *`;
-    // Görevi tanımlayan daha açıklayıcı bir değişken
-    const taskIdentifier = noteName || fileName || fileDescription || subject || 'İsimsiz Görev';
+    const taskIdentifier = noteName || attachmentDescription || subject || 'Task';
     console.log(`[Zamanlayıcı] Görev ayarlanıyor. Zaman: ${cronTime}, Görev: '${taskIdentifier}'`);
 
     const task = cron.schedule(cronTime, async () => {
@@ -519,10 +593,9 @@ async function schedule_task(args, userAddress, signature, lang = 'tr') {
         const targetEmail = process.env.MY_EMAIL_ADDRESS;
         let emailSubject = '';
         let emailBody = '';
-        let attachmentDescription = null;
+        let finalAttachmentDescription = null;
 
         try {
-            // Senaryo 1: Bu bir NOT GÖREVİ ise...
             if (noteName) {
                 console.log(`[Zamanlayıcı] '${noteName}' notu veritabanından şimdi alınıyor...`);
                 const noteContent = await get_note(noteName, lang); 
@@ -530,29 +603,26 @@ async function schedule_task(args, userAddress, signature, lang = 'tr') {
                 if (noteContent.includes(t('note_not_found', lang)) || noteContent.includes(t('note_db_error', lang))) {
                     throw new Error(`Zamanlanmış görev için '${noteName}' notu bulunamadı.`);
                 }
-                emailSubject = `Coopa Not Hatırlatıcısı: ${noteName}`;
-                emailBody = `Hatırlatmanız gereken notun içeriği aşağıdadır:\n\n"${noteContent}"`;
+                emailSubject = t('task_note_subject', lang).replace('{noteName}', noteName);
+                emailBody = t('task_note_body', lang).replace('{noteContent}', noteContent);
             } 
-            // Senaryo 2: Bu bir DOSYA GÖREVİ ise...
-            else if (fileName || fileDescription) {
-                console.log(`[Zamanlayıcı] '${taskIdentifier}' dosyası için e-posta hazırlanıyor...`);
-                emailSubject = `Coopa Dosya Hatırlatıcısı: ${taskIdentifier}`;
-                emailBody = `İstediğiniz "${taskIdentifier}" anısı e-postaya eklenmiştir.`;
-                attachmentDescription = taskIdentifier;
+            else if (attachmentDescription) {
+                console.log(`[Zamanlayıcı] '${attachmentDescription}' dosyası için e-posta hazırlanıyor...`);
+                emailSubject = t('task_file_subject', lang).replace('{attachmentDescription}', attachmentDescription);
+                emailBody = t('task_file_body', lang).replace('{attachmentDescription}', attachmentDescription);
+                finalAttachmentDescription = attachmentDescription;
             }
-            // YENİ EKLENEN Senaryo 3: Bu basit bir E-POSTA GÖREVİ ise...
             else if (subject && body) {
                 console.log(`[Zamanlayıcı] Basit e-posta için içerik hazırlanıyor...`);
-                emailSubject = subject; // AI'dan gelen konuyu kullan
-                emailBody = body;       // AI'dan gelen içeriği kullan
+                emailSubject = subject;
+                emailBody = body;
             }
-            // Hiçbir senaryo eşleşmezse
             else {
-                 throw new Error("Zamanlanmış görev için yeterli bilgi bulunamadı (not, dosya veya e-posta içeriği eksik).");
+                 throw new Error(t('task_error_insufficient_info', lang));
             }
 
             console.log(`[Zamanlayıcı] E-posta gönderiliyor... Konu: ${emailSubject}`);
-            const emailArgs = { to: targetEmail, subject: emailSubject, body: emailBody, attachmentDescription };
+            const emailArgs = { to: targetEmail, subject: emailSubject, body: emailBody, attachmentDescription: finalAttachmentDescription };
             const result = await send_email(emailArgs, userAddress, signature, lang);
 
             if (result.success) {
@@ -570,8 +640,11 @@ async function schedule_task(args, userAddress, signature, lang = 'tr') {
 
     }, { timezone: "Europe/Istanbul", scheduled: true });
 
-    // Kullanıcıya hemen verilecek olan cevap
-    return { success: true, message: `'${taskIdentifier}' görevi, saat ${time} için başarıyla zamanlandı.` };
+    const successMessage = t('task_success_message', lang)
+        .replace('{taskIdentifier}', taskIdentifier)
+        .replace('{time}', time);
+        
+    return { success: true, message: successMessage };
 }
 // =================================================================
 // ===               *** HATA DÜZELTME ALANI SONU *** ===
@@ -592,137 +665,81 @@ async function saveMemory(txId, description, mediaType, userAddress, lang = 'tr'
 
 // server.js dosyasındaki find_memory fonksiyonunu bu YENİ versiyonla değiştirin.
 
-// server.js içine - mevcut find_memory fonksiyonuyla değiştirin
-// server.js içine - mevcut find_memory fonksiyonuyla değiştirin
 async function find_memory(searchText, userAddress, signature, lang = 'tr') {
-    return new Promise((resolve) => {
-        const sql = `SELECT * FROM memories WHERE user_address = ? ORDER BY created_at DESC`;
-        
-        db.all(sql, [userAddress], async (err, rows) => {
-            if (err) {
-                console.error("❌ Anı aranırken veritabanı hatası:", err.message);
-                return resolve({ error: err.message });
-            }
+    return new Promise((resolve) => {
+        const sql = `SELECT * FROM memories WHERE user_address = ? ORDER BY created_at DESC`;
+        
+        db.all(sql, [userAddress], async (err, rows) => {
+            if (err) {
+                console.error("❌ Anı aranırken veritabanı hatası:", err.message);
+                return resolve({ error: err.message });
+            }
 
-            if (!rows || rows.length === 0) {
-                return resolve({ found: false, message: "Hiç anı kaydınız bulunmuyor." });
-            }
+            if (!rows || rows.length === 0) {
+                // DİKKAT: Bu satır da çok dilli hale getirildi.
+                return resolve({ found: false, message: t('memory_not_found', lang) });
+            }
 
-            const searchKeywords = searchText.toLowerCase().split(' ').filter(word => word.length > 2);
-            let bestMatch = null;
-            let maxScore = 0;
+            const searchKeywords = searchText.toLowerCase().split(' ').filter(word => word.length > 2);
+            let bestMatch = null;
+            let maxScore = 0;
 
-            for (const row of rows) {
-                try {
-                    const decryptedDescription = decryptString(row.description, signature);
-                    if (!decryptedDescription) {
-                        console.warn(`[UYARI] Bir anının şifresi çözülemedi (TX_ID: ${row.tx_id}). Farklı bir oturumda kaydedilmiş olabilir.`);
-                        continue;
-                    }
+            for (const row of rows) {
+                try {
+                    const decryptedDescription = decryptString(row.description, signature);
+                    if (!decryptedDescription) {
+                        console.warn(`[UYARI] Bir anının şifresi çözülemedi (TX_ID: ${row.tx_id}). Farklı bir oturumda kaydedilmiş olabilir.`);
+                        continue;
+                    }
 
-                    const descriptionLowerCase = decryptedDescription.toLowerCase();
-                    let currentScore = 0;
-                    for (const keyword of searchKeywords) {
-                        if (descriptionLowerCase.includes(keyword)) {
-                            currentScore++;
-                        }
-                    }
+                    const descriptionLowerCase = decryptedDescription.toLowerCase();
+                    let currentScore = 0;
+                    for (const keyword of searchKeywords) {
+                        if (descriptionLowerCase.includes(keyword)) {
+                            currentScore++;
+                        }
+                    }
 
-                    if (currentScore > maxScore) {
-                        maxScore = currentScore;
-                        bestMatch = row;
-                    }
-                } catch (e) {
-                    continue; 
-                }
-            }
+                    if (currentScore > maxScore) {
+                        maxScore = currentScore;
+                        bestMatch = row;
+                    }
+                } catch (e) {
+                    continue; 
+                }
+            }
 
-            if (bestMatch && maxScore > 0) {
-                try {
-                    const finalDescription = decryptString(bestMatch.description, signature);
-                    console.log(`✅ En iyi anı eşleşmesi bulundu: "${finalDescription}". Veri Arweave'den çekiliyor...`);
-                    
-                    const gatewayUrl = `https://arweave.net/${bestMatch.tx_id}`;
-                    const response = await axios.get(gatewayUrl, { responseType: 'arraybuffer' });
-                    
-                    const encryptedBuffer = Buffer.from(response.data, 'binary');
-                    const decryptedBuffer = decryptBuffer(encryptedBuffer, signature);
-                    const decryptedDataUrl = `data:${bestMatch.media_type};base64,${decryptedBuffer.toString('base64')}`;
-                    
-                    return resolve({ 
-                        found: true, 
-                        description: finalDescription, 
-                        data: { decryptedDataUrl, description: finalDescription, mediaType: bestMatch.media_type } 
-                    });
-                } catch (error) {
-                    console.error("❌ Anı Arweave'den çekilirken veya deşifre edilirken hata:", error);
-                    return resolve({ error: t('memory_decrypt_error', lang) });
-                }
-            }
-            
-            resolve({ found: false, message: `'${searchText}' ile eşleşen bir anı bulunamadı.` });
-        });
-    });
+            if (bestMatch && maxScore > 0) {
+                try {
+                    const finalDescription = decryptString(bestMatch.description, signature);
+                    console.log(`✅ En iyi anı eşleşmesi bulundu: "${finalDescription}". Veri Arweave'den çekiliyor...`);
+                    
+                    const gatewayUrl = `https://arweave.net/${bestMatch.tx_id}`;
+                    const response = await axios.get(gatewayUrl, { responseType: 'arraybuffer' });
+                    
+                    const encryptedBuffer = Buffer.from(response.data, 'binary');
+                    const decryptedBuffer = decryptBuffer(encryptedBuffer, signature);
+                    const decryptedDataUrl = `data:${bestMatch.media_type};base64,${decryptedBuffer.toString('base64')}`;
+                    
+                    return resolve({ 
+                        found: true, 
+                        description: finalDescription, 
+                        data: { decryptedDataUrl, description: finalDescription, mediaType: bestMatch.media_type } 
+                    });
+                } catch (error) {
+                    console.error("❌ Anı Arweave'den çekilirken veya deşifre edilirken hata:", error);
+                    return resolve({ error: t('memory_decrypt_error', lang) });
+                }
+            }
+            // DİKKAT: Bu satır, `t()` fonksiyonunu kullanacak şekilde güncellendi.
+            resolve({ found: false, message: t('memory_search_not_found', lang).replace('{searchText}', searchText) });
+        });
+    });
 }
 
 // server.js içine, find_memory fonksiyonunun altına bu yeni fonksiyonu ekleyin.
 
-async function send_email_with_attachment(args, userAddress, signature, lang = 'tr') {
-    const { to, subject, body, attachmentDescription } = args;
-    try {
-        const user = process.env.GMAIL_USER;
-        const pass = process.env.GMAIL_APP_PASSWORD;
-        if (!user || !pass) throw new Error("Gmail credentials missing in .env file.");
 
-        let transporter = nodemailer.createTransport({ host: "smtp.gmail.com", port: 465, secure: true, auth: { user, pass } });
-        
-        const mailOptions = {
-            from: `"Coopa Assistant" <${user}>`,
-            to,
-            subject,
-            text: body,
-            attachments: []
-        };
-
-        if (attachmentDescription) {
-            console.log(`[Email Attachment] Searching for memory: "${attachmentDescription}"`);
-            // Zamanlanmış görevler için gerçek kullanıcı bilgilerini kullan
-let actualUserAddress = userAddress;
-let actualSignature = signature;
-
-if (userAddress === 'system' || userAddress === 'scheduled') {
-    // Zamanlanmış görev: anıyı tüm kullanıcılarda ara veya varsayılan kullanıcıyı kullan
-    actualUserAddress = null; // veya process.env.DEFAULT_USER_ADDRESS
-    actualSignature = null;   // veya process.env.DEFAULT_SIGNATURE
-}
-
-const memoryResult = await find_memory(attachmentDescription, userAddress, signature, lang);
-            if (memoryResult.found && memoryResult.data && memoryResult.data.decryptedDataUrl) {
-                console.log(`[Email Attachment] Memory found. Attaching to email...`);
-                
-                const dataUrlParts = memoryResult.data.decryptedDataUrl.split(',');
-                const mimeType = dataUrlParts[0].match(/:(.*?);/)[1];
-                const buffer = Buffer.from(dataUrlParts[1], 'base64');
-
-                mailOptions.attachments.push({
-                    filename: (memoryResult.description.replace(/[^a-z0-9]/gi, '_').toLowerCase() || 'attachment') + `.${mimeType.split('/')[1] || 'dat'}`,
-                    content: buffer,
-                    contentType: mimeType
-                });
-            } else {
-                console.warn(`[Email Attachment] Memory "${attachmentDescription}" not found. Sending email without attachment.`);
-                mailOptions.text += `\n\n(Note: The requested memory "${attachmentDescription}" could not be found and was not attached.)`;
-            }
-        }
-        
-        await transporter.sendMail(mailOptions);
-        return { success: true, message: `${t('email_sent', lang)} ${to}` };
-
-    } catch (error) {
-        console.error(`[Email Error] Details: ${error.message}`);
-        return { success: false, error: `${t('email_error', lang)} ${error.message}` };
-    }
-}
 
 // --- ROTALAR ---
 app.get('/', (req, res) => res.sendFile(path.join(__dirname, 'index.html')));

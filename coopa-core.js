@@ -69,29 +69,35 @@ const toolsMultilingual = {
         {
             functionDeclarations: [
                 { name: "get_current_weather", description: "Belirtilen bir şehirdeki güncel hava durumu bilgisini alır.", parameters: { type: "OBJECT", properties: { location: { type: "STRING" } }, required: ["location"] } },
-
-//...
-{ 
-    name: "send_email", 
-    description: "Bir e-postayı ŞİMDİ gönderir. Bir anıyı ek olarak göndermek için 'attachmentDescription' parametresi kullanılır.", 
-    parameters: { 
-        type: "OBJECT", 
-        properties: { 
-            to: { type: "STRING" }, 
-            subject: { type: "STRING" }, 
-            body: { type: "STRING" },
-            attachmentDescription: { type: "STRING", description: "E-postaya eklenecek olan, daha önce kaydedilmiş bir anının açıklaması (örn: 'İstanbul ve Galata')." }
-        }, 
-        required: ["to", "subject", "body"] 
-    } 
-},
-//...
-{ 
-    name: "schedule_task", 
-    description: "Bir e-postayı veya hatırlatıcıyı GELECEKTEKİ belirli bir saat için planlar/zamanlar. Kullanıcı 'saat', 'sonra', 'akşam' gibi bir zaman ifadesi kullanırsa MUTLAKA bu araç seçilmelidir.", 
-    parameters: { type: "OBJECT", properties: { time: { type: "STRING", description: "'HH:MM' formatında" }, noteName: { type: "STRING" }, subject: { type: "STRING" }, body: { type: "STRING" } }, required: ["time"] } 
-},
-//...
+                { 
+                    name: "send_email", 
+                    description: "Bir e-postayı ŞİMDİ gönderir. Bir anıyı ek olarak göndermek için 'attachmentDescription' parametresi kullanılır.", 
+                    parameters: { 
+                        type: "OBJECT", 
+                        properties: { 
+                            to: { type: "STRING" }, 
+                            subject: { type: "STRING" }, 
+                            body: { type: "STRING" },
+                            attachmentDescription: { type: "STRING", description: "E-postaya eklenecek olan, daha önce kaydedilmiş bir anının açıklaması (örn: 'İstanbul ve Galata')." }
+                        }, 
+                        required: ["to", "subject", "body"] 
+                    } 
+                },
+                {
+                    name: "schedule_task",
+                    description: "Bir e-postayı, notu veya dosyayı GELECEKTEKİ belirli bir saat için planlar/zamanlar. Kullanıcı 'saat', 'sonra', 'akşam' gibi bir zaman ifadesi kullanırsa MUTLAKA bu araç seçilmelidir.",
+                    parameters: {
+                        type: "OBJECT",
+                        properties: {
+                            time: { type: "STRING", description: "'HH:MM' formatında" },
+                            noteName: { type: "STRING", description: "E-posta ile gönderilecek, önceden kaydedilmiş bir notun adı." },
+                            subject: { type: "STRING", description: "Sıfırdan oluşturulacak bir e-postanın konusu." },
+                            body: { type: "STRING", description: "Sıfırdan oluşturulacak bir e-postanın içeriği." },
+                            attachmentDescription: { type: "STRING", description: "E-postaya eklenecek olan, daha önce kaydedilmiş bir anının (dosyanın) açıklaması." }
+                        },
+                        required: ["time"]
+                    }
+                },
                 { name: "create_note", description: "Sıfırdan yeni bir not oluşturur veya var olan notun üzerine tamamen yazar.", parameters: { type: "OBJECT", properties: { noteName: { type: "STRING" }, content: { type: "STRING" } }, required: ["noteName"] } },
                 { name: "edit_note", description: "Var olan bir notun içeriğinin sonuna yeni bilgi ekler.", parameters: { type: "OBJECT", properties: { noteName: { type: "STRING" }, newContent: { type: "STRING" } }, required: ["noteName", "newContent"] } },
                 { name: "get_note", description: "Daha önceden oluşturulmuş bir notun içeriğini adına göre getirir.", parameters: { type: "OBJECT", properties: { noteName: { type: "STRING" } }, required: ["noteName"] } },
@@ -116,23 +122,37 @@ const toolsMultilingual = {
             functionDeclarations: [
                 { name: "get_current_weather", description: "Gets current weather information for a specified city.", parameters: { type: "OBJECT", properties: { location: { type: "STRING" } }, required: ["location"] } },
                 { 
-    name: "send_email", 
-    description: "Sends an email NOW. Use the 'attachmentDescription' parameter to send a memory as an attachment.", 
-    parameters: { 
-        type: "OBJECT", 
-        properties: { 
-            to: { type: "STRING" }, 
-            subject: { type: "STRING" }, 
-            body: { type: "STRING" },
-            attachmentDescription: { type: "STRING", description: "The description of a previously saved memory to attach to the email (e.g., 'Istanbul and Galata')." }
-        }, 
-        required: ["to", "subject", "body"] 
-    } 
-},
+                    name: "send_email", 
+                    description: "Sends an email NOW. Use the 'attachmentDescription' parameter to send a memory as an attachment.", 
+                    parameters: { 
+                        type: "OBJECT", 
+                        properties: { 
+                            to: { type: "STRING" }, 
+                            subject: { type: "STRING" }, 
+                            body: { type: "STRING" },
+                            attachmentDescription: { type: "STRING", description: "The description of a previously saved memory to attach to the email (e.g., 'Istanbul and Galata')." }
+                        }, 
+                        required: ["to", "subject", "body"] 
+                    } 
+                },
+                {
+                    name: "schedule_task",
+                    description: "Schedules an email, note, or file for a specific time in the FUTURE. This tool MUST be chosen if the user uses a time expression like 'hour', 'later', 'evening'.",
+                    parameters: {
+                        type: "OBJECT",
+                        properties: {
+                            time: { type: "STRING", description: "in 'HH:MM' format" },
+                            noteName: { type: "STRING", description: "The name of a pre-saved note to be sent via email." },
+                            subject: { type: "STRING", description: "The subject of an email to be created from scratch." },
+                            body: { type: "STRING", description: "The content of an email to be created from scratch." },
+                            attachmentDescription: { type: "STRING", description: "The description of a previously saved memory (file) to be attached to the email." }
+                        },
+                        required: ["time"]
+                    }
+                },
                 { name: "create_note", description: "Creates a new note from scratch or completely overwrites an existing note.", parameters: { type: "OBJECT", properties: { noteName: { type: "STRING" }, content: { type: "STRING" } }, required: ["noteName"] } },
                 { name: "edit_note", description: "Adds new information to the end of an existing note's content.", parameters: { type: "OBJECT", properties: { noteName: { type: "STRING" }, newContent: { type: "STRING" } }, required: ["noteName", "newContent"] } },
                 { name: "get_note", description: "Retrieves the content of a previously created note by name.", parameters: { type: "OBJECT", properties: { noteName: { type: "STRING" } }, required: ["noteName"] } },
-                { name: "schedule_task", description: "Schedules a reminder or email task for a future time. Use 'noteName' to remind about an existing note. Use 'subject' and 'body' for a new email.", parameters: { type: "OBJECT", properties: { time: { type: "STRING", description: "In 'HH:MM' format" }, noteName: { type: "STRING" }, subject: { type: "STRING" }, body: { type: "STRING" } }, required: ["time"] } },
                 { name: "get_current_time", description: "Tells the user the current time and date.", parameters: { type: "OBJECT", properties: {} } },
                 { name: "create_calendar_event", description: "Adds a new event or appointment to the user's calendar.", parameters: { type: "OBJECT", properties: { title: { type: "STRING" }, date: { type: "STRING" }, time: { type: "STRING" }, description: { type: "STRING" } }, required: ["title", "time"] } },
                 {
@@ -152,30 +172,36 @@ const toolsMultilingual = {
     es: [
         {
             functionDeclarations: [
-                //...
-{
-  "name": "schedule_task",
-  "description": "Programa un correo electrónico o recordatorio para una hora específica en el FUTURO. Se puede usar 'attachmentDescription' para adjuntar un recuerdo al correo electrónico.",
-  "parameters": {
-    "type": "OBJECT",
-    "properties": {
-      "time": { "type": "STRING", "description": "en formato 'HH:MM'" },
-      "noteName": { "type": "STRING" },
-      "subject": { "type": "STRING" },
-      "body": { "type": "STRING" },
-      "attachmentDescription": { "type": "STRING", "description": "Una descripción de un recuerdo guardado previamente para adjuntar al correo electrónico." }
-    },
-    "required": ["time"]
-  }
-},
-//...
-{ 
-    name: "schedule_task", 
-    description: "Planifica/programa un correo electrónico o recordatorio para una fecha y hora FUTURA específica. Si el usuario menciona una hora o un momento en el futuro ('a las 5', 'mañana', 'más tarde'), se DEBE usar esta herramienta OBLIGATORIAMENTE.", 
-    parameters: { type: "OBJECT", properties: { time: { type: "STRING", description: "En formato 'HH:MM'" }, noteName: { type: "STRING" }, subject: { type: "STRING" }, body: { type: "STRING" } }, required: ["time"] } 
-},
-//...
                 { name: "get_current_weather", description: "Obtiene información meteorológica actual para una ciudad especificada.", parameters: { type: "OBJECT", properties: { location: { type: "STRING" } }, required: ["location"] } },
+                {
+                    name: "send_email",
+                    description: "Envía un correo electrónico AHORA. Use el parámetro 'attachmentDescription' para enviar un recuerdo como adjunto.",
+                    parameters: {
+                        type: "OBJECT",
+                        properties: {
+                            to: { type: "STRING" },
+                            subject: { type: "STRING" },
+                            body: { type: "STRING" },
+                            attachmentDescription: { type: "STRING", description: "La descripción de un recuerdo guardado previamente para adjuntar al correo (ej. 'Estambul y Gálata')." }
+                        },
+                        required: ["to", "subject", "body"]
+                    }
+                },
+                {
+                    name: "schedule_task",
+                    description: "Programa un correo electrónico, nota o archivo para una hora específica en el FUTURO. Esta herramienta DEBE elegirse si el usuario utiliza una expresión de tiempo como 'hora', 'más tarde', 'noche'.",
+                    parameters: {
+                        type: "OBJECT",
+                        properties: {
+                            time: { type: "STRING", description: "en formato 'HH:MM'" },
+                            noteName: { type: "STRING", description: "El nombre de una nota pre-guardada que se enviará por correo electrónico." },
+                            subject: { type: "STRING", description: "El asunto de un correo electrónico que se creará desde cero." },
+                            body: { type: "STRING", description: "El contenido de un correo electrónico que se creará desde cero." },
+                            attachmentDescription: { type: "STRING", description: "La descripción de un recuerdo (archivo) guardado previamente que se adjuntará al correo electrónico." }
+                        },
+                        required: ["time"]
+                    }
+                },
                 { name: "create_note", description: "Crea una nueva nota desde cero o sobrescribe completamente una nota existente.", parameters: { type: "OBJECT", properties: { noteName: { type: "STRING" }, content: { type: "STRING" } }, required: ["noteName"] } },
                 { name: "edit_note", description: "Agrega nueva información al final del contenido de una nota existente.", parameters: { type: "OBJECT", properties: { noteName: { type: "STRING" }, newContent: { type: "STRING" } }, required: ["noteName", "newContent"] } },
                 { name: "get_note", description: "Recupera el contenido de una nota creada previamente por nombre.", parameters: { type: "OBJECT", properties: { noteName: { type: "STRING" } }, required: ["noteName"] } },
@@ -196,151 +222,265 @@ const toolsMultilingual = {
         }
     ],
     fr: [
-    {
-        functionDeclarations: [
-            { name: "get_current_weather", description: "Obtient les informations météorologiques actuelles pour une ville spécifiée.", parameters: { type: "OBJECT", properties: { location: { type: "STRING" } }, required: ["location"] } },
-            {
-  "name": "schedule_task",
-  "description": "Planifie un e-mail ou un rappel pour une heure spécifique dans le FUTUR. 'attachmentDescription' peut être utilisé pour joindre un souvenir à l'e-mail.",
-  "parameters": {
-    "type": "OBJECT",
-    "properties": {
-      "time": { "type": "STRING", "description": "au format 'HH:MM'" },
-      "noteName": { "type": "STRING" },
-      "subject": { "type": "STRING" },
-      "body": { "type": "STRING" },
-      "attachmentDescription": { "type": "STRING", "description": "Une description d'un souvenir précédemment enregistré à joindre à l'e-mail." }
-    },
-    "required": ["time"]
-  }
-},
-            { name: "schedule_task", description: "Programme/planifie un email ou rappel pour une heure FUTURE spécifique. Si l'utilisateur utilise des expressions comme 'à', 'plus tard', 'soir', cet outil DOIT être sélectionné.", parameters: { type: "OBJECT", properties: { time: { type: "STRING", description: "au format 'HH:MM'" }, noteName: { type: "STRING" }, subject: { type: "STRING" }, body: { type: "STRING" } }, required: ["time"] } },
-            { name: "create_note", description: "Crée une nouvelle note à partir de zéro ou écrase complètement une note existante.", parameters: { type: "OBJECT", properties: { noteName: { type: "STRING" }, content: { type: "STRING" } }, required: ["noteName"] } },
-            { name: "edit_note", description: "Ajoute de nouvelles informations à la fin du contenu d'une note existante.", parameters: { type: "OBJECT", properties: { noteName: { type: "STRING" }, newContent: { type: "STRING" } }, required: ["noteName", "newContent"] } },
-            { name: "get_note", description: "Récupère le contenu d'une note créée précédemment par son nom.", parameters: { type: "OBJECT", properties: { noteName: { type: "STRING" } }, required: ["noteName"] } },
-            { name: "get_current_time", description: "Dit à l'utilisateur l'heure et la date actuelles.", parameters: { type: "OBJECT", properties: {} } },
-            { name: "create_calendar_event", description: "Ajoute un nouvel événement ou rendez-vous au calendrier de l'utilisateur.", parameters: { type: "OBJECT", properties: { title: { type: "STRING" }, date: { type: "STRING" }, time: { type: "STRING" }, description: { type: "STRING" } }, required: ["title", "time"] } },
-            { name: "find_memory", description: "Recherche et trouve une mémoire (image, fichier, etc.) que l'utilisateur a sauvegardée précédemment basée sur sa description.", parameters: { type: "OBJECT", properties: { searchText: { type: "STRING", description: "Mots-clés pour trouver la mémoire (ex: 'voiture rouge')" } }, required: ["searchText"] } }
-        ]
-    }
-],
-it: [
-    {
-        functionDeclarations: [
-            { name: "get_current_weather", description: "Ottiene informazioni meteorologiche attuali per una città specificata.", parameters: { type: "OBJECT", properties: { location: { type: "STRING" } }, required: ["location"] } },
-            {
-  "name": "schedule_task",
-  "description": "Pianifica un'e-mail o un promemoria per un'ora specifica nel FUTURO. È possibile utilizzare 'attachmentDescription' per allegare un ricordo all'e-mail.",
-  "parameters": {
-    "type": "OBJECT",
-    "properties": {
-      "time": { "type": "STRING", "description": "in formato 'HH:MM'" },
-      "noteName": { "type": "STRING" },
-      "subject": { "type": "STRING" },
-      "body": { "type": "STRING" },
-      "attachmentDescription": { "type": "STRING", "description": "Una descrizione di un ricordo salvato in precedenza da allegare all'e-mail." }
-    },
-    "required": ["time"]
-  }
-},
-            { name: "schedule_task", description: "Programma/pianifica un'email o promemoria per un orario FUTURO specifico. Se l'utente usa espressioni come 'alle', 'dopo', 'sera', questo strumento DEVE essere selezionato.", parameters: { type: "OBJECT", properties: { time: { type: "STRING", description: "nel formato 'HH:MM'" }, noteName: { type: "STRING" }, subject: { type: "STRING" }, body: { type: "STRING" } }, required: ["time"] } },
-            { name: "create_note", description: "Crea una nuova nota da zero o sovrascrive completamente una nota esistente.", parameters: { type: "OBJECT", properties: { noteName: { type: "STRING" }, content: { type: "STRING" } }, required: ["noteName"] } },
-            { name: "edit_note", description: "Aggiunge nuove informazioni alla fine del contenuto di una nota esistente.", parameters: { type: "OBJECT", properties: { noteName: { type: "STRING" }, newContent: { type: "STRING" } }, required: ["noteName", "newContent"] } },
-            { name: "get_note", description: "Recupera il contenuto di una nota creata precedentemente dal suo nome.", parameters: { type: "OBJECT", properties: { noteName: { type: "STRING" } }, required: ["noteName"] } },
-            { name: "get_current_time", description: "Dice all'utente l'ora e la data attuali.", parameters: { type: "OBJECT", properties: {} } },
-            { name: "create_calendar_event", description: "Aggiunge un nuovo evento o appuntamento al calendario dell'utente.", parameters: { type: "OBJECT", properties: { title: { type: "STRING" }, date: { type: "STRING" }, time: { type: "STRING" }, description: { type: "STRING" } }, required: ["title", "time"] } },
-            { name: "find_memory", description: "Cerca e trova una memoria (immagine, file, ecc.) che l'utente ha salvato precedentemente basandosi sulla sua descrizione.", parameters: { type: "OBJECT", properties: { searchText: { type: "STRING", description: "Parole chiave per trovare la memoria (es: 'auto rossa')" } }, required: ["searchText"] } }
-        ]
-    }
-],
-zh: [
-    {
-        functionDeclarations: [
-            { name: "get_current_weather", description: "获取指定城市的当前天气信息。", parameters: { type: "OBJECT", properties: { location: { type: "STRING" } }, required: ["location"] } },
-            {
-  "name": "schedule_task",
-  "description": "为将来的特定时间安排电子邮件或提醒。可以使用“attachmentDescription”将记忆附加到电子邮件中。",
-  "parameters": {
-    "type": "OBJECT",
-    "properties": {
-      "time": { "type": "STRING", "description": "格式为“HH:MM”" },
-      "noteName": { "type": "STRING" },
-      "subject": { "type": "STRING" },
-      "body": { "type": "STRING" },
-      "attachmentDescription": { "type": "STRING", "description": "要附加到电子邮件的先前保存的记忆的描述。" }
-    },
-    "required": ["time"]
-  }
-},
-            { name: "schedule_task", description: "为特定的未来时间安排/计划电子邮件或提醒。如果用户使用'在'、'稍后'、'晚上'等时间表达，必须选择此工具。", parameters: { type: "OBJECT", properties: { time: { type: "STRING", description: "'HH:MM' 格式" }, noteName: { type: "STRING" }, subject: { type: "STRING" }, body: { type: "STRING" } }, required: ["time"] } },
-            { name: "create_note", description: "从头创建全新笔记或完全覆盖现有笔记。", parameters: { type: "OBJECT", properties: { noteName: { type: "STRING" }, content: { type: "STRING" } }, required: ["noteName"] } },
-            { name: "edit_note", description: "在现有笔记内容的末尾添加新信息。", parameters: { type: "OBJECT", properties: { noteName: { type: "STRING" }, newContent: { type: "STRING" } }, required: ["noteName", "newContent"] } },
-            { name: "get_note", description: "根据名称检索之前创建的笔记内容。", parameters: { type: "OBJECT", properties: { noteName: { type: "STRING" } }, required: ["noteName"] } },
-            { name: "get_current_time", description: "告诉用户当前时间和日期。", parameters: { type: "OBJECT", properties: {} } },
-            { name: "create_calendar_event", description: "向用户的日历添加新事件或约会。", parameters: { type: "OBJECT", properties: { title: { type: "STRING" }, date: { type: "STRING" }, time: { type: "STRING" }, description: { type: "STRING" } }, required: ["title", "time"] } },
-            { name: "find_memory", description: "根据描述搜索并找到用户之前保存的记忆（图片、文件等）。", parameters: { type: "OBJECT", properties: { searchText: { type: "STRING", description: "查找记忆的关键词（例：'红色汽车'）" } }, required: ["searchText"] } }
-        ]
-    }
-],
-de: [
-    {
-        functionDeclarations: [
-            { name: "get_current_weather", description: "Ruft aktuelle Wetterinformationen für eine bestimmte Stadt ab.", parameters: { type: "OBJECT", properties: { location: { type: "STRING" } }, required: ["location"] } },
-            {
-  "name": "schedule_task",
-  "description": "Plant eine E-Mail oder eine Erinnerung für eine bestimmte Zeit in der ZUKUNFT. 'attachmentDescription' kann verwendet werden, um eine Erinnerung an die E-Mail anzuhängen.",
-  "parameters": {
-    "type": "OBJECT",
-    "properties": {
-      "time": { "type": "STRING", "description": "im Format 'HH:MM'" },
-      "noteName": { "type": "STRING" },
-      "subject": { "type": "STRING" },
-      "body": { "type": "STRING" },
-      "attachmentDescription": { "type": "STRING", "description": "Eine Beschreibung einer zuvor gespeicherten Erinnerung, die an die E-Mail angehängt werden soll." }
-    },
-    "required": ["time"]
-  }
-},
-            { name: "schedule_task", description: "Plant/terminiert eine E-Mail oder Erinnerung für eine bestimmte ZUKÜNFTIGE Zeit. Wenn der Benutzer Zeitausdrücke wie 'um', 'später', 'abends' verwendet, MUSS dieses Tool ausgewählt werden.", parameters: { type: "OBJECT", properties: { time: { type: "STRING", description: "im 'HH:MM' Format" }, noteName: { type: "STRING" }, subject: { type: "STRING" }, body: { type: "STRING" } }, required: ["time"] } },
-            { name: "create_note", description: "Erstellt eine völlig neue Notiz von Grund auf oder überschreibt eine bestehende Notiz vollständig.", parameters: { type: "OBJECT", properties: { noteName: { type: "STRING" }, content: { type: "STRING" } }, required: ["noteName"] } },
-            { name: "edit_note", description: "Fügt neue Informationen am Ende des Inhalts einer bestehenden Notiz hinzu.", parameters: { type: "OBJECT", properties: { noteName: { type: "STRING" }, newContent: { type: "STRING" } }, required: ["noteName", "newContent"] } },
-            { name: "get_note", description: "Ruft den Inhalt einer zuvor erstellten Notiz anhand ihres Namens ab.", parameters: { type: "OBJECT", properties: { noteName: { type: "STRING" } }, required: ["noteName"] } },
-            { name: "get_current_time", description: "Teilt dem Benutzer die aktuelle Uhrzeit und das Datum mit.", parameters: { type: "OBJECT", properties: {} } },
-            { name: "create_calendar_event", description: "Fügt einen neuen Termin oder Verabredung zum Kalender des Benutzers hinzu.", parameters: { type: "OBJECT", properties: { title: { type: "STRING" }, date: { type: "STRING" }, time: { type: "STRING" }, description: { type: "STRING" } }, required: ["title", "time"] } },
-            { name: "find_memory", description: "Sucht und findet eine Erinnerung (Bild, Datei, etc.), die der Benutzer zuvor basierend auf ihrer Beschreibung gespeichert hat.", parameters: { type: "OBJECT", properties: { searchText: { type: "STRING", description: "Schlüsselwörter zum Finden der Erinnerung (z.B.: 'rotes Auto')" } }, required: ["searchText"] } }
-        ]
-    }
-],
-ru: [
-    {
-        functionDeclarations: [
-            { name: "get_current_weather", description: "Получает текущую информацию о погоде для указанного города.", parameters: { type: "OBJECT", properties: { location: { type: "STRING" } }, required: ["location"] } },
-            {
-  "name": "schedule_task",
-  "description": "Планирует электронное письмо или напоминание на определенное время в БУДУЩЕМ. 'attachmentDescription' можно использовать для прикрепления воспоминания к электронному письму.",
-  "parameters": {
-    "type": "OBJECT",
-    "properties": {
-      "time": { "type": "STRING", "description": "в формате «ЧЧ:ММ»" },
-      "noteName": { "type": "STRING" },
-      "subject": { "type": "STRING" },
-      "body": { "type": "STRING" },
-      "attachmentDescription": { "type": "STRING", "description": "Описание ранее сохраненного воспоминания для прикрепления к электронному письму." }
-    },
-    "required": ["time"]
-  }
-},
-            { name: "schedule_task", description: "Планирует/назначает email или напоминание на определенное БУДУЩЕЕ время. Если пользователь использует выражения времени как 'в', 'позже', 'вечером', этот инструмент ДОЛЖЕН быть выбран.", parameters: { type: "OBJECT", properties: { time: { type: "STRING", description: "в формате 'HH:MM'" }, noteName: { type: "STRING" }, subject: { type: "STRING" }, body: { type: "STRING" } }, required: ["time"] } },
-            { name: "create_note", description: "Создает совершенно новую заметку с нуля или полностью перезаписывает существующую заметку.", parameters: { type: "OBJECT", properties: { noteName: { type: "STRING" }, content: { type: "STRING" } }, required: ["noteName"] } },
-            { name: "edit_note", description: "Добавляет новую информацию в конец содержимого существующей заметки.", parameters: { type: "OBJECT", properties: { noteName: { type: "STRING" }, newContent: { type: "STRING" } }, required: ["noteName", "newContent"] } },
-            { name: "get_note", description: "Извлекает содержимое ранее созданной заметки по её имени.", parameters: { type: "OBJECT", properties: { noteName: { type: "STRING" } }, required: ["noteName"] } },
-            { name: "get_current_time", description: "Сообщает пользователю текущее время и дату.", parameters: { type: "OBJECT", properties: {} } },
-            { name: "create_calendar_event", description: "Добавляет новое событие или встречу в календарь пользователя.", parameters: { type: "OBJECT", properties: { title: { type: "STRING" }, date: { type: "STRING" }, time: { type: "STRING" }, description: { type: "STRING" } }, required: ["title", "time"] } },
-            { name: "find_memory", description: "Ищет и находит память (изображение, файл и т.д.), которую пользователь ранее сохранил на основе её описания.", parameters: { type: "OBJECT", properties: { searchText: { type: "STRING", description: "Ключевые слова для поиска памяти (например: 'красная машина')" } }, required: ["searchText"] } }
+        {
+            functionDeclarations: [
+                { name: "get_current_weather", description: "Obtient les informations météorologiques actuelles pour une ville spécifiée.", parameters: { type: "OBJECT", properties: { location: { type: "STRING" } }, required: ["location"] } },
+                {
+                    name: "send_email",
+                    description: "Envoie un e-mail MAINTENANT. Utilisez le paramètre 'attachmentDescription' pour envoyer un souvenir en pièce jointe.",
+                    parameters: {
+                        type: "OBJECT",
+                        properties: {
+                            to: { type: "STRING" },
+                            subject: { type: "STRING" },
+                            body: { type: "STRING" },
+                            attachmentDescription: { type: "STRING", description: "La description d'un souvenir enregistré précédemment à joindre à l'e-mail (par ex. 'Istanbul et Galata')." }
+                        },
+                        required: ["to", "subject", "body"]
+                    }
+                },
+                {
+                    name: "schedule_task",
+                    description: "Planifie un e-mail, une note ou un fichier pour une heure spécifique dans le FUTUR. Cet outil DOIT être choisi si l'utilisateur utilise une expression temporelle comme 'heure', 'plus tard', 'soir'.",
+                    parameters: {
+                        type: "OBJECT",
+                        properties: {
+                            time: { type: "STRING", description: "au format 'HH:MM'" },
+                            noteName: { type: "STRING", description: "Le nom d'une note pré-enregistrée à envoyer par e-mail." },
+                            subject: { type: "STRING", description: "L'objet d'un e-mail à créer à partir de zéro." },
+                            body: { type: "STRING", description: "Le contenu d'un e-mail à créer à partir de zéro." },
+                            attachmentDescription: { type: "STRING", description: "La description d'un souvenir (fichier) précédemment enregistré à joindre à l'e-mail." }
+                        },
+                        required: ["time"]
+                    }
+                },
+                { name: "create_note", description: "Crée une nouvelle note à partir de zéro ou écrase complètement une note existante.", parameters: { type: "OBJECT", properties: { noteName: { type: "STRING" }, content: { type: "STRING" } }, required: ["noteName"] } },
+                { name: "edit_note", description: "Ajoute de nouvelles informations à la fin du contenu d'une note existante.", parameters: { type: "OBJECT", properties: { noteName: { type: "STRING" }, newContent: { type: "STRING" } }, required: ["noteName", "newContent"] } },
+                { name: "get_note", description: "Récupère le contenu d'une note créée précédemment par son nom.", parameters: { type: "OBJECT", properties: { noteName: { type: "STRING" } }, required: ["noteName"] } },
+                { name: "get_current_time", description: "Dit à l'utilisateur l'heure et la date actuelles.", parameters: { type: "OBJECT", properties: {} } },
+                { name: "create_calendar_event", description: "Ajoute un nouvel événement ou rendez-vous au calendrier de l'utilisateur.", parameters: { type: "OBJECT", properties: { title: { type: "STRING" }, date: { type: "STRING" }, time: { type: "STRING" }, description: { type: "STRING" } }, required: ["title", "time"] } },
+                {
+                    name: "find_memory",
+                    description: "Recherche et trouve une mémoire (image, fichier, etc.) que l'utilisateur a sauvegardée précédemment basée sur sa description. Utilisé pour des commandes comme '... montrer', '... trouver', '... obtenir'.",
+                    parameters: {
+                        type: "OBJECT",
+                        properties: {
+                            searchText: { type: "STRING", description: "Mots-clés pour trouver la mémoire (ex: 'voiture rouge')" }
+                        },
+                        required: ["searchText"]
+                    }
+                }
+            ]
+        }
+    ],
+    it: [
+        {
+            functionDeclarations: [
+                { name: "get_current_weather", description: "Ottiene informazioni meteorologiche attuali per una città specificata.", parameters: { type: "OBJECT", properties: { location: { type: "STRING" } }, required: ["location"] } },
+                {
+                    name: "send_email",
+                    description: "Invia un'e-mail ORA. Usa il parametro 'attachmentDescription' per inviare un ricordo come allegato.",
+                    parameters: {
+                        type: "OBJECT",
+                        properties: {
+                            to: { type: "STRING" },
+                            subject: { type: "STRING" },
+                            body: { type: "STRING" },
+                            attachmentDescription: { type: "STRING", description: "La descrizione di un ricordo salvato in precedenza da allegare all'e-mail (es. 'Istanbul e Galata')." }
+                        },
+                        required: ["to", "subject", "body"]
+                    }
+                },
+                {
+                    name: "schedule_task",
+                    description: "Pianifica un'e-mail, una nota o un file per un'ora specifica nel FUTURO. Questo strumento DEVE essere scelto se l'utente utilizza un'espressione di tempo come 'ora', 'più tardi', 'sera'.",
+                    parameters: {
+                        type: "OBJECT",
+                        properties: {
+                            time: { type: "STRING", description: "in formato 'HH:MM'" },
+                            noteName: { type: "STRING", description: "Il nome di una nota pre-salvata da inviare via e-mail." },
+                            subject: { type: "STRING", description: "L'oggetto di un'e-mail da creare da zero." },
+                            body: { type: "STRING", description: "Il contenuto di un'e-mail da creare da zero." },
+                            attachmentDescription: { type: "STRING", description: "La descrizione di un ricordo (file) salvato in precedenza da allegare all'e-mail." }
+                        },
+                        required: ["time"]
+                    }
+                },
+                { name: "create_note", description: "Crea una nuova nota da zero o sovrascrive completamente una nota esistente.", parameters: { type: "OBJECT", properties: { noteName: { type: "STRING" }, content: { type: "STRING" } }, required: ["noteName"] } },
+                { name: "edit_note", description: "Aggiunge nuove informazioni alla fine del contenuto di una nota esistente.", parameters: { type: "OBJECT", properties: { noteName: { type: "STRING" }, newContent: { type: "STRING" } }, required: ["noteName", "newContent"] } },
+                { name: "get_note", description: "Recupera il contenuto di una nota creata precedentemente dal suo nome.", parameters: { type: "OBJECT", properties: { noteName: { type: "STRING" } }, required: ["noteName"] } },
+                { name: "get_current_time", description: "Dice all'utente l'ora e la data attuali.", parameters: { type: "OBJECT", properties: {} } },
+                { name: "create_calendar_event", description: "Aggiunge un nuovo evento o appuntamento al calendario dell'utente.", parameters: { type: "OBJECT", properties: { title: { type: "STRING" }, date: { type: "STRING" }, time: { type: "STRING" }, description: { type: "STRING" } }, required: ["title", "time"] } },
+                {
+                    name: "find_memory",
+                    description: "Cerca e trova una memoria (immagine, file, ecc.) che l'utente ha salvato precedentemente basandosi sulla sua descrizione. Usato per comandi come '... mostra', '... trova', '... ottieni'.",
+                    parameters: {
+                        type: "OBJECT",
+                        properties: {
+                            searchText: { type: "STRING", description: "Parole chiave per trovare la memoria (es: 'auto rossa')" }
+                        },
+                        required: ["searchText"]
+                    }
+                }
+            ]
+        }
+    ],
+    zh: [
+        {
+            functionDeclarations: [
+                { name: "get_current_weather", description: "获取指定城市的当前天气信息。", parameters: { type: "OBJECT", properties: { location: { type: "STRING" } }, required: ["location"] } },
+                {
+                    name: "send_email",
+                    description: "立即发送电子邮件。使用“attachmentDescription”参数将记忆作为附件发送。",
+                    parameters: {
+                        type: "OBJECT",
+                        properties: {
+                            to: { type: "STRING" },
+                            subject: { type: "STRING" },
+                            body: { type: "STRING" },
+                            attachmentDescription: { type: "STRING", description: "要附加到电子邮件的先前保存的记忆的描述（例如，'伊斯坦布尔和加拉太'）。" }
+                        },
+                        required: ["to", "subject", "body"]
+                    }
+                },
+                {
+                    name: "schedule_task",
+                    description: "为将来的特定时间安排电子邮件、笔记或文件。如果用户使用像“小时”、“稍后”、“晚上”这样的时间表达，则必须选择此工具。",
+                    parameters: {
+                        type: "OBJECT",
+                        properties: {
+                            time: { type: "STRING", description: "格式为“HH:MM”" },
+                            noteName: { type: "STRING", description: "要通过电子邮件发送的预存笔记的名称。" },
+                            subject: { type: "STRING", description: "要从头创建的电子邮件的主题。" },
+                            body: { type: "STRING", description: "要从头创建的电子邮件的内容。" },
+                            attachmentDescription: { type: "STRING", description: "要附加到电子邮件的先前保存的记忆（文件）的描述。" }
+                        },
+                        required: ["time"]
+                    }
+                },
+                { name: "create_note", description: "从头开始创建新笔记或完全覆盖现有笔记。", parameters: { type: "OBJECT", properties: { noteName: { type: "STRING" }, content: { type: "STRING" } }, required: ["noteName"] } },
+                { name: "edit_note", description: "在现有笔记内容的末尾添加新信息。", parameters: { type: "OBJECT", properties: { noteName: { type: "STRING" }, newContent: { type: "STRING" } }, required: ["noteName", "newContent"] } },
+                { name: "get_note", description: "按名称检索先前创建的笔记的内容。", parameters: { type: "OBJECT", properties: { noteName: { type: "STRING" } }, required: ["noteName"] } },
+                { name: "get_current_time", description: "告诉用户当前的时间和日期。", parameters: { type: "OBJECT", properties: {} } },
+                { name: "create_calendar_event", description: "将新活动添加到用户的日历中。", parameters: { type: "OBJECT", properties: { title: { type: "STRING" }, date: { type: "STRING" }, time: { type: "STRING" }, description: { type: "STRING" } }, required: ["title", "time"] } },
+                {
+                    name: "find_memory",
+                    description: "根据描述搜索并找到用户先前保存的记忆（图片、文件等）。用于“...显示”、“...查找”、“...获取”等命令。",
+                    parameters: {
+                        type: "OBJECT",
+                        properties: {
+                            searchText: { type: "STRING", description: "用于查找记忆的关键字（例如：'红色汽车'）" }
+                        },
+                        required: ["searchText"]
+                    }
+                }
+            ]
+        }
+    ],
+    de: [
+        {
+            functionDeclarations: [
+                { name: "get_current_weather", description: "Ruft aktuelle Wetterinformationen für eine bestimmte Stadt ab.", parameters: { type: "OBJECT", properties: { location: { type: "STRING" } }, required: ["location"] } },
+                {
+                    name: "send_email",
+                    description: "Sendet JETZT eine E-Mail. Verwenden Sie den Parameter 'attachmentDescription', um eine Erinnerung als Anhang zu senden.",
+                    parameters: {
+                        type: "OBJECT",
+                        properties: {
+                            to: { type: "STRING" },
+                            subject: { type: "STRING" },
+                            body: { type: "STRING" },
+                            attachmentDescription: { type: "STRING", description: "Die Beschreibung einer zuvor gespeicherten Erinnerung, die an die E-Mail angehängt werden soll (z. B. 'Istanbul und Galata')." }
+                        },
+                        required: ["to", "subject", "body"]
+                    }
+                },
+                {
+                    name: "schedule_task",
+                    description: "Plant eine E-Mail, eine Notiz oder eine Datei für eine bestimmte Zeit in der ZUKUNFT. Dieses Werkzeug MUSS ausgewählt werden, wenn der Benutzer einen Zeitausdruck wie 'Stunde', 'später', 'Abend' verwendet.",
+                    parameters: {
+                        type: "OBJECT",
+                        properties: {
+                            time: { type: "STRING", description: "im Format 'HH:MM'" },
+                            noteName: { type: "STRING", description: "Der Name einer vorgespeicherten Notiz, die per E-Mail gesendet werden soll." },
+                            subject: { type: "STRING", description: "Der Betreff einer von Grund auf neu zu erstellenden E-Mail." },
+                            body: { type: "STRING", description: "Der Inhalt einer von Grund auf neu zu erstellenden E-Mail." },
+                            attachmentDescription: { type: "STRING", description: "Die Beschreibung einer zuvor gespeicherten Erinnerung (Datei), die an die E-Mail angehängt werden soll." }
+                        },
+                        required: ["time"]
+                    }
+                },
+                { name: "create_note", description: "Erstellt eine neue Notiz von Grund auf oder überschreibt eine bestehende Notiz vollständig.", parameters: { type: "OBJECT", properties: { noteName: { type: "STRING" }, content: { type: "STRING" } }, required: ["noteName"] } },
+                { name: "edit_note", description: "Fügt neue Informationen am Ende des Inhalts einer bestehenden Notiz hinzu.", parameters: { type: "OBJECT", properties: { noteName: { type: "STRING" }, newContent: { type: "STRING" } }, required: ["noteName", "newContent"] } },
+                { name: "get_note", description: "Ruft den Inhalt einer zuvor erstellten Notiz anhand ihres Namens ab.", parameters: { type: "OBJECT", properties: { noteName: { type: "STRING" } }, required: ["noteName"] } },
+                { name: "get_current_time", description: "Teilt dem Benutzer die aktuelle Uhrzeit und das aktuelle Datum mit.", parameters: { type: "OBJECT", properties: {} } },
+                { name: "create_calendar_event", description: "Fügt dem Kalender des Benutzers ein neues Ereignis oder einen neuen Termin hinzu.", parameters: { type: "OBJECT", properties: { title: { type: "STRING" }, date: { type: "STRING" }, time: { type: "STRING" }, description: { type: "STRING" } }, required: ["title", "time"] } },
+                {
+                    name: "find_memory",
+                    description: "Sucht und findet eine Erinnerung (Bild, Datei usw.), die der Benutzer zuvor anhand ihrer Beschreibung gespeichert hat. Wird für Befehle wie '... anzeigen', '... finden', '... holen' verwendet.",
+                    parameters: {
+                        type: "OBJECT",
+                        properties: {
+                            searchText: { type: "STRING", description: "Schlüsselwörter zum Finden der Erinnerung (z.B.: 'rotes Auto')" }
+                        },
+                        required: ["searchText"]
+                    }
+                }
+            ]
+        }
+    ],
+    ru: [
+        {
+            functionDeclarations: [
+                { name: "get_current_weather", description: "Получает текущую информацию о погоде для указанного города.", parameters: { type: "OBJECT", properties: { location: { type: "STRING" } }, required: ["location"] } },
+                {
+                    name: "send_email",
+                    description: "Отправляет электронное письмо СЕЙЧАС. Используйте параметр 'attachmentDescription', чтобы отправить воспоминание в качестве вложения.",
+                    parameters: {
+                        type: "OBJECT",
+                        properties: {
+                            to: { type: "STRING" },
+                            subject: { type: "STRING" },
+                            body: { type: "STRING" },
+                            attachmentDescription: { type: "STRING", description: "Описание ранее сохраненного воспоминания для прикрепления к электронному письму (например, «Стамбул и Галата»)." }
+                        },
+                        required: ["to", "subject", "body"]
+                    }
+                },
+                {
+                    name: "schedule_task",
+                    description: "Планирует электронное письмо, заметку или файл на определенное время в БУДУЩЕМ. Этот инструмент ОБЯЗАТЕЛЬНО должен быть выбран, если пользователь использует временное выражение, такое как 'час', 'позже', 'вечер'.",
+                    parameters: {
+                        type: "OBJECT",
+                        properties: {
+                            time: { type: "STRING", description: "в формате «ЧЧ:ММ»" },
+                            noteName: { type: "STRING", description: "Имя предварительно сохраненной заметки для отправки по электронной почте." },
+                            subject: { type: "STRING", description: "Тема электронного письма, создаваемого с нуля." },
+                            body: { type: "STRING", description: "Содержимое электронного письма, создаваемого с нуля." },
+                            attachmentDescription: { type: "STRING", description: "Описание ранее сохраненного воспоминания (файла) для прикрепления к электронному письму." }
+                        },
+                        required: ["time"]
+                    }
+                },
+                { name: "create_note", description: "Создает новую заметку с нуля или полностью перезаписывает существующую заметку.", parameters: { type: "OBJECT", properties: { noteName: { type: "STRING" }, content: { type: "STRING" } }, required: ["noteName"] } },
+                { name: "edit_note", description: "Добавляет новую информацию в конец содержимого существующей заметки.", parameters: { type: "OBJECT", properties: { noteName: { type: "STRING" }, newContent: { type: "STRING" } }, required: ["noteName", "newContent"] } },
+                { name: "get_note", description: "Извлекает содержимое ранее созданной заметки по ее названию.", parameters: { type: "OBJECT", properties: { noteName: { type: "STRING" } }, required: ["noteName"] } },
+                { name: "get_current_time", description: "Сообщает пользователю текущее время и дату.", parameters: { type: "OBJECT", properties: {} } },
+                { name: "create_calendar_event", description: "Добавляет новое событие или встречу в календарь пользователя.", parameters: { type: "OBJECT", properties: { title: { type: "STRING" }, date: { type: "STRING" }, time: { type: "STRING" }, description: { type: "STRING" } }, required: ["title", "time"] } },
+                {
+                    name: "find_memory",
+                    description: "Ищет и находит воспоминание (изображение, файл и т.д.), которое пользователь ранее сохранил, на основе его описания. Используется для команд типа '... покажи', '... найди', '... получи'.",
+                    parameters: {
+                        type: "OBJECT",
+                        properties: {
+                            searchText: { type: "STRING", description: "Ключевые слова для поиска воспоминания (например: 'красная машина')" }
+                        },
+                        required: ["searchText"]
+                    }
+                }
             ]
         }
     ]
-
 };
 
 
