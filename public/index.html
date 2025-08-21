@@ -1227,24 +1227,21 @@
     }
 
     // Arayüz dilini güncelleyen ana fonksiyon
-// Arayüz dilini ve metin yönünü güncelleyen NİHAİ ana fonksiyon
+
+    
     function updateLanguageUI(lang) {
         currentLanguage = lang;
         localStorage.setItem('coopaLanguage', lang);
         document.documentElement.lang = lang;
 
-        // --- BÖLÜM 1: SAĞDAN SOLA DİL DESTEĞİ (Senin eklediğin özellik korunuyor) ---
-        // Seçilen dil RTL listesinde mi diye kontrol et
+        // BÖLÜM 1: Sağdan Sola Dil Desteği (Mevcut kodun korunuyor)
         if (rtlLanguages.includes(lang)) {
-            // Eğer evet ise, sayfanın yönünü sağdan sola yap
             document.body.dir = 'rtl';
         } else {
-            // Değilse, varsayılan olan soldan sağa yap
             document.body.dir = 'ltr';
         }
         
-        // --- BÖLÜM 2: STATİK ELEMENTLERİ GÜNCELLEME ---
-        // Elementleri bul ve varlarsa güncelle (güvenli yapı korunuyor)
+        // BÖLÜM 2: Statik Elementleri Güncelleme (Mevcut kodun korunuyor)
         const mainTitle = document.getElementById('main-title');
         if(mainTitle) mainTitle.textContent = t("mainTitle");
 
@@ -1273,14 +1270,12 @@
         if(elements.fileChosen) elements.fileChosen.textContent = elements.fileInput.files.length > 0 ? elements.fileInput.files[0].name : t("noFileChosen");
         if(elements.input) elements.input.placeholder = isWalletConnected ? t("promptPlaceholderMic") : t("walletConnectFirst");
 
-        // --- BÖLÜM 3: DİNAMİK ELEMENTLERİ GÜNCELLEME ---
-        // "Sohbet temizlendi" bildirimini güncelle
+        // BÖLÜM 3: Dinamik Elementleri Güncelleme (Mevcut kodun ve EKSİK PARÇANIN birleşimi)
         const notification = document.getElementById('clear-chat-notification');
         if (notification) {
             notification.innerText = t('chatCleared');
         }
 
-        // "Google Takvim'e bağlandı" bildirimini güncelle (Benim eklediğim düzeltme)
         const authStatusDiv = document.getElementById('google-auth-status');
         if (authStatusDiv) {
             const urlParams = new URLSearchParams(window.location.search);
@@ -1289,7 +1284,16 @@
                 authStatusDiv.innerText = authStatus === 'success' ? t('googleAuthSuccess') : t('googleAuthError');
             }
         }
+
+        // --- EKSİK OLAN VE EKLENEN KISIM ---
+        // "Giriş Yapıldı" metnini de bul ve güncelle.
+        const walletAddressText = document.getElementById('wallet-address-text');
+        if (walletAddressText && currentUserAddress) {
+            const shortAddress = `${currentUserAddress.substring(0, 6)}...${currentUserAddress.substring(currentUserAddress.length - 4)}`;
+            walletAddressText.textContent = `${t('loginSuccess')} ${shortAddress}`;
+        }
     }
+
   // Helper: Sesli okuma fonksiyonu 
 
   const speak = (text) => {
@@ -1552,6 +1556,7 @@
     };
 
     // Ana Fonksiyon: Cüzdanla giriş
+
     const handleLogin = async () => { 
         if (!window.ethereum) return alert(t('installMetaMask'));
 
@@ -1566,6 +1571,11 @@
             isWalletConnected = true; 
             
             const shortAddress = `${account.substring(0, 6)}...${account.substring(account.length - 4)}`; 
+            
+            // --- EKLENEN TEK SATIR BURASI ---
+            // Dil değiştirildiğinde bu elementi bulabilmek için ona bir kimlik veriyoruz.
+            elements.walletAddress.id = 'wallet-address-text'; 
+            
             elements.walletAddress.textContent = `${t('loginSuccess')} ${shortAddress}`;
             elements.walletInfo.style.display = 'flex';
             elements.connectWalletButton.style.display = 'none'; 
