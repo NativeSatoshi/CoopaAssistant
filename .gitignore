@@ -1,20 +1,43 @@
-# İşletim sistemi ve editör dosyaları
-.DS_Store
-*.log
-
-# Proje bağımlılıkları - npm install ile yeniden oluşturulabilir
+# --- Proje Bağımlılıkları ---
+# Bu klasör 'npm install' komutuyla yeniden oluşturulabilir, asla GitHub'a gönderilmez.
+# Boyutu çok büyüktür ve gereksizdir.
 /node_modules
 
-# Gizli anahtarlar ve ortam değişkenleri
+# --- Hassas ve Gizli Dosyalar ---
+# Tüm API anahtarlarını, şifreleri ve gizli ayarları içerir. EN ÖNEMLİ KURAL!
 .env
+
+# Ethereum özel anahtarını içeren tüm .key dosyalarını yoksay.
 *.key
 
-# Kullanıcıya özel, üretilmiş dosyalar (Hassas Veri!)
+# --- Veritabanı Dosyaları ---
+# Kullanıcının notlarını ve özel anılarının meta verilerini içerir.
+# Bu dosyanın GitHub'a gönderilmesi, kullanıcı gizliliğini ihlal eder.
+# Yeni dosya yolumuza göre daha spesifik hale getirdik.
+src/config/*.db
+
+# SQLite tarafından otomatik oluşturulan yedekleme/günlük dosyalarını yoksay.
+*.db-journal
+*.db-wal
+*.db-shm
+
+# --- İşletim Sistemi ve Editör Dosyaları ---
+# macOS tarafından otomatik oluşturulan sistem dosyaları.
+.DS_Store
+
+# VS Code gibi editörlerin oluşturabileceği ayar dosyaları.
+.vscode/
+
+# --- Log ve Geçici Dosyalar ---
+# Hata veya işlem kayıtlarını tutan log dosyaları.
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Kullanıcının belirttiği, projeye özel üretilmiş dosyalar (mevcut kuralın korunması iyi)
 context_*.json
 backups_*.json
 
-# Geçici olarak yüklenen veya üretilen dosyaların klasörü
+# Geçici olarak yüklenen veya üretilen dosyaların klasörü (mevcut kuralın korunması iyi)
 /uploads
-
-# Veritabanı dosyaları
-*.db
