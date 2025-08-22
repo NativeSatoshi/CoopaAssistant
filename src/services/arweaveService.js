@@ -1,8 +1,9 @@
-// src/services/arweaveService.js
+// src/services/arweaveService.js - NİHAİ VERSİYON
+
 const { TurboFactory, EthereumSigner } = require("@ardrive/turbo-sdk");
 const { db } = require('../config/database');
 
-// Helper function to create an authenticated Turbo instance
+// Bu fonksiyon değişmedi.
 function getTurboInstance() {
     const privateKey = process.env.EVM_PRIVATE_KEY;
     if (!privateKey) throw new Error("EVM_PRIVATE_KEY not found in .env file.");
@@ -11,12 +12,7 @@ function getTurboInstance() {
     return TurboFactory.authenticated({ signer, token: 'pol' });
 }
 
-/**
- * Encrypted file buffer'ını Arweave'e yükler.
- * @param {Buffer} fileBuffer - Şifrelenmiş dosya verisi.
- * @param {string} contentType - Dosyanın MIME türü (örn: 'image/png').
- * @returns Yükleme sonrası makbuz nesnesi.
- */
+// Bu fonksiyon değişmedi.
 async function uploadFileToArweave(fileBuffer, contentType) {
     try {
         console.log("[Arweave Service] Starting encrypted file upload...");
@@ -36,11 +32,7 @@ async function uploadFileToArweave(fileBuffer, contentType) {
     }
 }
 
-/**
- * Metin verisini (genellikle sohbet geçmişi) Arweave'e yükler.
- * @param {Object} data - Yüklenecek JSON verisi.
- * @returns Yükleme sonrası makbuz nesnesi.
- */
+// Bu fonksiyon değişmedi.
 async function uploadTextToArweave(data) {
     try {
         console.log("[Arweave Service] Starting text data upload...");
@@ -62,28 +54,35 @@ async function uploadTextToArweave(data) {
 }
 
 /**
- * Yüklenen anının meta verilerini yerel veritabanına kaydeder.
+ * Yüklenen anının veya makbuzun meta verilerini yerel veritabanına kaydeder.
  * @param {string} txId - Arweave işlem ID'si.
  * @param {string} encryptedDescription - Şifrelenmiş anı açıklaması.
  * @param {string} mediaType - Dosyanın MIME türü.
  * @param {string} userAddress - Kullanıcının cüzdan adresi.
+ * @param {string} recordType - (YENİ) Kaydın türü ('memory' veya 'receipt'). Varsayılan 'memory'dir.
  */
-async function saveMemoryMetadata(txId, encryptedDescription, mediaType, userAddress) {
+async function saveMemoryMetadata(txId, encryptedDescription, mediaType, userAddress, recordType = 'memory') {
     return new Promise((resolve, reject) => {
-        const sql = `INSERT INTO memories (tx_id, description, media_type, user_address) VALUES (?, ?, ?, ?)`;
-        db.run(sql, [txId, encryptedDescription, mediaType, userAddress], function (err) {
+        // YENİ: SQL sorgusuna 'record_type' sütunu eklendi.
+        const sql = `INSERT INTO memories (tx_id, description, media_type, user_address, record_type) VALUES (?, ?, ?, ?, ?)`;
+        // YENİ: Parametrelere 'recordType' eklendi.
+        db.run(sql, [txId, encryptedDescription, mediaType, userAddress, recordType], function (err) {
             if (err) {
                 console.error("DB Error saving memory metadata:", err.message);
                 return reject(err);
             }
-            console.log(`✅ Memory metadata saved to DB for user: ${userAddress}`);
+            // YENİ: Log mesajı daha bilgilendirici hale getirildi.
+            console.log(`✅ Metadata for record type '${recordType}' saved to DB for user: ${userAddress}`);
             resolve({ id: this.lastID });
         });
     });
 }
 
 module.exports = {
+    getTurboInstance, // Turbo motorumuzu dışarıya açıyoruz
     uploadFileToArweave,
     uploadTextToArweave,
     saveMemoryMetadata
 };
+
+
