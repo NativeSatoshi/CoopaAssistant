@@ -1,4 +1,4 @@
-# 🛡️ CoopaASI: Your Permanent, AI-Powered Digital Vault
+# 🛡️ CoopaAssistant: Your Permanent, AI-Powered Digital Vault
 
 [![Live Site](https://img.shields.io/badge/Status-Live-brightgreen)](https://coopaassistant.com/)
 [![Built with Gemini](https://img.shields.io/badge/AI-Gemini_1.5_Pro-blue)](https://deepmind.google/technologies/gemini/)
@@ -7,7 +7,7 @@
 
 > **"Bridging the gap between AI Intelligence and Data Permanence."**
 
-CoopaASI is a sovereign digital assistant that provides users with an encrypted, eternal vault on the **Arweave Permaweb**. By utilizing **Polygon Mainnet** for secure identity and **Google Gemini 1.5 Pro** for multimodal analysis, CoopaASI ensures your memories and data are not just stored, but are searchable and accessible for generations.
+CoopaAssistant is a sovereign digital assistant that provides users with an encrypted, eternal vault on the **Arweave Permaweb**. By utilizing **Polygon Mainnet** for secure identity and **Google Gemini 1.5 Pro** for multimodal analysis, CoopaAssistant ensures your memories and data are not just stored, but are searchable and accessible for generations.
 
 ---
 
@@ -18,7 +18,7 @@ The production version is live and operational at:
 ---
 
 ## ⚠️ Private Beta & Whitelist Access
-To ensure system stability and maximum security during our **Mainnet launch**, CoopaASI currently operates in a **Closed Beta** phase. 
+To ensure system stability and maximum security during our **Mainnet launch**, CoopaAssistant currently operates in a **Closed Beta** phase. 
 
 * **Public Access:** Anyone can view the landing page and connect their wallet for identity verification.
 * **Write Access (File Uploads):** Currently restricted to **whitelisted wallet addresses**. 
@@ -29,7 +29,7 @@ To ensure system stability and maximum security during our **Mainnet launch**, C
 ## 🌟 Key Innovations
 - **Semantic Search:** Don't search by filenames. Ask Gemini: *"Find the invoice from my trip to Paris"* or *"Show me the contract I signed last month."*
 - **User-Centric Encryption:** Files are encrypted locally using your unique wallet signature. We never see your data; only you hold the keys.
-- **Perpetual Storage:** Leveraging Arweave via the **Aarwee/Turbo SDK**, data is stored forever with a one-time fee—no monthly subscriptions.
+- **Perpetual Storage:** Leveraging Arweave via the **Turbo SDK**, data is stored forever with a one-time fee—no monthly subscriptions.
 
 ## 🛠️ Technical Architecture
 - **AI Engine:** Google Gemini 1.5 Pro & `text-embedding-004`.
@@ -46,8 +46,8 @@ To ensure system stability and maximum security during our **Mainnet launch**, C
 ---
 
 ## 📬 Contact & Support
-**Selçuk Gence** Founder & Developer  
-📧 [info@coopaassistant.com](mailto:info@coopaassistant.com) | [N1001sg@gmail.com](mailto:N1001sg@gmail.com)
+**Selçuk Gence** - Founder & Developer  
+📧 [info@coopaassistant.com](mailto:info@coopaassistant.com)
 
 ---
 *Developed for the future of the Permaweb. Powered by Google AI and Polygon.*
