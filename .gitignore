@@ -6,17 +6,29 @@
 # --- Hassas ve Gizli Dosyalar ---
 # Tüm API anahtarlarını, şifreleri ve gizli ayarları içerir. EN ÖNEMLİ KURAL!
 .env
+.env.local
+.env.production
+.env.staging
+.env.development
+.env.development.local
+.env.test.local
+.env.production.local
 
 # Ethereum özel anahtarını içeren tüm .key dosyalarını yoksay.
 *.key
 
+# Proje içindeki özel sertifikalar
+*.pem
+*.crt
+*.p12
+*.pfx
+*.key.json
+
 # --- Veritabanı Dosyaları ---
 # Kullanıcının notlarını ve özel anılarının meta verilerini içerir.
 # Bu dosyanın GitHub'a gönderilmesi, kullanıcı gizliliğini ihlal eder.
-# Yeni dosya yolumuza göre daha spesifik hale getirdik.
-src/config/*.db
-
-# SQLite tarafından otomatik oluşturulan yedekleme/günlük dosyalarını yoksay.
+# *.db tüm klasörleri kapsar (önceki src/config/*.db kuralından daha güvenli)
+*.db
 *.db-journal
 *.db-wal
 *.db-shm
@@ -28,6 +40,10 @@ src/config/*.db
 # VS Code gibi editörlerin oluşturabileceği ayar dosyaları.
 .vscode/
 
+# JetBrains (WebStorm, IntelliJ vb.)
+.idea/
+*.iml
+
 # --- Log ve Geçici Dosyalar ---
 # Hata veya işlem kayıtlarını tutan log dosyaları.
 *.log
@@ -35,26 +51,15 @@ npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
 
-# Kullanıcının belirttiği, projeye özel üretilmiş dosyalar (mevcut kuralın korunması iyi)
+# Kullanıcının belirttiği, projeye özel üretilmiş dosyalar
 context_*.json
 backups_*.json
 
-# Geçici olarak yüklenen veya üretilen dosyaların klasörü (mevcut kuralın korunması iyi)
+# Geçici olarak yüklenen veya üretilen dosyaların klasörü
 /uploads
 
-# --- Ek Güvenlik Katmanları ---
-# Yanlışlıkla yüklenmemesi gereken diğer gizli ayarlar
-.env.local
-.env.development.local
-.env.test.local
-.env.production.local
-
-# Proje içindeki özel sertifikalar
-*.pem
-*.crt
-*.p12
-
-# Geçici işletim sistemi kalıntıları (Windows & Mac)
+# --- Geçici İşletim Sistemi Kalıntıları ---
 Thumbs.db
 ehthumbs.db
 [Tt]humbs.db
+Desktop.ini
