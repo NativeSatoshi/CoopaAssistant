@@ -8,7 +8,8 @@ async function generateContentFromHistory(history, lang = 'tr') {
     try {
         const selectedLang = lang || 'tr';
         const model = genAI.getGenerativeModel({
-            model: "gemini-1.5-pro-latest",
+            model: "gemini-3-flash-preview",
+
             systemInstruction: systemInstructions[selectedLang] || systemInstructions['tr'],
             toolConfig: { functionCallingConfig: { mode: "AUTO" } },
         });
