@@ -50,8 +50,9 @@ To ensure system stability and maximum security during our **Mainnet launch**, C
 ## 🗺️ Future Roadmap
 
 * [x] **Q1 2026:** Mainnet Launch & Gemini Integration (Current Status).
-* [ ] **Q2 2026:** Mobile Application (React Native) for seamless vault access.
-* [ ] **Q3 2026:** Decentralized Encrypted Sharing (Peer-to-Peer data exchange).
+* [ ] **Q2 2026:** Multi-User System — Multi-user support development.
+* [ ] **Q3 2026:** Public Beta Launch — Multi-user beta testing with expanded access.
+* [ ] **Q4 2026:** Decentralized Encrypted Sharing (Peer-to-Peer data exchange).
 
 ---
 
