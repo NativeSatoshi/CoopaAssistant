@@ -64,4 +64,17 @@ To ensure system stability and maximum security during our **Mainnet launch**, C
 
 ---
 
+## 📸 Screenshots
+
+![Hello](screenshots/1g.png)
+*Coopa's greeting in English*
+
+![Weather](screenshots/2g.png)
+*Weather forecast for London with umbrella suggestion*
+
+![Arweave Memory Retrieval](screenshots/6G.png)
+*Retrieving stored photo from Arweave permanent storage*
+
+---
+
 *Developed for the future of the Permaweb. Powered by Google AI and Polygon.*
