@@ -549,17 +549,6 @@
   /* REVEAL */
   .reveal { opacity: 0; transform: translateY(30px); transition: opacity 0.7s ease, transform 0.7s ease; }
   .reveal.visible { opacity: 1; transform: translateY(0); }
-
-.msg-img {
-  max-width: 100%;       /* Resim sohbet kutusunu taşmasın */
-  max-height: 200px;     /* Çok uzun olmasın */
-  border-radius: 12px;   /* Köşeleri senin tasarımına uygun yumuşatır */
-  margin-top: 10px;      /* Metinle arasına mesafe koyar */
-  display: block;        /* Altındaki yazıların düzgün hizalanmasını sağlar */
-  border: 1px solid rgba(255, 255, 255, 0.1); /* Hafif bir çerçeve şık durur */
-}
-
-
 </style>
 </head>
 <body>
@@ -610,13 +599,13 @@
       <div class="chat-messages">
         <div class="msg user">
           <div class="msg-avatar">👤</div>
-          <div class="msg-bubble">Show me my daughter's graduation photo from 2025</div>
+          <div class="msg-bubble">Show me my daughter's graduation photo from 2024</div>
         </div>
         <div class="msg">
           <div class="msg-avatar">🤖</div>
           <div class="msg-col">
-            <div class="msg-bubble">Found it! Here's your memory — "daughter's graduation 2025" 🎓</div>
-            <img src="IMG-1.jpeg" alt="Graduation Photo" class="msg-img">
+            <div class="msg-bubble">Found it! Here's your memory — "daughter's graduation 2024" 🎓</div>
+            <div class="msg-image">🎓</div>
             <div class="msg-bubble msg-bubble-small">
               Stored on Arweave · AES-256 Encrypted · Permanent<br>
               TX: <span class="tx-hash">4KzHwFvw3hUvaUt6mQ...</span>
@@ -625,7 +614,7 @@
         </div>
         <div class="msg user">
           <div class="msg-avatar">👤</div>
-          <div class="msg-bubble">Add my daughter's graduation date to my Google calendar </div>
+          <div class="msg-bubble">Also add her graduation to my Google Calendar 📅</div>
         </div>
         <div class="msg">
           <div class="msg-avatar">🤖</div>
