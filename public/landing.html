@@ -1,0 +1,974 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Coopa AI — The Autonomous AI That Never Forgets</title>
+<meta name="description" content="Coopa AI combines autonomous AI agents with permanent blockchain storage. Your data, your control, forever.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;1,9..40,300&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --black: #080810;
+    --white: #f0eff8;
+    --accent: #7B6EF6;
+    --accent2: #46E5A0;
+    --accent3: #F6A26E;
+    --glass: rgba(255,255,255,0.04);
+    --border: rgba(255,255,255,0.08);
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  html { scroll-behavior: smooth; }
+
+  body {
+    background: var(--black);
+    color: var(--white);
+    font-family: 'DM Sans', sans-serif;
+    font-weight: 300;
+    overflow-x: hidden;
+  }
+
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.035'/%3E%3C/svg%3E");
+    pointer-events: none;
+    z-index: 1000;
+    opacity: 0.4;
+  }
+
+  /* NAV */
+  nav {
+    position: fixed;
+    top: 0; left: 0; right: 0;
+    z-index: 100;
+    padding: 24px 60px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: 1px solid transparent;
+    transition: all 0.4s ease;
+    -webkit-backdrop-filter: blur(0px);
+    backdrop-filter: blur(0px);
+  }
+
+  nav.scrolled {
+    background: rgba(8,8,16,0.9);
+    border-bottom-color: var(--border);
+    -webkit-backdrop-filter: blur(20px);
+    backdrop-filter: blur(20px);
+    padding: 16px 60px;
+  }
+
+  .logo {
+    font-family: 'Syne', sans-serif;
+    font-weight: 800;
+    font-size: 22px;
+    letter-spacing: -0.5px;
+  }
+  .logo span { color: var(--accent); }
+
+  nav ul { list-style: none; display: flex; gap: 40px; align-items: center; }
+  nav ul a {
+    color: rgba(240,239,248,0.6);
+    text-decoration: none;
+    font-size: 14px;
+    font-weight: 400;
+    transition: color 0.2s;
+  }
+  nav ul a:hover { color: var(--white); }
+
+  .nav-cta {
+    background: var(--accent) !important;
+    color: var(--white) !important;
+    padding: 10px 22px;
+    border-radius: 100px;
+    font-weight: 500 !important;
+    transition: opacity 0.2s !important;
+  }
+  .nav-cta:hover { opacity: 0.85; }
+
+  /* HERO */
+  .hero {
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    text-align: center;
+    padding: 120px 40px 80px;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .orb {
+    position: absolute;
+    border-radius: 50%;
+    filter: blur(100px);
+    pointer-events: none;
+  }
+  .orb-1 {
+    width: 600px; height: 600px;
+    background: radial-gradient(circle, rgba(123,110,246,0.15) 0%, transparent 70%);
+    top: -100px; left: -100px;
+    animation: float1 8s ease-in-out infinite;
+  }
+  .orb-2 {
+    width: 500px; height: 500px;
+    background: radial-gradient(circle, rgba(70,229,160,0.1) 0%, transparent 70%);
+    bottom: -50px; right: -50px;
+    animation: float2 10s ease-in-out infinite;
+  }
+  .orb-3 {
+    width: 300px; height: 300px;
+    background: radial-gradient(circle, rgba(246,162,110,0.08) 0%, transparent 70%);
+    top: 50%; left: 50%;
+    transform: translate(-50%, -50%);
+    animation: float3 12s ease-in-out infinite;
+  }
+  @keyframes float1 { 0%,100%{transform:translate(0,0)}50%{transform:translate(30px,30px)} }
+  @keyframes float2 { 0%,100%{transform:translate(0,0)}50%{transform:translate(-20px,-30px)} }
+  @keyframes float3 { 0%,100%{transform:translate(-50%,-50%) scale(1)}50%{transform:translate(-50%,-50%) scale(1.2)} }
+
+  .hero-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    background: var(--glass);
+    border: 1px solid var(--border);
+    border-radius: 100px;
+    padding: 8px 18px;
+    font-size: 13px;
+    color: rgba(240,239,248,0.7);
+    margin-bottom: 40px;
+    animation: fadeUp 0.8s ease both;
+  }
+  .dot {
+    width: 6px; height: 6px;
+    background: var(--accent2);
+    border-radius: 50%;
+    animation: pulse 2s ease infinite;
+  }
+  @keyframes pulse { 0%,100%{opacity:1;transform:scale(1)}50%{opacity:0.5;transform:scale(0.8)} }
+
+  h1 {
+    font-family: 'Syne', sans-serif;
+    font-weight: 800;
+    font-size: clamp(44px, 7vw, 84px);
+    line-height: 1.0;
+    letter-spacing: -2px;
+    margin-bottom: 28px;
+    max-width: 920px;
+    animation: fadeUp 0.8s 0.1s ease both;
+  }
+  .gradient-text {
+    background: linear-gradient(135deg, var(--accent) 0%, var(--accent2) 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+
+  .hero-sub {
+    font-size: clamp(16px, 2vw, 19px);
+    color: rgba(240,239,248,0.55);
+    max-width: 580px;
+    line-height: 1.75;
+    margin-bottom: 50px;
+    animation: fadeUp 0.8s 0.2s ease both;
+  }
+
+  .hero-actions {
+    display: flex;
+    gap: 16px;
+    align-items: center;
+    animation: fadeUp 0.8s 0.3s ease both;
+  }
+
+  .btn-primary {
+    background: var(--accent);
+    color: var(--white);
+    padding: 16px 36px;
+    border-radius: 100px;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 15px;
+    font-weight: 500;
+    text-decoration: none;
+    transition: transform 0.2s, box-shadow 0.2s;
+    box-shadow: 0 0 40px rgba(123,110,246,0.3);
+    display: inline-block;
+  }
+  .btn-primary:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 0 60px rgba(123,110,246,0.5);
+  }
+
+  .btn-secondary {
+    color: rgba(240,239,248,0.7);
+    font-size: 15px;
+    text-decoration: none;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    transition: color 0.2s;
+  }
+  .btn-secondary:hover { color: var(--white); }
+  .btn-secondary::after { content: '→'; transition: transform 0.2s; }
+  .btn-secondary:hover::after { transform: translateX(4px); }
+
+  /* HERO CARD */
+  .hero-visual {
+    margin-top: 80px;
+    width: 100%;
+    max-width: 860px;
+    animation: fadeUp 0.8s 0.4s ease both;
+  }
+  .hero-card {
+    background: rgba(255,255,255,0.03);
+    border: 1px solid var(--border);
+    border-radius: 20px;
+    padding: 32px;
+    position: relative;
+    overflow: hidden;
+  }
+  .hero-card::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, var(--accent), transparent);
+  }
+  .card-header { display: flex; align-items: center; gap: 12px; margin-bottom: 24px; }
+  .card-dots { display: flex; gap: 6px; }
+  .card-dots span { width: 10px; height: 10px; border-radius: 50%; background: rgba(255,255,255,0.15); }
+  .card-title { font-size: 13px; color: rgba(240,239,248,0.4); }
+  .chat-messages { display: flex; flex-direction: column; gap: 16px; }
+  .msg { display: flex; gap: 12px; align-items: flex-start; }
+  .msg.user { flex-direction: row-reverse; }
+  .msg-avatar {
+    width: 32px; height: 32px; border-radius: 50%;
+    background: var(--glass); border: 1px solid var(--border);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 14px; flex-shrink: 0;
+  }
+  .msg-col { display: flex; flex-direction: column; gap: 10px; align-items: flex-start; }
+  .msg-bubble {
+    background: var(--glass); border: 1px solid var(--border);
+    border-radius: 14px; padding: 12px 16px;
+    font-size: 14px; line-height: 1.6; max-width: 400px;
+    text-align: left; color: rgba(240,239,248,0.8);
+  }
+  .msg.user .msg-bubble { background: rgba(123,110,246,0.15); border-color: rgba(123,110,246,0.3); color: var(--white); }
+  .msg-bubble-small { font-size: 12px; color: rgba(240,239,248,0.4); }
+  .msg-image {
+    width: 180px; height: 120px; border-radius: 10px;
+    background: linear-gradient(135deg, rgba(123,110,246,0.2), rgba(70,229,160,0.2));
+    border: 1px solid var(--border);
+    display: flex; align-items: center; justify-content: center; font-size: 32px;
+  }
+  .tx-hash { color: var(--accent); font-family: monospace; }
+  .typing { display: flex; gap: 4px; padding: 12px 16px; background: var(--glass); border: 1px solid var(--border); border-radius: 14px; width: fit-content; }
+  .typing span { width: 6px; height: 6px; border-radius: 50%; background: var(--accent); animation: typingDot 1.2s ease infinite; }
+  .typing span:nth-child(2) { animation-delay: 0.2s; }
+  .typing span:nth-child(3) { animation-delay: 0.4s; }
+  @keyframes typingDot { 0%,100%{opacity:0.3;transform:translateY(0)}50%{opacity:1;transform:translateY(-4px)} }
+  @keyframes fadeUp { from{opacity:0;transform:translateY(24px)}to{opacity:1;transform:translateY(0)} }
+
+  /* STATS */
+  .stats-bar {
+    padding: 40px 60px;
+    border-top: 1px solid var(--border);
+    border-bottom: 1px solid var(--border);
+    display: flex; justify-content: center; gap: 80px;
+    background: rgba(255,255,255,0.015);
+  }
+  .stat { text-align: center; }
+  .stat-number {
+    font-family: 'Syne', sans-serif; font-size: 36px; font-weight: 700;
+    background: linear-gradient(135deg, var(--accent), var(--accent2));
+    -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
+  }
+  .stat-label { font-size: 13px; color: rgba(240,239,248,0.4); margin-top: 4px; letter-spacing: 0.5px; }
+
+  /* SECTIONS */
+  .section-wrap { padding: 120px 60px; max-width: 1200px; margin: 0 auto; }
+  .section-label { font-size: 12px; letter-spacing: 2px; text-transform: uppercase; color: var(--accent); margin-bottom: 20px; font-weight: 500; }
+  .section-title { font-family: 'Syne', sans-serif; font-size: clamp(32px, 4vw, 52px); font-weight: 700; letter-spacing: -1px; line-height: 1.1; margin-bottom: 20px; }
+  .section-sub { font-size: 17px; color: rgba(240,239,248,0.5); max-width: 540px; line-height: 1.7; margin-bottom: 60px; }
+
+  /* MARKET */
+  .market-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    gap: 2px;
+    background: var(--border);
+    border-radius: 20px;
+    overflow: hidden;
+    margin-bottom: 60px;
+  }
+  .market-card {
+    background: var(--black);
+    padding: 48px 40px;
+    position: relative;
+    transition: background 0.3s;
+  }
+  .market-card:hover { background: rgba(255,255,255,0.02); }
+  .market-number {
+    font-family: 'Syne', sans-serif;
+    font-size: 48px; font-weight: 800;
+    background: linear-gradient(135deg, var(--accent), var(--accent2));
+    -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
+    margin-bottom: 8px;
+  }
+  .market-card h3 { font-family: 'Syne', sans-serif; font-size: 18px; font-weight: 700; margin-bottom: 12px; }
+  .market-card p { font-size: 14px; color: rgba(240,239,248,0.45); line-height: 1.8; }
+
+  /* COMPARISON TABLE */
+  .table-wrap {
+    border-radius: 20px;
+    overflow: hidden;
+    border: 1px solid var(--border);
+  }
+  .comp-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 14px;
+  }
+  .comp-table th {
+    padding: 20px 24px;
+    text-align: left;
+    font-family: 'Syne', sans-serif;
+    font-weight: 700;
+    font-size: 13px;
+    background: rgba(255,255,255,0.03);
+    border-bottom: 1px solid var(--border);
+    color: rgba(240,239,248,0.6);
+    letter-spacing: 0.5px;
+  }
+  .comp-table th.highlight {
+    background: rgba(123,110,246,0.1);
+    color: var(--accent);
+  }
+  .comp-table td {
+    padding: 18px 24px;
+    border-bottom: 1px solid rgba(255,255,255,0.04);
+    color: rgba(240,239,248,0.6);
+    vertical-align: top;
+  }
+  .comp-table tr:last-child td { border-bottom: none; }
+  .comp-table td.feature-name {
+    font-weight: 500;
+    color: rgba(240,239,248,0.8);
+  }
+  .comp-table td.highlight {
+    background: rgba(123,110,246,0.05);
+    color: var(--white);
+    font-weight: 500;
+  }
+  .comp-table tr:hover td { background: rgba(255,255,255,0.015); }
+  .comp-table tr:hover td.highlight { background: rgba(123,110,246,0.08); }
+  .check { color: var(--accent2); font-size: 16px; }
+  .cross { color: rgba(240,239,248,0.2); font-size: 16px; }
+
+  /* HOW IT WORKS */
+  .steps {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 2px;
+    background: var(--border);
+    border-radius: 20px;
+    overflow: hidden;
+  }
+  .step { background: var(--black); padding: 40px 32px; transition: background 0.3s; }
+  .step:hover { background: rgba(123,110,246,0.05); }
+  .step-num { font-family: 'Syne', sans-serif; font-size: 48px; font-weight: 800; color: rgba(123,110,246,0.15); line-height: 1; margin-bottom: 24px; }
+  .step-icon { font-size: 28px; margin-bottom: 16px; }
+  .step h3 { font-family: 'Syne', sans-serif; font-size: 18px; font-weight: 700; margin-bottom: 10px; }
+  .step p { font-size: 14px; color: rgba(240,239,248,0.45); line-height: 1.7; }
+
+  /* FEATURES */
+  .features-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 2px;
+    background: var(--border);
+    border-radius: 20px;
+    overflow: hidden;
+  }
+  .feature { background: var(--black); padding: 48px 40px; position: relative; overflow: hidden; transition: background 0.3s; }
+  .feature:hover { background: rgba(255,255,255,0.02); }
+  .feature-icon { width: 52px; height: 52px; border-radius: 14px; display: flex; align-items: center; justify-content: center; font-size: 24px; margin-bottom: 24px; }
+  .feature-icon.purple { background: rgba(123,110,246,0.15); }
+  .feature-icon.green { background: rgba(70,229,160,0.15); }
+  .feature-icon.orange { background: rgba(246,162,110,0.15); }
+  .feature h3 { font-family: 'Syne', sans-serif; font-size: 20px; font-weight: 700; margin-bottom: 12px; }
+  .feature p { font-size: 14px; color: rgba(240,239,248,0.45); line-height: 1.8; }
+  .feature-glow { position: absolute; width: 200px; height: 200px; border-radius: 50%; filter: blur(60px); top: -50px; right: -50px; pointer-events: none; opacity: 0; transition: opacity 0.4s; }
+  .feature:hover .feature-glow { opacity: 1; }
+  .feature-glow.purple { background: rgba(123,110,246,0.1); }
+  .feature-glow.green { background: rgba(70,229,160,0.1); }
+  .feature-glow.orange { background: rgba(246,162,110,0.1); }
+
+  /* FOUNDER LETTER */
+  .founder-section {
+    padding: 120px 60px;
+    max-width: 1200px;
+    margin: 0 auto;
+  }
+  .founder-card {
+    background: rgba(255,255,255,0.02);
+    border: 1px solid var(--border);
+    border-radius: 24px;
+    padding: 72px 80px;
+    position: relative;
+    overflow: hidden;
+  }
+  .founder-card::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 2px;
+    background: linear-gradient(90deg, var(--accent), var(--accent2), var(--accent3));
+  }
+  .founder-quote-mark {
+    font-size: 120px;
+    font-family: 'Syne', sans-serif;
+    font-weight: 800;
+    color: rgba(123,110,246,0.08);
+    line-height: 0.8;
+    margin-bottom: 40px;
+    display: block;
+  }
+  .founder-card h2 {
+    font-family: 'Syne', sans-serif;
+    font-size: clamp(24px, 3vw, 38px);
+    font-weight: 700;
+    letter-spacing: -0.5px;
+    line-height: 1.2;
+    margin-bottom: 32px;
+  }
+  .founder-pillars {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    gap: 24px;
+    margin: 48px 0;
+  }
+  .pillar {
+    background: var(--glass);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 28px 24px;
+  }
+  .pillar-icon { font-size: 28px; margin-bottom: 12px; }
+  .pillar h4 { font-family: 'Syne', sans-serif; font-size: 15px; font-weight: 700; margin-bottom: 8px; }
+  .pillar p { font-size: 13px; color: rgba(240,239,248,0.45); line-height: 1.7; }
+  .founder-body {
+    font-size: 16px;
+    color: rgba(240,239,248,0.6);
+    line-height: 1.9;
+    max-width: 720px;
+  }
+  .founder-body p { margin-bottom: 20px; }
+  .founder-body strong { color: var(--white); font-weight: 500; }
+  .founder-sig {
+    margin-top: 48px;
+    padding-top: 32px;
+    border-top: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    gap: 20px;
+  }
+  .founder-avatar {
+    width: 56px; height: 56px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, var(--accent), var(--accent2));
+    display: flex; align-items: center; justify-content: center;
+    font-size: 24px;
+  }
+  .founder-info h4 { font-family: 'Syne', sans-serif; font-size: 16px; font-weight: 700; }
+  .founder-info p { font-size: 13px; color: rgba(240,239,248,0.4); margin-top: 2px; }
+
+  /* TECH STACK */
+  .tech-section { text-align: center; padding: 80px 60px; border-top: 1px solid var(--border); }
+  .tech-label { font-size: 12px; letter-spacing: 2px; text-transform: uppercase; color: rgba(240,239,248,0.3); margin-bottom: 40px; }
+  .tech-logos { display: flex; justify-content: center; align-items: center; gap: 60px; flex-wrap: wrap; }
+  .tech-item { display: flex; flex-direction: column; align-items: center; gap: 10px; opacity: 0.4; transition: opacity 0.3s; }
+  .tech-item:hover { opacity: 0.8; }
+  .tech-item-icon { width: 48px; height: 48px; border-radius: 12px; background: var(--glass); border: 1px solid var(--border); display: flex; align-items: center; justify-content: center; font-size: 22px; }
+  .tech-item span { font-size: 12px; color: rgba(240,239,248,0.6); letter-spacing: 0.5px; }
+
+  /* BLOCKCHAIN VISUAL */
+  .blockchain-visual { display: flex; align-items: center; margin-top: 60px; overflow-x: auto; padding-bottom: 10px; }
+  .block { background: var(--glass); border: 1px solid var(--border); border-radius: 12px; padding: 20px 24px; min-width: 160px; flex-shrink: 0; }
+  .block-label { font-size: 10px; letter-spacing: 1.5px; text-transform: uppercase; color: rgba(240,239,248,0.3); margin-bottom: 8px; }
+  .block-hash { font-size: 11px; color: var(--accent); font-family: monospace; }
+  .block-content { font-size: 13px; color: rgba(240,239,248,0.7); margin-top: 8px; }
+  .block.latest { border-color: rgba(70,229,160,0.3); }
+  .block.latest .block-label { color: var(--accent2); }
+  .block.latest .block-hash { color: var(--accent2); }
+  .chain-link { width: 40px; height: 2px; background: linear-gradient(90deg, var(--accent), var(--accent2)); flex-shrink: 0; position: relative; }
+  .chain-link::after { content: '▶'; position: absolute; right: -6px; top: -8px; font-size: 10px; color: var(--accent2); }
+
+  /* USE CASES */
+  .use-cases { display: grid; grid-template-columns: 1fr 1fr; gap: 2px; background: var(--border); border-radius: 20px; overflow: hidden; }
+  .use-case { background: var(--black); padding: 48px; transition: background 0.3s; }
+  .use-case:hover { background: rgba(255,255,255,0.02); }
+  .use-case-tag { display: inline-block; padding: 4px 12px; border-radius: 100px; font-size: 11px; font-weight: 500; letter-spacing: 0.5px; margin-bottom: 20px; }
+  .tag-purple { background: rgba(123,110,246,0.15); color: var(--accent); }
+  .tag-green { background: rgba(70,229,160,0.15); color: var(--accent2); }
+  .tag-orange { background: rgba(246,162,110,0.15); color: var(--accent3); }
+  .tag-blue { background: rgba(110,182,246,0.15); color: #6EB6F6; }
+  .use-case h3 { font-family: 'Syne', sans-serif; font-size: 22px; font-weight: 700; margin-bottom: 12px; }
+  .use-case p { font-size: 14px; color: rgba(240,239,248,0.45); line-height: 1.8; }
+
+  /* CTA */
+  .cta-section { text-align: center; padding: 140px 60px; position: relative; overflow: hidden; }
+  .cta-section::before { content: ''; position: absolute; width: 800px; height: 800px; background: radial-gradient(circle, rgba(123,110,246,0.08) 0%, transparent 60%); top: 50%; left: 50%; transform: translate(-50%,-50%); pointer-events: none; }
+  .cta-section h2 { font-family: 'Syne', sans-serif; font-size: clamp(36px,5vw,64px); font-weight: 800; letter-spacing: -1.5px; line-height: 1.1; margin-bottom: 24px; position: relative; }
+  .cta-section > p { font-size: 18px; color: rgba(240,239,248,0.5); margin-bottom: 48px; position: relative; }
+  .cta-actions { display: flex; gap: 16px; justify-content: center; align-items: center; }
+  .cta-contact { margin-top: 32px; font-size: 13px; color: rgba(240,239,248,0.25); }
+
+  /* FOOTER */
+  footer { border-top: 1px solid var(--border); padding: 40px 60px; display: flex; justify-content: space-between; align-items: center; }
+  footer p { font-size: 13px; color: rgba(240,239,248,0.3); }
+  .footer-links { display: flex; gap: 32px; }
+  .footer-links a { font-size: 13px; color: rgba(240,239,248,0.3); text-decoration: none; transition: color 0.2s; }
+  .footer-links a:hover { color: rgba(240,239,248,0.7); }
+  .footer-logo { margin-bottom: 8px; }
+
+  /* UTILITY */
+  .th-sub { font-weight: 400; color: rgba(240,239,248,0.4); }
+  .section-label-gap { margin-top: 80px; }
+  .section-wrap-no-top { padding-top: 0; }
+  .section-title-founder { margin-bottom: 60px; }
+
+  /* REVEAL */
+  .reveal { opacity: 0; transform: translateY(30px); transition: opacity 0.7s ease, transform 0.7s ease; }
+  .reveal.visible { opacity: 1; transform: translateY(0); }
+</style>
+</head>
+<body>
+
+<!-- NAV -->
+<nav id="navbar">
+  <div class="logo">Coopa<span>AI</span></div>
+  <ul>
+    <li><a href="#market">Market</a></li>
+    <li><a href="#how">How it Works</a></li>
+    <li><a href="#features">Features</a></li>
+    <li><a href="#founder">Our Vision</a></li>
+    <li><a href="/app" class="nav-cta">Try the App →</a></li>
+  </ul>
+</nav>
+
+<!-- HERO -->
+<section class="hero">
+  <div class="orb orb-1"></div>
+  <div class="orb orb-2"></div>
+  <div class="orb orb-3"></div>
+
+  <div class="hero-badge">
+    <span class="dot"></span>
+    Built on Arweave  Powered by Google Gemini
+  </div>
+
+  <h1>
+    Not just an AI assistant.<br>
+    <span class="gradient-text">The architect of your digital universe.</span>
+  </h1>
+
+  <p class="hero-sub">
+    Coopa AI combines autonomous AI agents with permanent blockchain storage. Upload your memories, documents, and files  ask Coopa to retrieve them years later. Your data, your control, forever.
+  </p>
+
+  <div class="hero-actions">
+    <a href="/app" class="btn-primary">Try Coopa Now</a>
+    <a href="#market" class="btn-secondary">See the opportunity</a>
+  </div>
+
+  <div class="hero-visual">
+    <div class="hero-card">
+      <div class="card-header">
+        <div class="card-dots"><span></span><span></span><span></span></div>
+        <span class="card-title">Coopa AI  Your Permanent Digital Memory</span>
+      </div>
+      <div class="chat-messages">
+        <div class="msg user">
+          <div class="msg-avatar">👤</div>
+          <div class="msg-bubble">Show me my daughter's graduation photo from 2024</div>
+        </div>
+        <div class="msg">
+          <div class="msg-avatar">🤖</div>
+          <div class="msg-col">
+            <div class="msg-bubble">Found it! Here's your memory  "daughter's graduation 2024" 🎓</div>
+            <div class="msg-image">🎓</div>
+            <div class="msg-bubble msg-bubble-small">
+              Stored on Arweave · AES-256 Encrypted · Permanent<br>
+              TX: <span class="tx-hash">4KzHwFvw3hUvaUt6mQ...</span>
+            </div>
+          </div>
+        </div>
+        <div class="msg user">
+          <div class="msg-avatar">👤</div>
+          <div class="msg-bubble">Also add her graduation to my Google Calendar 📅</div>
+        </div>
+        <div class="msg">
+          <div class="msg-avatar">🤖</div>
+          <div class="typing"><span></span><span></span><span></span></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- STATS -->
+<div class="stats-bar">
+  <div class="stat">
+    <div class="stat-number">$50B+</div>
+    <div class="stat-label">Total Addressable Market</div>
+  </div>
+  <div class="stat">
+    <div class="stat-number">200yr</div>
+    <div class="stat-label">Data Permanence</div>
+  </div>
+  <div class="stat">
+    <div class="stat-number">256-bit</div>
+    <div class="stat-label">AES Encryption</div>
+  </div>
+  <div class="stat">
+    <div class="stat-number">30+</div>
+    <div class="stat-label">Languages Supported</div>
+  </div>
+</div>
+
+<!-- MARKET -->
+<div class="section-wrap" id="market">
+  <div class="reveal">
+    <div class="section-label">Market Opportunity</div>
+    <h2 class="section-title">We're at the intersection<br>of two mega-trends.</h2>
+    <p class="section-sub">Coopa AI sits at the crossroads of the Agentic AI revolution and the Decentralized Storage boom  two of the fastest growing markets in tech.</p>
+  </div>
+
+  <div class="market-grid reveal">
+    <div class="market-card">
+      <div class="market-number">$35B</div>
+      <h3>Autonomous AI Agents</h3>
+      <p>The market for AI that doesn't just talk but acts  scheduling, searching, analyzing  projected to reach $35B by 2026. We're building for this future.</p>
+    </div>
+    <div class="market-card">
+      <div class="market-number">$15B</div>
+      <h3>Decentralized Storage</h3>
+      <p>DePIN and permanent data infrastructure. The layer that ensures "never deleted, never censored" our blockchain storage backbone.</p>
+    </div>
+    <div class="market-card">
+      <div class="market-number">$50B+</div>
+      <h3>The "Agentic Web"</h3>
+      <p>By combining both markets, we're pioneering the Agentic Web  where AI doesn't just remember you, it acts on your behalf across the entire digital world.</p>
+    </div>
+  </div>
+
+  <!-- COMPARISON TABLE -->
+  <div class="reveal">
+    <div class="section-label section-label-gap">Competitive Analysis</div>
+    <h2 class="section-title">Why existing solutions<br>fall short.</h2>
+    <p class="section-sub">Every competitor solves one piece of the puzzle. We solve all of it.</p>
+  </div>
+
+  <div class="table-wrap reveal">
+    <table class="comp-table">
+      <thead>
+        <tr>
+          <th>Capability</th>
+          <th>Traditional AI<br><small class="th-sub">ChatGPT, Claude</small></th>
+          <th>Web3 Storage<br><small class="th-sub">Filecoin, IPFS</small></th>
+          <th class="highlight">Coopa AI ✦</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td class="feature-name">Permanent Memory</td>
+          <td><span class="cross">✗</span> Forgets when session ends</td>
+          <td><span class="cross">✗</span> Stores files, no AI</td>
+          <td class="highlight"><span class="check">✓</span> Permanent blockchain memory</td>
+        </tr>
+        <tr>
+          <td class="feature-name">Autonomous Actions</td>
+          <td><span class="cross">✗</span> Text only</td>
+          <td><span class="cross">✗</span> No intelligence</td>
+          <td class="highlight"><span class="check">✓</span> Calendar, web, email, crypto</td>
+        </tr>
+        <tr>
+          <td class="feature-name">Data Ownership</td>
+          <td><span class="cross">✗</span> Big tech servers</td>
+          <td><span class="check">✓</span> Decentralized</td>
+          <td class="highlight"><span class="check">✓</span> Your wallet, your keys</td>
+        </tr>
+        <tr>
+          <td class="feature-name">End-to-End Encryption</td>
+          <td><span class="cross">✗</span> Provider can read data</td>
+          <td><span class="cross">✗</span> Not encrypted by default</td>
+          <td class="highlight"><span class="check">✓</span> AES-256, only you hold the key</td>
+        </tr>
+        <tr>
+          <td class="feature-name">Natural Language Retrieval</td>
+          <td><span class="cross">✗</span> No persistent files</td>
+          <td><span class="cross">✗</span> Manual search only</td>
+          <td class="highlight"><span class="check">✓</span> "Show me my 2024 graduation photo"</td>
+        </tr>
+        <tr>
+          <td class="feature-name">Web3 + Web2 Bridge</td>
+          <td><span class="cross">✗</span> Web2 only</td>
+          <td><span class="cross">✗</span> Web3 only</td>
+          <td class="highlight"><span class="check">✓</span> MetaMask + Google integrations</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<!-- HOW IT WORKS -->
+<div class="section-wrap" id="how">
+  <div class="reveal">
+    <div class="section-label">How it works</div>
+    <h2 class="section-title">Four steps to<br>permanent memory.</h2>
+    <p class="section-sub">Your memories are encrypted locally, stored on Arweave's blockchain, and retrievable via natural language forever.</p>
+  </div>
+
+  <div class="steps reveal">
+    <div class="step">
+      <div class="step-num">01</div>
+      <div class="step-icon">🔗</div>
+      <h3>Connect Wallet</h3>
+      <p>Sign in with MetaMask. Your wallet is your identity no passwords, no accounts to lose.</p>
+    </div>
+    <div class="step">
+      <div class="step-num">02</div>
+      <div class="step-icon">🔐</div>
+      <h3>Encrypt Locally</h3>
+      <p>Files encrypted with AES-256 using your wallet signature as the key. Not even we can read your data.</p>
+    </div>
+    <div class="step">
+      <div class="step-num">03</div>
+      <div class="step-icon">⛓️</div>
+      <h3>Store on Arweave</h3>
+      <p>Your encrypted memory is permanently written to the Arweave blockchain  immutable, decentralized, forever.</p>
+    </div>
+    <div class="step">
+      <div class="step-num">04</div>
+      <div class="step-icon">🤖</div>
+      <h3>Ask Coopa</h3>
+      <p>Years later, simply ask in natural language. Coopa retrieves, decrypts, and presents your memory instantly.</p>
+    </div>
+  </div>
+
+  <div class="blockchain-visual reveal">
+    <div class="block">
+      <div class="block-label">Block #4,218,901</div>
+      <div class="block-hash">0x4KzH...mQQr</div>
+      <div class="block-content">📸 Graduation 2024</div>
+    </div>
+    <div class="chain-link"></div>
+    <div class="block">
+      <div class="block-label">Block #4,218,902</div>
+      <div class="block-hash">0x9vXp...nR2k</div>
+      <div class="block-content">🎬 First steps video</div>
+    </div>
+    <div class="chain-link"></div>
+    <div class="block">
+      <div class="block-label">Block #4,218,903</div>
+      <div class="block-hash">0x7mBw...eL5q</div>
+      <div class="block-content">📄 Medical records</div>
+    </div>
+    <div class="chain-link"></div>
+    <div class="block latest">
+      <div class="block-label">Latest Block</div>
+      <div class="block-hash">0xF1eQ...HSp</div>
+      <div class="block-content">🎵 Wedding song</div>
+    </div>
+  </div>
+</div>
+
+<!-- FEATURES -->
+<div class="section-wrap section-wrap-no-top" id="features">
+  <div class="reveal">
+    <div class="section-label">Features</div>
+    <h2 class="section-title">Built different.<br>By design.</h2>
+    <p class="section-sub">Every architectural decision was made with permanence, privacy, and autonomous action in mind.</p>
+  </div>
+
+  <div class="features-grid reveal">
+    <div class="feature">
+      <div class="feature-glow purple"></div>
+      <div class="feature-icon purple">🔒</div>
+      <h3>End-to-End Encrypted</h3>
+      <p>AES-256 encryption using your MetaMask signature as the key. Not even we can read your memories. True data sovereignty.</p>
+    </div>
+    <div class="feature">
+      <div class="feature-glow green"></div>
+      <div class="feature-icon green">♾️</div>
+      <h3>Permanent Storage</h3>
+      <p>Arweave's endowment model ensures data persists 200+ years. No subscriptions, no servers to go down, no company to shut down.</p>
+    </div>
+    <div class="feature">
+      <div class="feature-glow orange"></div>
+      <div class="feature-icon orange">🧠</div>
+      <h3>Autonomous AI Agent</h3>
+      <p>Powered by Google Gemini. Searches the web, manages your calendar, analyzes data, retrieves memories  all in natural language.</p>
+    </div>
+    <div class="feature">
+      <div class="feature-glow purple"></div>
+      <div class="feature-icon purple">👛</div>
+      <h3>Web3 Native Identity</h3>
+      <p>Your MetaMask wallet is your account. You own your identity and your data. No platform can lock you out or delete your memories.</p>
+    </div>
+    <div class="feature">
+      <div class="feature-glow green"></div>
+      <div class="feature-icon green">🌍</div>
+      <h3>30+ Languages</h3>
+      <p>Coopa speaks your language. Full multilingual support ensures your memories are accessible to everyone, globally.</p>
+    </div>
+    <div class="feature">
+      <div class="feature-glow orange"></div>
+      <div class="feature-icon orange">🔗</div>
+      <h3>Web2 + Web3 Bridge</h3>
+      <p>Google Calendar, real-time weather, notes Coopa bridges blockchain permanence with the tools you already use every day.</p>
+    </div>
+  </div>
+</div>
+
+<!-- TECH STACK -->
+<div class="tech-section reveal">
+  <div class="tech-label">Powered by industry-leading technology</div>
+  <div class="tech-logos">
+    <div class="tech-item"><div class="tech-item-icon">⛓️</div><span>Arweave</span></div>
+    <div class="tech-item"><div class="tech-item-icon">🦊</div><span>MetaMask</span></div>
+    <div class="tech-item"><div class="tech-item-icon">🔷</div><span>Polygon</span></div>
+    <div class="tech-item"><div class="tech-item-icon">🤖</div><span>Google Gemini</span></div>
+    <div class="tech-item"><div class="tech-item-icon">🔐</div><span>AES-256</span></div>
+    <div class="tech-item"><div class="tech-item-icon">☁️</div><span>Google Cloud</span></div>
+  </div>
+</div>
+
+<!-- FOUNDER LETTER -->
+<div class="founder-section reveal" id="founder">
+  <div class="section-label">Founder's Vision</div>
+  <h2 class="section-title section-title-founder">Why we built this.</h2>
+
+  <div class="founder-card">
+    <span class="founder-quote-mark">"</span>
+    <h2>We don't want to build the AI of the future.<br>We want to build the <span class="gradient-text">architect of your digital universe.</span></h2>
+
+    <div class="founder-pillars">
+      <div class="pillar">
+        <div class="pillar-icon">🔓</div>
+        <h4>Data Freedom & Permanence</h4>
+        <p>Data is the new oil but you shouldn't let others refine it. Via Arweave integration, your data is sealed decentrally. It cannot be deleted, censored, or controlled. We don't just store data we carry it beyond time.</p>
+      </div>
+      <div class="pillar">
+        <div class="pillar-icon">🧬</div>
+        <h4>Deep Memory & Personalization</h4>
+        <p>An assistant that forgets your risk appetite, your writing style, your preferences  is just software. Our Deep Memory layer grows with you. It organizes your life and gets smarter with every interaction.</p>
+      </div>
+      <div class="pillar">
+        <div class="pillar-icon">⚡</div>
+        <h4>Action-Oriented Intelligence</h4>
+        <p>We designed an AI that doesn't just talk  it does. Gemini's reasoning power combined with email, calendar, live data analysis, and web search. MetaMask for Web3, Google for Web2. One bridge for both worlds.</p>
+      </div>
+    </div>
+
+    <div class="founder-body">
+      <p>We're often asked: <em>"There are already dozens of AI assistants  why build another one?"</em></p>
+      <p>Our answer is simple: <strong>Because existing AI is a visitor. We want to build the homeowner.</strong></p>
+      <p>Most AI today forgets you the moment you close the browser tab. Your data sits trapped on corporate servers. Privacy hangs by a thread. And when it comes to real-world actions  adding a calendar event, analyzing live market data, sending a contextual email they're still clumsy.</p>
+      <p>Coopa was born from that frustration. We want an AI that <strong>remembers the note you mentioned last week</strong>, thinks about your budget, builds bridges across languages, organizes your Google events based on your habits and most importantly, <strong>never forgets you</strong>.</p>
+      <p>The driving force behind this project isn't traditional code  it's <strong>Gemini API's reasoning power</strong> and autonomous AI agents. We positioned Gemini not as a simple Q&A bot, but as the founding partner and brain of the entire system. It searches the web, interprets market data in seconds, organizes your calendar, communicates with your wallet. A tireless intelligence network, working for you in the background.</p>
+      <p>We are here to turn complexity into simplicity, and data into permanence. <strong>Welcome. We're building the future together.</strong></p>
+    </div>
+
+    <div class="founder-sig">
+      <div class="founder-avatar">🚀</div>
+      <div class="founder-info">
+        <h4>Coopa AI Founding Team</h4>
+        <p>info@coopaassistant.com · coopaassistant.com</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- USE CASES -->
+<div class="section-wrap">
+  <div class="reveal">
+    <div class="section-label">Use Cases</div>
+    <h2 class="section-title">Memories that<br>outlive everything.</h2>
+    <p class="section-sub">From personal milestones to critical documents  Coopa preserves what matters most.</p>
+  </div>
+
+  <div class="use-cases reveal">
+    <div class="use-case">
+      <span class="use-case-tag tag-purple">Personal</span>
+      <h3>Family Milestones</h3>
+      <p>First steps, graduations, weddings  store your irreplaceable moments on the blockchain. Access them in 50 years just as easily as today.</p>
+    </div>
+    <div class="use-case">
+      <span class="use-case-tag tag-green">Medical</span>
+      <h3>Health Records</h3>
+      <p>Store medical records, prescriptions, and health history securely. Share with doctors instantly with cryptographic proof of authenticity.</p>
+    </div>
+    <div class="use-case">
+      <span class="use-case-tag tag-orange">Legal</span>
+      <h3>Legal Documents</h3>
+      <p>Contracts, wills, property deeds immutably timestamped on Arweave. Tamper-proof evidence that cannot be altered or deleted.</p>
+    </div>
+    <div class="use-case">
+      <span class="use-case-tag tag-blue">Creative</span>
+      <h3>Creative Portfolio</h3>
+      <p>Artists and creators store work with permanent proof of creation date. Establish ownership before anyone else forever on the blockchain.</p>
+    </div>
+  </div>
+</div>
+
+<!-- CTA -->
+<div class="cta-section reveal">
+  <h2>Your memories deserve<br><span class="gradient-text">to live forever.</span></h2>
+  <p>Experience the first autonomous AI that truly never forgets.</p>
+  <div class="cta-actions">
+    <a href="/app" class="btn-primary">Try Coopa Now</a>
+    <a href="mailto:info@coopaassistant.com" class="btn-secondary">Contact us</a>
+  </div>
+  <p class="cta-contact">contact: info@coopaassistant.com</p>
+</div>
+
+<!-- FOOTER -->
+<footer>
+  <div>
+    <div class="logo footer-logo">Coopa<span>AI</span></div>
+    <p>© 2026 CoopaAI. All rights reserved.</p>
+  </div>
+  <div class="footer-links">
+    <a href="#">Privacy Policy</a>
+    <a href="#">Terms of Service</a>
+    <a href="mailto:info@coopaassistant.com">Contact</a>
+  </div>
+</footer>
+
+<script>
+  const navbar = document.getElementById('navbar');
+  window.addEventListener('scroll', () => {
+   
+    navbar.classList.toggle('scrolled', window.scrollY > 50);
+  });
+
+  const reveals = document.querySelectorAll('.reveal');
+  const observer = new IntersectionObserver((entries) => {
+    entries.forEach((entry, i) => {
+      if (entry.isIntersecting) {
+        setTimeout(() => entry.target.classList.add('visible'), i * 80);
+      }
+    });
+  }, { threshold: 0.08 });
+  reveals.forEach(el => observer.observe(el));
+</script>
+</body>
+</html>

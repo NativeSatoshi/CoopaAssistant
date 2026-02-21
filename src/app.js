@@ -18,9 +18,12 @@ app.use(express.static(path.join(__dirname, '../public')));
 
 // Ana sayfa rotası
 app.get('/', (req, res) => {
-    res.sendFile(path.join(__dirname, '../public', 'index.html'));
+    res.sendFile(path.join(__dirname, '../public', 'landing.html'));
 });
 
+app.get('/app', (req, res) => {
+    res.sendFile(path.join(__dirname, '../public', 'index.html'));
+});
 // API Rotaları
 app.use('/api', apiRoutes);
 app.use('/auth', authRoutes);
