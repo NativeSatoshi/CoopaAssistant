@@ -1,974 +1,1734 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="tr">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Coopa AI — The Autonomous AI That Never Forgets</title>
-<meta name="description" content="Coopa AI combines autonomous AI agents with permanent blockchain storage. Your data, your control, forever.">
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;1,9..40,300&display=swap" rel="stylesheet">
-<style>
-  :root {
-    --black: #080810;
-    --white: #f0eff8;
-    --accent: #7B6EF6;
-    --accent2: #46E5A0;
-    --accent3: #F6A26E;
-    --glass: rgba(255,255,255,0.04);
-    --border: rgba(255,255,255,0.08);
-  }
-
-  * { margin: 0; padding: 0; box-sizing: border-box; }
-  html { scroll-behavior: smooth; }
-
-  body {
-    background: var(--black);
-    color: var(--white);
-    font-family: 'DM Sans', sans-serif;
-    font-weight: 300;
-    overflow-x: hidden;
-  }
-
-  body::before {
-    content: '';
-    position: fixed;
-    inset: 0;
-    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.035'/%3E%3C/svg%3E");
-    pointer-events: none;
-    z-index: 1000;
-    opacity: 0.4;
-  }
-
-  /* NAV */
-  nav {
-    position: fixed;
-    top: 0; left: 0; right: 0;
-    z-index: 100;
-    padding: 24px 60px;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    border-bottom: 1px solid transparent;
-    transition: all 0.4s ease;
-    -webkit-backdrop-filter: blur(0px);
-    backdrop-filter: blur(0px);
-  }
-
-  nav.scrolled {
-    background: rgba(8,8,16,0.9);
-    border-bottom-color: var(--border);
-    -webkit-backdrop-filter: blur(20px);
-    backdrop-filter: blur(20px);
-    padding: 16px 60px;
-  }
-
-  .logo {
-    font-family: 'Syne', sans-serif;
-    font-weight: 800;
-    font-size: 22px;
-    letter-spacing: -0.5px;
-  }
-  .logo span { color: var(--accent); }
-
-  nav ul { list-style: none; display: flex; gap: 40px; align-items: center; }
-  nav ul a {
-    color: rgba(240,239,248,0.6);
-    text-decoration: none;
-    font-size: 14px;
-    font-weight: 400;
-    transition: color 0.2s;
-  }
-  nav ul a:hover { color: var(--white); }
-
-  .nav-cta {
-    background: var(--accent) !important;
-    color: var(--white) !important;
-    padding: 10px 22px;
-    border-radius: 100px;
-    font-weight: 500 !important;
-    transition: opacity 0.2s !important;
-  }
-  .nav-cta:hover { opacity: 0.85; }
-
-  /* HERO */
-  .hero {
-    min-height: 100vh;
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-    align-items: center;
-    text-align: center;
-    padding: 120px 40px 80px;
-    position: relative;
-    overflow: hidden;
-  }
-
-  .orb {
-    position: absolute;
-    border-radius: 50%;
-    filter: blur(100px);
-    pointer-events: none;
-  }
-  .orb-1 {
-    width: 600px; height: 600px;
-    background: radial-gradient(circle, rgba(123,110,246,0.15) 0%, transparent 70%);
-    top: -100px; left: -100px;
-    animation: float1 8s ease-in-out infinite;
-  }
-  .orb-2 {
-    width: 500px; height: 500px;
-    background: radial-gradient(circle, rgba(70,229,160,0.1) 0%, transparent 70%);
-    bottom: -50px; right: -50px;
-    animation: float2 10s ease-in-out infinite;
-  }
-  .orb-3 {
-    width: 300px; height: 300px;
-    background: radial-gradient(circle, rgba(246,162,110,0.08) 0%, transparent 70%);
-    top: 50%; left: 50%;
-    transform: translate(-50%, -50%);
-    animation: float3 12s ease-in-out infinite;
-  }
-  @keyframes float1 { 0%,100%{transform:translate(0,0)}50%{transform:translate(30px,30px)} }
-  @keyframes float2 { 0%,100%{transform:translate(0,0)}50%{transform:translate(-20px,-30px)} }
-  @keyframes float3 { 0%,100%{transform:translate(-50%,-50%) scale(1)}50%{transform:translate(-50%,-50%) scale(1.2)} }
-
-  .hero-badge {
-    display: inline-flex;
-    align-items: center;
-    gap: 8px;
-    background: var(--glass);
-    border: 1px solid var(--border);
-    border-radius: 100px;
-    padding: 8px 18px;
-    font-size: 13px;
-    color: rgba(240,239,248,0.7);
-    margin-bottom: 40px;
-    animation: fadeUp 0.8s ease both;
-  }
-  .dot {
-    width: 6px; height: 6px;
-    background: var(--accent2);
-    border-radius: 50%;
-    animation: pulse 2s ease infinite;
-  }
-  @keyframes pulse { 0%,100%{opacity:1;transform:scale(1)}50%{opacity:0.5;transform:scale(0.8)} }
-
-  h1 {
-    font-family: 'Syne', sans-serif;
-    font-weight: 800;
-    font-size: clamp(44px, 7vw, 84px);
-    line-height: 1.0;
-    letter-spacing: -2px;
-    margin-bottom: 28px;
-    max-width: 920px;
-    animation: fadeUp 0.8s 0.1s ease both;
-  }
-  .gradient-text {
-    background: linear-gradient(135deg, var(--accent) 0%, var(--accent2) 100%);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    background-clip: text;
-  }
-
-  .hero-sub {
-    font-size: clamp(16px, 2vw, 19px);
-    color: rgba(240,239,248,0.55);
-    max-width: 580px;
-    line-height: 1.75;
-    margin-bottom: 50px;
-    animation: fadeUp 0.8s 0.2s ease both;
-  }
-
-  .hero-actions {
-    display: flex;
-    gap: 16px;
-    align-items: center;
-    animation: fadeUp 0.8s 0.3s ease both;
-  }
-
-  .btn-primary {
-    background: var(--accent);
-    color: var(--white);
-    padding: 16px 36px;
-    border-radius: 100px;
-    font-family: 'DM Sans', sans-serif;
-    font-size: 15px;
-    font-weight: 500;
-    text-decoration: none;
-    transition: transform 0.2s, box-shadow 0.2s;
-    box-shadow: 0 0 40px rgba(123,110,246,0.3);
-    display: inline-block;
-  }
-  .btn-primary:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 0 60px rgba(123,110,246,0.5);
-  }
-
-  .btn-secondary {
-    color: rgba(240,239,248,0.7);
-    font-size: 15px;
-    text-decoration: none;
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    transition: color 0.2s;
-  }
-  .btn-secondary:hover { color: var(--white); }
-  .btn-secondary::after { content: '→'; transition: transform 0.2s; }
-  .btn-secondary:hover::after { transform: translateX(4px); }
-
-  /* HERO CARD */
-  .hero-visual {
-    margin-top: 80px;
-    width: 100%;
-    max-width: 860px;
-    animation: fadeUp 0.8s 0.4s ease both;
-  }
-  .hero-card {
-    background: rgba(255,255,255,0.03);
-    border: 1px solid var(--border);
-    border-radius: 20px;
-    padding: 32px;
-    position: relative;
-    overflow: hidden;
-  }
-  .hero-card::before {
-    content: '';
-    position: absolute;
-    top: 0; left: 0; right: 0;
-    height: 1px;
-    background: linear-gradient(90deg, transparent, var(--accent), transparent);
-  }
-  .card-header { display: flex; align-items: center; gap: 12px; margin-bottom: 24px; }
-  .card-dots { display: flex; gap: 6px; }
-  .card-dots span { width: 10px; height: 10px; border-radius: 50%; background: rgba(255,255,255,0.15); }
-  .card-title { font-size: 13px; color: rgba(240,239,248,0.4); }
-  .chat-messages { display: flex; flex-direction: column; gap: 16px; }
-  .msg { display: flex; gap: 12px; align-items: flex-start; }
-  .msg.user { flex-direction: row-reverse; }
-  .msg-avatar {
-    width: 32px; height: 32px; border-radius: 50%;
-    background: var(--glass); border: 1px solid var(--border);
-    display: flex; align-items: center; justify-content: center;
-    font-size: 14px; flex-shrink: 0;
-  }
-  .msg-col { display: flex; flex-direction: column; gap: 10px; align-items: flex-start; }
-  .msg-bubble {
-    background: var(--glass); border: 1px solid var(--border);
-    border-radius: 14px; padding: 12px 16px;
-    font-size: 14px; line-height: 1.6; max-width: 400px;
-    text-align: left; color: rgba(240,239,248,0.8);
-  }
-  .msg.user .msg-bubble { background: rgba(123,110,246,0.15); border-color: rgba(123,110,246,0.3); color: var(--white); }
-  .msg-bubble-small { font-size: 12px; color: rgba(240,239,248,0.4); }
-  .msg-image {
-    width: 180px; height: 120px; border-radius: 10px;
-    background: linear-gradient(135deg, rgba(123,110,246,0.2), rgba(70,229,160,0.2));
-    border: 1px solid var(--border);
-    display: flex; align-items: center; justify-content: center; font-size: 32px;
-  }
-  .tx-hash { color: var(--accent); font-family: monospace; }
-  .typing { display: flex; gap: 4px; padding: 12px 16px; background: var(--glass); border: 1px solid var(--border); border-radius: 14px; width: fit-content; }
-  .typing span { width: 6px; height: 6px; border-radius: 50%; background: var(--accent); animation: typingDot 1.2s ease infinite; }
-  .typing span:nth-child(2) { animation-delay: 0.2s; }
-  .typing span:nth-child(3) { animation-delay: 0.4s; }
-  @keyframes typingDot { 0%,100%{opacity:0.3;transform:translateY(0)}50%{opacity:1;transform:translateY(-4px)} }
-  @keyframes fadeUp { from{opacity:0;transform:translateY(24px)}to{opacity:1;transform:translateY(0)} }
-
-  /* STATS */
-  .stats-bar {
-    padding: 40px 60px;
-    border-top: 1px solid var(--border);
-    border-bottom: 1px solid var(--border);
-    display: flex; justify-content: center; gap: 80px;
-    background: rgba(255,255,255,0.015);
-  }
-  .stat { text-align: center; }
-  .stat-number {
-    font-family: 'Syne', sans-serif; font-size: 36px; font-weight: 700;
-    background: linear-gradient(135deg, var(--accent), var(--accent2));
-    -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
-  }
-  .stat-label { font-size: 13px; color: rgba(240,239,248,0.4); margin-top: 4px; letter-spacing: 0.5px; }
-
-  /* SECTIONS */
-  .section-wrap { padding: 120px 60px; max-width: 1200px; margin: 0 auto; }
-  .section-label { font-size: 12px; letter-spacing: 2px; text-transform: uppercase; color: var(--accent); margin-bottom: 20px; font-weight: 500; }
-  .section-title { font-family: 'Syne', sans-serif; font-size: clamp(32px, 4vw, 52px); font-weight: 700; letter-spacing: -1px; line-height: 1.1; margin-bottom: 20px; }
-  .section-sub { font-size: 17px; color: rgba(240,239,248,0.5); max-width: 540px; line-height: 1.7; margin-bottom: 60px; }
-
-  /* MARKET */
-  .market-grid {
-    display: grid;
-    grid-template-columns: 1fr 1fr 1fr;
-    gap: 2px;
-    background: var(--border);
-    border-radius: 20px;
-    overflow: hidden;
-    margin-bottom: 60px;
-  }
-  .market-card {
-    background: var(--black);
-    padding: 48px 40px;
-    position: relative;
-    transition: background 0.3s;
-  }
-  .market-card:hover { background: rgba(255,255,255,0.02); }
-  .market-number {
-    font-family: 'Syne', sans-serif;
-    font-size: 48px; font-weight: 800;
-    background: linear-gradient(135deg, var(--accent), var(--accent2));
-    -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
-    margin-bottom: 8px;
-  }
-  .market-card h3 { font-family: 'Syne', sans-serif; font-size: 18px; font-weight: 700; margin-bottom: 12px; }
-  .market-card p { font-size: 14px; color: rgba(240,239,248,0.45); line-height: 1.8; }
-
-  /* COMPARISON TABLE */
-  .table-wrap {
-    border-radius: 20px;
-    overflow: hidden;
-    border: 1px solid var(--border);
-  }
-  .comp-table {
-    width: 100%;
-    border-collapse: collapse;
-    font-size: 14px;
-  }
-  .comp-table th {
-    padding: 20px 24px;
-    text-align: left;
-    font-family: 'Syne', sans-serif;
-    font-weight: 700;
-    font-size: 13px;
-    background: rgba(255,255,255,0.03);
-    border-bottom: 1px solid var(--border);
-    color: rgba(240,239,248,0.6);
-    letter-spacing: 0.5px;
-  }
-  .comp-table th.highlight {
-    background: rgba(123,110,246,0.1);
-    color: var(--accent);
-  }
-  .comp-table td {
-    padding: 18px 24px;
-    border-bottom: 1px solid rgba(255,255,255,0.04);
-    color: rgba(240,239,248,0.6);
-    vertical-align: top;
-  }
-  .comp-table tr:last-child td { border-bottom: none; }
-  .comp-table td.feature-name {
-    font-weight: 500;
-    color: rgba(240,239,248,0.8);
-  }
-  .comp-table td.highlight {
-    background: rgba(123,110,246,0.05);
-    color: var(--white);
-    font-weight: 500;
-  }
-  .comp-table tr:hover td { background: rgba(255,255,255,0.015); }
-  .comp-table tr:hover td.highlight { background: rgba(123,110,246,0.08); }
-  .check { color: var(--accent2); font-size: 16px; }
-  .cross { color: rgba(240,239,248,0.2); font-size: 16px; }
-
-  /* HOW IT WORKS */
-  .steps {
-    display: grid;
-    grid-template-columns: repeat(4, 1fr);
-    gap: 2px;
-    background: var(--border);
-    border-radius: 20px;
-    overflow: hidden;
-  }
-  .step { background: var(--black); padding: 40px 32px; transition: background 0.3s; }
-  .step:hover { background: rgba(123,110,246,0.05); }
-  .step-num { font-family: 'Syne', sans-serif; font-size: 48px; font-weight: 800; color: rgba(123,110,246,0.15); line-height: 1; margin-bottom: 24px; }
-  .step-icon { font-size: 28px; margin-bottom: 16px; }
-  .step h3 { font-family: 'Syne', sans-serif; font-size: 18px; font-weight: 700; margin-bottom: 10px; }
-  .step p { font-size: 14px; color: rgba(240,239,248,0.45); line-height: 1.7; }
-
-  /* FEATURES */
-  .features-grid {
-    display: grid;
-    grid-template-columns: repeat(3, 1fr);
-    gap: 2px;
-    background: var(--border);
-    border-radius: 20px;
-    overflow: hidden;
-  }
-  .feature { background: var(--black); padding: 48px 40px; position: relative; overflow: hidden; transition: background 0.3s; }
-  .feature:hover { background: rgba(255,255,255,0.02); }
-  .feature-icon { width: 52px; height: 52px; border-radius: 14px; display: flex; align-items: center; justify-content: center; font-size: 24px; margin-bottom: 24px; }
-  .feature-icon.purple { background: rgba(123,110,246,0.15); }
-  .feature-icon.green { background: rgba(70,229,160,0.15); }
-  .feature-icon.orange { background: rgba(246,162,110,0.15); }
-  .feature h3 { font-family: 'Syne', sans-serif; font-size: 20px; font-weight: 700; margin-bottom: 12px; }
-  .feature p { font-size: 14px; color: rgba(240,239,248,0.45); line-height: 1.8; }
-  .feature-glow { position: absolute; width: 200px; height: 200px; border-radius: 50%; filter: blur(60px); top: -50px; right: -50px; pointer-events: none; opacity: 0; transition: opacity 0.4s; }
-  .feature:hover .feature-glow { opacity: 1; }
-  .feature-glow.purple { background: rgba(123,110,246,0.1); }
-  .feature-glow.green { background: rgba(70,229,160,0.1); }
-  .feature-glow.orange { background: rgba(246,162,110,0.1); }
-
-  /* FOUNDER LETTER */
-  .founder-section {
-    padding: 120px 60px;
-    max-width: 1200px;
-    margin: 0 auto;
-  }
-  .founder-card {
-    background: rgba(255,255,255,0.02);
-    border: 1px solid var(--border);
-    border-radius: 24px;
-    padding: 72px 80px;
-    position: relative;
-    overflow: hidden;
-  }
-  .founder-card::before {
-    content: '';
-    position: absolute;
-    top: 0; left: 0; right: 0;
-    height: 2px;
-    background: linear-gradient(90deg, var(--accent), var(--accent2), var(--accent3));
-  }
-  .founder-quote-mark {
-    font-size: 120px;
-    font-family: 'Syne', sans-serif;
-    font-weight: 800;
-    color: rgba(123,110,246,0.08);
-    line-height: 0.8;
-    margin-bottom: 40px;
-    display: block;
-  }
-  .founder-card h2 {
-    font-family: 'Syne', sans-serif;
-    font-size: clamp(24px, 3vw, 38px);
-    font-weight: 700;
-    letter-spacing: -0.5px;
-    line-height: 1.2;
-    margin-bottom: 32px;
-  }
-  .founder-pillars {
-    display: grid;
-    grid-template-columns: 1fr 1fr 1fr;
-    gap: 24px;
-    margin: 48px 0;
-  }
-  .pillar {
-    background: var(--glass);
-    border: 1px solid var(--border);
-    border-radius: 16px;
-    padding: 28px 24px;
-  }
-  .pillar-icon { font-size: 28px; margin-bottom: 12px; }
-  .pillar h4 { font-family: 'Syne', sans-serif; font-size: 15px; font-weight: 700; margin-bottom: 8px; }
-  .pillar p { font-size: 13px; color: rgba(240,239,248,0.45); line-height: 1.7; }
-  .founder-body {
-    font-size: 16px;
-    color: rgba(240,239,248,0.6);
-    line-height: 1.9;
-    max-width: 720px;
-  }
-  .founder-body p { margin-bottom: 20px; }
-  .founder-body strong { color: var(--white); font-weight: 500; }
-  .founder-sig {
-    margin-top: 48px;
-    padding-top: 32px;
-    border-top: 1px solid var(--border);
-    display: flex;
-    align-items: center;
-    gap: 20px;
-  }
-  .founder-avatar {
-    width: 56px; height: 56px;
-    border-radius: 50%;
-    background: linear-gradient(135deg, var(--accent), var(--accent2));
-    display: flex; align-items: center; justify-content: center;
-    font-size: 24px;
-  }
-  .founder-info h4 { font-family: 'Syne', sans-serif; font-size: 16px; font-weight: 700; }
-  .founder-info p { font-size: 13px; color: rgba(240,239,248,0.4); margin-top: 2px; }
-
-  /* TECH STACK */
-  .tech-section { text-align: center; padding: 80px 60px; border-top: 1px solid var(--border); }
-  .tech-label { font-size: 12px; letter-spacing: 2px; text-transform: uppercase; color: rgba(240,239,248,0.3); margin-bottom: 40px; }
-  .tech-logos { display: flex; justify-content: center; align-items: center; gap: 60px; flex-wrap: wrap; }
-  .tech-item { display: flex; flex-direction: column; align-items: center; gap: 10px; opacity: 0.4; transition: opacity 0.3s; }
-  .tech-item:hover { opacity: 0.8; }
-  .tech-item-icon { width: 48px; height: 48px; border-radius: 12px; background: var(--glass); border: 1px solid var(--border); display: flex; align-items: center; justify-content: center; font-size: 22px; }
-  .tech-item span { font-size: 12px; color: rgba(240,239,248,0.6); letter-spacing: 0.5px; }
-
-  /* BLOCKCHAIN VISUAL */
-  .blockchain-visual { display: flex; align-items: center; margin-top: 60px; overflow-x: auto; padding-bottom: 10px; }
-  .block { background: var(--glass); border: 1px solid var(--border); border-radius: 12px; padding: 20px 24px; min-width: 160px; flex-shrink: 0; }
-  .block-label { font-size: 10px; letter-spacing: 1.5px; text-transform: uppercase; color: rgba(240,239,248,0.3); margin-bottom: 8px; }
-  .block-hash { font-size: 11px; color: var(--accent); font-family: monospace; }
-  .block-content { font-size: 13px; color: rgba(240,239,248,0.7); margin-top: 8px; }
-  .block.latest { border-color: rgba(70,229,160,0.3); }
-  .block.latest .block-label { color: var(--accent2); }
-  .block.latest .block-hash { color: var(--accent2); }
-  .chain-link { width: 40px; height: 2px; background: linear-gradient(90deg, var(--accent), var(--accent2)); flex-shrink: 0; position: relative; }
-  .chain-link::after { content: '▶'; position: absolute; right: -6px; top: -8px; font-size: 10px; color: var(--accent2); }
-
-  /* USE CASES */
-  .use-cases { display: grid; grid-template-columns: 1fr 1fr; gap: 2px; background: var(--border); border-radius: 20px; overflow: hidden; }
-  .use-case { background: var(--black); padding: 48px; transition: background 0.3s; }
-  .use-case:hover { background: rgba(255,255,255,0.02); }
-  .use-case-tag { display: inline-block; padding: 4px 12px; border-radius: 100px; font-size: 11px; font-weight: 500; letter-spacing: 0.5px; margin-bottom: 20px; }
-  .tag-purple { background: rgba(123,110,246,0.15); color: var(--accent); }
-  .tag-green { background: rgba(70,229,160,0.15); color: var(--accent2); }
-  .tag-orange { background: rgba(246,162,110,0.15); color: var(--accent3); }
-  .tag-blue { background: rgba(110,182,246,0.15); color: #6EB6F6; }
-  .use-case h3 { font-family: 'Syne', sans-serif; font-size: 22px; font-weight: 700; margin-bottom: 12px; }
-  .use-case p { font-size: 14px; color: rgba(240,239,248,0.45); line-height: 1.8; }
-
-  /* CTA */
-  .cta-section { text-align: center; padding: 140px 60px; position: relative; overflow: hidden; }
-  .cta-section::before { content: ''; position: absolute; width: 800px; height: 800px; background: radial-gradient(circle, rgba(123,110,246,0.08) 0%, transparent 60%); top: 50%; left: 50%; transform: translate(-50%,-50%); pointer-events: none; }
-  .cta-section h2 { font-family: 'Syne', sans-serif; font-size: clamp(36px,5vw,64px); font-weight: 800; letter-spacing: -1.5px; line-height: 1.1; margin-bottom: 24px; position: relative; }
-  .cta-section > p { font-size: 18px; color: rgba(240,239,248,0.5); margin-bottom: 48px; position: relative; }
-  .cta-actions { display: flex; gap: 16px; justify-content: center; align-items: center; }
-  .cta-contact { margin-top: 32px; font-size: 13px; color: rgba(240,239,248,0.25); }
-
-  /* FOOTER */
-  footer { border-top: 1px solid var(--border); padding: 40px 60px; display: flex; justify-content: space-between; align-items: center; }
-  footer p { font-size: 13px; color: rgba(240,239,248,0.3); }
-  .footer-links { display: flex; gap: 32px; }
-  .footer-links a { font-size: 13px; color: rgba(240,239,248,0.3); text-decoration: none; transition: color 0.2s; }
-  .footer-links a:hover { color: rgba(240,239,248,0.7); }
-  .footer-logo { margin-bottom: 8px; }
-
-  /* UTILITY */
-  .th-sub { font-weight: 400; color: rgba(240,239,248,0.4); }
-  .section-label-gap { margin-top: 80px; }
-  .section-wrap-no-top { padding-top: 0; }
-  .section-title-founder { margin-bottom: 60px; }
-
-  /* REVEAL */
-  .reveal { opacity: 0; transform: translateY(30px); transition: opacity 0.7s ease, transform 0.7s ease; }
-  .reveal.visible { opacity: 1; transform: translateY(0); }
-</style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Coopa Asistan</title>
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+    <style>
+        :root { --user-bg: #007bff; --model-bg: #e9e9eb; --text-light: #ffffff; --text-dark: #000000; }
+        body { font-family: system-ui, sans-serif; max-width: 700px; margin: 0 auto; padding: 20px; background-color: #f7f7f7; display: flex; flex-direction: column; height: 95vh; }
+        h1 { text-align: center; color: #333; flex-shrink: 0; }
+        #language-selector { text-align: center; margin-bottom: 15px; }
+        #language-selector select { padding: 8px; border-radius: 8px; border: 1px solid #ccc; font-size: 14px; }
+        #auth-container { text-align: center; margin-bottom: 15px; padding: 10px; background-color: #fff; border: 1px solid #ddd; border-radius: 8px; display: flex; justify-content: space-between; align-items: center; gap: 20px;}
+        #google-auth-section { flex-grow: 1; text-align: left; }
+        #wallet-auth-section { text-align: right; }
+        #auth-container a { text-decoration: none; color: var(--user-bg); font-weight: bold; }
+        #connect-wallet-button { padding: 8px 16px; font-size: 14px; background-color: #ff9800; color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: bold; }
+        #wallet-info { font-size: 12px; color: #555; background-color: #f0f0f0; padding: 5px 5px 5px 10px; border-radius: 12px; margin-top: 5px;}
+        #chat-container { flex-grow: 1; overflow-y: auto; background-color: white; padding: 20px; border-radius: 8px; border: 1px solid #ddd; margin-bottom: 20px; }
+        #upload-section { background-color: #e9ecef; padding: 15px; border-radius: 8px; margin-bottom: 20px; border: 1px solid #ddd;}
+        #upload-section h3 { margin-top: 0; text-align: center; color: #495057; }
+        #upload-form { display: flex; flex-direction: column; gap: 10px; }
+        #upload-form input[type="text"] { width: 100%; box-sizing: border-box; padding: 8px; border: 1px solid #ccc; border-radius: 4px; }
+        #upload-form button { background-color: #28a745; }
+        .message { padding: 10px 15px; border-radius: 18px; margin-bottom: 10px; max-width: 80%; word-wrap: break-word; line-height: 1.5; }
+        .user-message { background-color: var(--user-bg); color: var(--text-light); margin-left: auto; }
+        .model-message { background-color: var(--model-bg); color: var(--text-dark); margin-right: auto; }
+        /* Markdown stilleri için eklemeler */
+        .model-message p { margin: 0.5em 0; }
+        .model-message ul, .model-message ol { padding-left: 20px; }
+        .model-message code { background-color: #dcdcdc; padding: 2px 4px; border-radius: 4px; font-family: monospace; }
+        .model-message pre { background-color: #dcdcdc; padding: 10px; border-radius: 8px; white-space: pre-wrap; word-wrap: break-word; }
+        .memory-image { max-width: 100%; border-radius: 12px; margin-top: 10px; cursor: pointer; }
+        #prompt-form { display: flex; gap: 10px; }
+        #prompt-form input[type="text"] { flex-grow: 1; padding: 12px; font-size: 16px; border: 1px solid #ccc; border-radius: 8px; }
+        button { padding: 12px; font-size: 16px; background-color: var(--user-bg); color: white; border: none; border-radius: 8px; cursor: pointer; }
+        #mic-button, #tts-button { font-size: 20px; width: 50px; flex-shrink: 0; background-color: #6c757d; }
+        #mic-button.listening { background-color: #dc3545; }
+        button#submit-button { padding: 12px 22px; }
+        input:disabled, button:disabled { background-color: #e9ecef; cursor: not-allowed; }
+        button:disabled { background-color: #999; }
+        .custom-file-upload { border: 1px solid #ccc; display: flex; padding: 0; border-radius: 4px; background-color: white; overflow: hidden; }
+        #file-input-label { display: inline-block; padding: 8px 12px; background-color: #e9e9e9; color: #555; cursor: pointer; border-right: 1px solid #ccc; font-size: 14px; }
+        #file-chosen { padding: 8px 12px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-size: 14px; color: #777; flex-grow: 1; }
+        #clear-chat-button, #logout-button { background-color: #6c757d; color: white; padding: 2px 8px; font-size: 12px; border-radius: 4px; font-weight: bold; line-height: 1.5; min-width: 25px; }
+        #clear-chat-button:hover, #logout-button:hover { background-color: #dc3545; }
+    </style>
 </head>
 <body>
-
-<!-- NAV -->
-<nav id="navbar">
-  <div class="logo">Coopa<span>AI</span></div>
-  <ul>
-    <li><a href="#market">Market</a></li>
-    <li><a href="#how">How it Works</a></li>
-    <li><a href="#features">Features</a></li>
-    <li><a href="#founder">Our Vision</a></li>
-    <li><a href="/app" class="nav-cta">Try the App →</a></li>
-  </ul>
-</nav>
-
-<!-- HERO -->
-<section class="hero">
-  <div class="orb orb-1"></div>
-  <div class="orb orb-2"></div>
-  <div class="orb orb-3"></div>
-
-  <div class="hero-badge">
-    <span class="dot"></span>
-    Built on Arweave  Powered by Google Gemini
-  </div>
-
-  <h1>
-    Not just an AI assistant.<br>
-    <span class="gradient-text">The architect of your digital universe.</span>
-  </h1>
-
-  <p class="hero-sub">
-    Coopa AI combines autonomous AI agents with permanent blockchain storage. Upload your memories, documents, and files  ask Coopa to retrieve them years later. Your data, your control, forever.
-  </p>
-
-  <div class="hero-actions">
-    <a href="/app" class="btn-primary">Try Coopa Now</a>
-    <a href="#market" class="btn-secondary">See the opportunity</a>
-  </div>
-
-  <div class="hero-visual">
-    <div class="hero-card">
-      <div class="card-header">
-        <div class="card-dots"><span></span><span></span><span></span></div>
-        <span class="card-title">Coopa AI  Your Permanent Digital Memory</span>
-      </div>
-      <div class="chat-messages">
-        <div class="msg user">
-          <div class="msg-avatar">👤</div>
-          <div class="msg-bubble">Show me my daughter's graduation photo from 2024</div>
+    
+    <h1 id="main-title">Coopa Asistan</h1>
+    
+    <div id="language-selector">
+<select id="language-select">
+    <option value="tr">🇹🇷 Türkçe</option>
+    <option value="en">🇺🇸 English</option>
+    <option value="zh">🇨🇳 中文</option>
+    <option value="hi">🇮🇳 हिन्दी</option>
+    <option value="es">🇪🇸 Español</option>
+    <option value="fr">🇫🇷 Français</option>
+    <option value="ar">🇸🇦 العربية</option>
+    <option value="bn">🇧🇩 বাংলা</option>
+    <option value="ru">🇷🇺 Русский</option>
+    <option value="pt">🇵🇹 Português</option>
+    <option value="ur">🇵🇰 اردو</option>
+    <option value="ms">🇲🇾 Bahasa Melayu</option>
+    <option value="de">🇩🇪 Deutsch</option>
+    <option value="ja">🇯🇵 日本語</option>
+    <option value="fa">🇮🇷 فارسی</option>
+    <option value="ha">🇳🇬 Hausa</option>
+    <option value="sw">🇰🇪 Kiswahili</option>
+    <option value="vi">🇻🇳 Tiếng Việt</option>
+    <option value="ko">🇰🇷 한국어</option>
+    <option value="it">🇮🇹 Italiano</option>
+    <option value="jv">🇮🇩 Basa Jawa</option>
+    <option value="tl">🇵🇭 Tagalog</option>
+    <option value="uz">🇺🇿 Oʻzbekcha</option>
+    <option value="nl">🇳🇱 Nederlands</option>
+    <option value="el">🇬🇷 Ελληνικά</option>
+    <option value="sv">🇸🇪 Svenska</option>
+    <option value="he">🇮🇱 עברית</option>
+    <option value="da">🇩🇰 Dansk</option>
+    <option value="fi">🇫🇮 Suomi</option>
+    <option value="no">🇳🇴 Norsk</option>
+</select>
+    </div>
+    
+    <div id="auth-container">
+        <div id="google-auth-section">
+            <a href="/auth/google" id="google-auth-link">Google Takvim'e Bağlan</a>
         </div>
-        <div class="msg">
-          <div class="msg-avatar">🤖</div>
-          <div class="msg-col">
-            <div class="msg-bubble">Found it! Here's your memory  "daughter's graduation 2024" 🎓</div>
-            <div class="msg-image">🎓</div>
-            <div class="msg-bubble msg-bubble-small">
-              Stored on Arweave · AES-256 Encrypted · Permanent<br>
-              TX: <span class="tx-hash">4KzHwFvw3hUvaUt6mQ...</span>
+        <div id="wallet-auth-section">
+            <button id="connect-wallet-button">🦊 Cüzdan ile Giriş Yap</button>
+            <p id="wallet-info" style="display: none; align-items: center; gap: 8px;">
+                <span id="wallet-address"></span>
+                <button id="clear-chat-button" title="Sohbeti Temizle">🧹</button> 
+                <button id="logout-button" title="Oturumu Kapat">X</button>
+            </p>
+        </div>
+    </div>
+    
+    <div id="chat-container"></div>
+    
+    <div id="upload-section">
+        <h3 id="upload-title">🖼️ Kişisel Anı Yükle</h3>
+        <form id="upload-form">
+            <input type="file" name="memoryFile" id="file-input" required style="display: none;">
+            <div class="custom-file-upload">
+                <label for="file-input" id="file-input-label">Dosya Seç</label>
+                <span id="file-chosen">Seçilen dosya yok</span>
             </div>
-          </div>
-        </div>
-        <div class="msg user">
-          <div class="msg-avatar">👤</div>
-          <div class="msg-bubble">Also add her graduation to my Google Calendar 📅</div>
-        </div>
-        <div class="msg">
-          <div class="msg-avatar">🤖</div>
-          <div class="typing"><span></span><span></span><span></span></div>
-        </div>
-      </div>
+            <input type="text" name="description" id="description-input" placeholder="Dosya için kısa bir açıklama..." required>
+            <button type="submit" id="upload-button">Anıyı Kalıcı Olarak Kaydet</button>
+        </form>
     </div>
-  </div>
-</section>
-
-<!-- STATS -->
-<div class="stats-bar">
-  <div class="stat">
-    <div class="stat-number">$50B+</div>
-    <div class="stat-label">Total Addressable Market</div>
-  </div>
-  <div class="stat">
-    <div class="stat-number">200yr</div>
-    <div class="stat-label">Data Permanence</div>
-  </div>
-  <div class="stat">
-    <div class="stat-number">256-bit</div>
-    <div class="stat-label">AES Encryption</div>
-  </div>
-  <div class="stat">
-    <div class="stat-number">30+</div>
-    <div class="stat-label">Languages Supported</div>
-  </div>
-</div>
-
-<!-- MARKET -->
-<div class="section-wrap" id="market">
-  <div class="reveal">
-    <div class="section-label">Market Opportunity</div>
-    <h2 class="section-title">We're at the intersection<br>of two mega-trends.</h2>
-    <p class="section-sub">Coopa AI sits at the crossroads of the Agentic AI revolution and the Decentralized Storage boom  two of the fastest growing markets in tech.</p>
-  </div>
-
-  <div class="market-grid reveal">
-    <div class="market-card">
-      <div class="market-number">$35B</div>
-      <h3>Autonomous AI Agents</h3>
-      <p>The market for AI that doesn't just talk but acts  scheduling, searching, analyzing  projected to reach $35B by 2026. We're building for this future.</p>
+    
+    <div id="loading-indicator" style="text-align: center; display: none; padding: 20px;">
+        <p id="loading-text">Yanıt hazırlanıyor...</p>
     </div>
-    <div class="market-card">
-      <div class="market-number">$15B</div>
-      <h3>Decentralized Storage</h3>
-      <p>DePIN and permanent data infrastructure. The layer that ensures "never deleted, never censored" our blockchain storage backbone.</p>
-    </div>
-    <div class="market-card">
-      <div class="market-number">$50B+</div>
-      <h3>The "Agentic Web"</h3>
-      <p>By combining both markets, we're pioneering the Agentic Web  where AI doesn't just remember you, it acts on your behalf across the entire digital world.</p>
-    </div>
-  </div>
-
-  <!-- COMPARISON TABLE -->
-  <div class="reveal">
-    <div class="section-label section-label-gap">Competitive Analysis</div>
-    <h2 class="section-title">Why existing solutions<br>fall short.</h2>
-    <p class="section-sub">Every competitor solves one piece of the puzzle. We solve all of it.</p>
-  </div>
-
-  <div class="table-wrap reveal">
-    <table class="comp-table">
-      <thead>
-        <tr>
-          <th>Capability</th>
-          <th>Traditional AI<br><small class="th-sub">ChatGPT, Claude</small></th>
-          <th>Web3 Storage<br><small class="th-sub">Filecoin, IPFS</small></th>
-          <th class="highlight">Coopa AI ✦</th>
-        </tr>
-      </thead>
-      <tbody>
-        <tr>
-          <td class="feature-name">Permanent Memory</td>
-          <td><span class="cross">✗</span> Forgets when session ends</td>
-          <td><span class="cross">✗</span> Stores files, no AI</td>
-          <td class="highlight"><span class="check">✓</span> Permanent blockchain memory</td>
-        </tr>
-        <tr>
-          <td class="feature-name">Autonomous Actions</td>
-          <td><span class="cross">✗</span> Text only</td>
-          <td><span class="cross">✗</span> No intelligence</td>
-          <td class="highlight"><span class="check">✓</span> Calendar, web, email, crypto</td>
-        </tr>
-        <tr>
-          <td class="feature-name">Data Ownership</td>
-          <td><span class="cross">✗</span> Big tech servers</td>
-          <td><span class="check">✓</span> Decentralized</td>
-          <td class="highlight"><span class="check">✓</span> Your wallet, your keys</td>
-        </tr>
-        <tr>
-          <td class="feature-name">End-to-End Encryption</td>
-          <td><span class="cross">✗</span> Provider can read data</td>
-          <td><span class="cross">✗</span> Not encrypted by default</td>
-          <td class="highlight"><span class="check">✓</span> AES-256, only you hold the key</td>
-        </tr>
-        <tr>
-          <td class="feature-name">Natural Language Retrieval</td>
-          <td><span class="cross">✗</span> No persistent files</td>
-          <td><span class="cross">✗</span> Manual search only</td>
-          <td class="highlight"><span class="check">✓</span> "Show me my 2024 graduation photo"</td>
-        </tr>
-        <tr>
-          <td class="feature-name">Web3 + Web2 Bridge</td>
-          <td><span class="cross">✗</span> Web2 only</td>
-          <td><span class="cross">✗</span> Web3 only</td>
-          <td class="highlight"><span class="check">✓</span> MetaMask + Google integrations</td>
-        </tr>
-      </tbody>
-    </table>
-  </div>
-</div>
-
-<!-- HOW IT WORKS -->
-<div class="section-wrap" id="how">
-  <div class="reveal">
-    <div class="section-label">How it works</div>
-    <h2 class="section-title">Four steps to<br>permanent memory.</h2>
-    <p class="section-sub">Your memories are encrypted locally, stored on Arweave's blockchain, and retrievable via natural language forever.</p>
-  </div>
-
-  <div class="steps reveal">
-    <div class="step">
-      <div class="step-num">01</div>
-      <div class="step-icon">🔗</div>
-      <h3>Connect Wallet</h3>
-      <p>Sign in with MetaMask. Your wallet is your identity no passwords, no accounts to lose.</p>
-    </div>
-    <div class="step">
-      <div class="step-num">02</div>
-      <div class="step-icon">🔐</div>
-      <h3>Encrypt Locally</h3>
-      <p>Files encrypted with AES-256 using your wallet signature as the key. Not even we can read your data.</p>
-    </div>
-    <div class="step">
-      <div class="step-num">03</div>
-      <div class="step-icon">⛓️</div>
-      <h3>Store on Arweave</h3>
-      <p>Your encrypted memory is permanently written to the Arweave blockchain  immutable, decentralized, forever.</p>
-    </div>
-    <div class="step">
-      <div class="step-num">04</div>
-      <div class="step-icon">🤖</div>
-      <h3>Ask Coopa</h3>
-      <p>Years later, simply ask in natural language. Coopa retrieves, decrypts, and presents your memory instantly.</p>
-    </div>
-  </div>
-
-  <div class="blockchain-visual reveal">
-    <div class="block">
-      <div class="block-label">Block #4,218,901</div>
-      <div class="block-hash">0x4KzH...mQQr</div>
-      <div class="block-content">📸 Graduation 2024</div>
-    </div>
-    <div class="chain-link"></div>
-    <div class="block">
-      <div class="block-label">Block #4,218,902</div>
-      <div class="block-hash">0x9vXp...nR2k</div>
-      <div class="block-content">🎬 First steps video</div>
-    </div>
-    <div class="chain-link"></div>
-    <div class="block">
-      <div class="block-label">Block #4,218,903</div>
-      <div class="block-hash">0x7mBw...eL5q</div>
-      <div class="block-content">📄 Medical records</div>
-    </div>
-    <div class="chain-link"></div>
-    <div class="block latest">
-      <div class="block-label">Latest Block</div>
-      <div class="block-hash">0xF1eQ...HSp</div>
-      <div class="block-content">🎵 Wedding song</div>
-    </div>
-  </div>
-</div>
-
-<!-- FEATURES -->
-<div class="section-wrap section-wrap-no-top" id="features">
-  <div class="reveal">
-    <div class="section-label">Features</div>
-    <h2 class="section-title">Built different.<br>By design.</h2>
-    <p class="section-sub">Every architectural decision was made with permanence, privacy, and autonomous action in mind.</p>
-  </div>
-
-  <div class="features-grid reveal">
-    <div class="feature">
-      <div class="feature-glow purple"></div>
-      <div class="feature-icon purple">🔒</div>
-      <h3>End-to-End Encrypted</h3>
-      <p>AES-256 encryption using your MetaMask signature as the key. Not even we can read your memories. True data sovereignty.</p>
-    </div>
-    <div class="feature">
-      <div class="feature-glow green"></div>
-      <div class="feature-icon green">♾️</div>
-      <h3>Permanent Storage</h3>
-      <p>Arweave's endowment model ensures data persists 200+ years. No subscriptions, no servers to go down, no company to shut down.</p>
-    </div>
-    <div class="feature">
-      <div class="feature-glow orange"></div>
-      <div class="feature-icon orange">🧠</div>
-      <h3>Autonomous AI Agent</h3>
-      <p>Powered by Google Gemini. Searches the web, manages your calendar, analyzes data, retrieves memories  all in natural language.</p>
-    </div>
-    <div class="feature">
-      <div class="feature-glow purple"></div>
-      <div class="feature-icon purple">👛</div>
-      <h3>Web3 Native Identity</h3>
-      <p>Your MetaMask wallet is your account. You own your identity and your data. No platform can lock you out or delete your memories.</p>
-    </div>
-    <div class="feature">
-      <div class="feature-glow green"></div>
-      <div class="feature-icon green">🌍</div>
-      <h3>30+ Languages</h3>
-      <p>Coopa speaks your language. Full multilingual support ensures your memories are accessible to everyone, globally.</p>
-    </div>
-    <div class="feature">
-      <div class="feature-glow orange"></div>
-      <div class="feature-icon orange">🔗</div>
-      <h3>Web2 + Web3 Bridge</h3>
-      <p>Google Calendar, real-time weather, notes Coopa bridges blockchain permanence with the tools you already use every day.</p>
-    </div>
-  </div>
-</div>
-
-<!-- TECH STACK -->
-<div class="tech-section reveal">
-  <div class="tech-label">Powered by industry-leading technology</div>
-  <div class="tech-logos">
-    <div class="tech-item"><div class="tech-item-icon">⛓️</div><span>Arweave</span></div>
-    <div class="tech-item"><div class="tech-item-icon">🦊</div><span>MetaMask</span></div>
-    <div class="tech-item"><div class="tech-item-icon">🔷</div><span>Polygon</span></div>
-    <div class="tech-item"><div class="tech-item-icon">🤖</div><span>Google Gemini</span></div>
-    <div class="tech-item"><div class="tech-item-icon">🔐</div><span>AES-256</span></div>
-    <div class="tech-item"><div class="tech-item-icon">☁️</div><span>Google Cloud</span></div>
-  </div>
-</div>
-
-<!-- FOUNDER LETTER -->
-<div class="founder-section reveal" id="founder">
-  <div class="section-label">Founder's Vision</div>
-  <h2 class="section-title section-title-founder">Why we built this.</h2>
-
-  <div class="founder-card">
-    <span class="founder-quote-mark">"</span>
-    <h2>We don't want to build the AI of the future.<br>We want to build the <span class="gradient-text">architect of your digital universe.</span></h2>
-
-    <div class="founder-pillars">
-      <div class="pillar">
-        <div class="pillar-icon">🔓</div>
-        <h4>Data Freedom & Permanence</h4>
-        <p>Data is the new oil but you shouldn't let others refine it. Via Arweave integration, your data is sealed decentrally. It cannot be deleted, censored, or controlled. We don't just store data we carry it beyond time.</p>
-      </div>
-      <div class="pillar">
-        <div class="pillar-icon">🧬</div>
-        <h4>Deep Memory & Personalization</h4>
-        <p>An assistant that forgets your risk appetite, your writing style, your preferences  is just software. Our Deep Memory layer grows with you. It organizes your life and gets smarter with every interaction.</p>
-      </div>
-      <div class="pillar">
-        <div class="pillar-icon">⚡</div>
-        <h4>Action-Oriented Intelligence</h4>
-        <p>We designed an AI that doesn't just talk  it does. Gemini's reasoning power combined with email, calendar, live data analysis, and web search. MetaMask for Web3, Google for Web2. One bridge for both worlds.</p>
-      </div>
-    </div>
-
-    <div class="founder-body">
-      <p>We're often asked: <em>"There are already dozens of AI assistants  why build another one?"</em></p>
-      <p>Our answer is simple: <strong>Because existing AI is a visitor. We want to build the homeowner.</strong></p>
-      <p>Most AI today forgets you the moment you close the browser tab. Your data sits trapped on corporate servers. Privacy hangs by a thread. And when it comes to real-world actions  adding a calendar event, analyzing live market data, sending a contextual email they're still clumsy.</p>
-      <p>Coopa was born from that frustration. We want an AI that <strong>remembers the note you mentioned last week</strong>, thinks about your budget, builds bridges across languages, organizes your Google events based on your habits and most importantly, <strong>never forgets you</strong>.</p>
-      <p>The driving force behind this project isn't traditional code  it's <strong>Gemini API's reasoning power</strong> and autonomous AI agents. We positioned Gemini not as a simple Q&A bot, but as the founding partner and brain of the entire system. It searches the web, interprets market data in seconds, organizes your calendar, communicates with your wallet. A tireless intelligence network, working for you in the background.</p>
-      <p>We are here to turn complexity into simplicity, and data into permanence. <strong>Welcome. We're building the future together.</strong></p>
-    </div>
-
-    <div class="founder-sig">
-      <div class="founder-avatar">🚀</div>
-      <div class="founder-info">
-        <h4>Coopa AI Founding Team</h4>
-        <p>info@coopaassistant.com · coopaassistant.com</p>
-      </div>
-    </div>
-  </div>
-</div>
-
-<!-- USE CASES -->
-<div class="section-wrap">
-  <div class="reveal">
-    <div class="section-label">Use Cases</div>
-    <h2 class="section-title">Memories that<br>outlive everything.</h2>
-    <p class="section-sub">From personal milestones to critical documents  Coopa preserves what matters most.</p>
-  </div>
-
-  <div class="use-cases reveal">
-    <div class="use-case">
-      <span class="use-case-tag tag-purple">Personal</span>
-      <h3>Family Milestones</h3>
-      <p>First steps, graduations, weddings  store your irreplaceable moments on the blockchain. Access them in 50 years just as easily as today.</p>
-    </div>
-    <div class="use-case">
-      <span class="use-case-tag tag-green">Medical</span>
-      <h3>Health Records</h3>
-      <p>Store medical records, prescriptions, and health history securely. Share with doctors instantly with cryptographic proof of authenticity.</p>
-    </div>
-    <div class="use-case">
-      <span class="use-case-tag tag-orange">Legal</span>
-      <h3>Legal Documents</h3>
-      <p>Contracts, wills, property deeds immutably timestamped on Arweave. Tamper-proof evidence that cannot be altered or deleted.</p>
-    </div>
-    <div class="use-case">
-      <span class="use-case-tag tag-blue">Creative</span>
-      <h3>Creative Portfolio</h3>
-      <p>Artists and creators store work with permanent proof of creation date. Establish ownership before anyone else forever on the blockchain.</p>
-    </div>
-  </div>
-</div>
-
-<!-- CTA -->
-<div class="cta-section reveal">
-  <h2>Your memories deserve<br><span class="gradient-text">to live forever.</span></h2>
-  <p>Experience the first autonomous AI that truly never forgets.</p>
-  <div class="cta-actions">
-    <a href="/app" class="btn-primary">Try Coopa Now</a>
-    <a href="mailto:info@coopaassistant.com" class="btn-secondary">Contact us</a>
-  </div>
-  <p class="cta-contact">contact: info@coopaassistant.com</p>
-</div>
-
-<!-- FOOTER -->
-<footer>
-  <div>
-    <div class="logo footer-logo">Coopa<span>AI</span></div>
-    <p>© 2026 CoopaAI. All rights reserved.</p>
-  </div>
-  <div class="footer-links">
-    <a href="#">Privacy Policy</a>
-    <a href="#">Terms of Service</a>
-    <a href="mailto:info@coopaassistant.com">Contact</a>
-  </div>
-</footer>
+    
+    <form id="prompt-form">
+        <input type="text" id="prompt-input" placeholder="Coopa'ya bir şey sor...">
+        <button type="submit" id="submit-button">Gönder</button>
+        <button type="button" id="mic-button">🎤</button>
+        <button type="button" id="tts-button">🔊</button> 
+    </form>
 
 <script>
-  const navbar = document.getElementById('navbar');
-  window.addEventListener('scroll', () => {
-   
-    navbar.classList.toggle('scrolled', window.scrollY > 50);
-  });
+    
+    // ÖN YÜZ (CLIENT-SIDE) ÇEVİRİLERİ - TAM VE EKSİKSİZ VERSİYON
 
-  const reveals = document.querySelectorAll('.reveal');
-  const observer = new IntersectionObserver((entries) => {
-    entries.forEach((entry, i) => {
-      if (entry.isIntersecting) {
-        setTimeout(() => entry.target.classList.add('visible'), i * 80);
-      }
+    const translations = {
+    tr: {
+        "mainTitle": "Coopa Asistan",
+        "googleAuth": "Google Takvim'e Bağlan",
+        "walletConnect": "🦊 Cüzdan ile Giriş Yap",
+        "uploadTitle": "🖼️ Kişisel Anı Yükle",
+        "descriptionPlaceholder": "Dosya için kısa bir açıklama...",
+        "uploadButton": "Anıyı Kalıcı Olarak Kaydet",
+        "promptPlaceholder": "Coopa'ya bir şey sor...",
+        "promptPlaceholderMic": "Coopa'ya bir şey sor veya 🎤",
+        "submitButton": "Gönder",
+        "loadingText": "Yanıt hazırlanıyor...",
+        "listeningText": "Dinliyorum...",
+        "walletConnectFirst": "İşlem için lütfen önce cüzdanınızı bağlayın...",
+        "walletLoginFirst": "Lütfen işlem yapmadan önce cüzdanınızı bağlayın.",
+        "selectFile": "Lütfen bir dosya seçin.",
+        "uploading": "Dosya yükleniyor, bu işlem biraz zaman alabilir...",
+        "uploadError": "Yükleme sırasında bir hata oluştu:",
+        "loginRequired": "Giriş yapmak için mesajı imzalamanız gerekmektedir.",
+        "installMetaMask": "Lütfen bu özelliği kullanmak için MetaMask cüzdanını kurun.",
+        "voiceLoginRequired": "Lütfen sesli komut kullanmadan önce cüzdanınızı bağlayın.",
+        "speechError": "Ses tanıma hatası:",
+        "loginSuccess": "Giriş Yapıldı:",
+        "googleAuthSuccess": "✅ Google Takvim'e başarıyla bağlandınız!",
+        "googleAuthError": "❌ Google Takvim'e bağlanırken bir hata oluştu.",
+        "popupBlocked": "Tarayıcınız pop-up'ı engelledi. Başarı mesajını görmek için lütfen bu site için pop-up'lara izin verin.",
+        "chooseFileButton": "Dosya Seç",
+        "noFileChosen": "Seçilen dosya yok",
+        "logoutTitle": "Oturumu Kapat",
+        "memoryFoundRequest": "İsteğiniz üzerine bulunan anı:",
+        "downloadImage": "Görseli İndir",
+        "downloadableFile": "İndirilebilir Dosya:",
+        "downloadFile": "Dosyayı İndir",
+        "clearChatTitle": "Sohbeti Temizle",
+        "chatCleared": "Sohbet temizlendi. Yeni bir başlangıç yapabilirsiniz."
+    },
+    en: {
+        "mainTitle": "Coopa Assistant",
+        "googleAuth": "Connect to Google Calendar",
+        "walletConnect": "🦊 Login with Wallet",
+        "uploadTitle": "🖼️ Upload Personal Memory",
+        "descriptionPlaceholder": "A short description for the file...",
+        "uploadButton": "Save Memory Permanently",
+        "promptPlaceholder": "Ask Coopa something...",
+        "promptPlaceholderMic": "Ask Coopa something or 🎤",
+        "submitButton": "Send",
+        "loadingText": "Preparing response...",
+        "listeningText": "Listening...",
+        "walletConnectFirst": "Please connect your wallet first to perform this action...",
+        "walletLoginFirst": "Please connect your wallet before making a transaction.",
+        "selectFile": "Please select a file.",
+        "uploading": "File is uploading, this may take some time...",
+        "uploadError": "An error occurred during upload:",
+        "loginRequired": "You must sign the message to log in.",
+        "installMetaMask": "Please install the MetaMask wallet to use this feature.",
+        "voiceLoginRequired": "Please connect your wallet before using voice commands.",
+        "speechError": "Speech recognition error:",
+        "loginSuccess": "Logged In:",
+        "googleAuthSuccess": "✅ Successfully connected to Google Calendar!",
+        "googleAuthError": "❌ An error occurred while connecting to Google Calendar.",
+        "popupBlocked": "Your browser has blocked the pop-up. Please allow pop-ups for this site to see the success message.",
+        "chooseFileButton": "Choose File",
+        "noFileChosen": "No file chosen",
+        "logoutTitle": "Logout",
+        "memoryFoundRequest": "Memory found upon your request:",
+        "downloadImage": "Download Image",
+        "downloadableFile": "Downloadable File:",
+        "downloadFile": "Download File",
+        "clearChatTitle": "Clear Chat",
+        "chatCleared": "Chat cleared. You can start a new conversation."
+    },
+    zh: {
+        "mainTitle": "Coopa 助手",
+        "googleAuth": "连接到谷歌日历",
+        "walletConnect": "🦊 使用钱包登录",
+        "uploadTitle": "🖼️ 上传个人记忆",
+        "descriptionPlaceholder": "文件的简短描述...",
+        "uploadButton": "永久保存记忆",
+        "promptPlaceholder": "问 Coopa 一些问题...",
+        "promptPlaceholderMic": "问 Coopa 一些问题或 🎤",
+        "submitButton": "发送",
+        "loadingText": "正在准备回应...",
+        "listeningText": "正在聆听...",
+        "walletConnectFirst": "请先连接您的钱包以执行此操作...",
+        "walletLoginFirst": "请在进行交易前连接您的钱包。",
+        "selectFile": "请选择一个文件。",
+        "uploading": "文件上传中，这可能需要一些时间...",
+        "uploadError": "上传过程中发生错误：",
+        "loginRequired": "您必须签署消息才能登录。",
+        "installMetaMask": "请安装 MetaMask 钱包以使用此功能。",
+        "voiceLoginRequired": "请在使用语音命令前连接您的钱包。",
+        "speechError": "语音识别错误：",
+        "loginSuccess": "已登录：",
+        "googleAuthSuccess": "✅ 成功连接到谷歌日历！",
+        "googleAuthError": "❌ 连接到谷歌日历时发生错误。",
+        "popupBlocked": "您的浏览器阻止了弹出窗口。请允许此站点的弹出窗口以查看成功消息。",
+        "chooseFileButton": "选择文件",
+        "noFileChosen": "未选择文件",
+        "logoutTitle": "登出",
+        "memoryFoundRequest": "根据您的请求找到的记忆：",
+        "downloadImage": "下载图片",
+        "downloadableFile": "可下载文件：",
+        "downloadFile": "下载文件",
+        "clearChatTitle": "清除聊天",
+        "chatCleared": "聊天已清除。您可以开始新的对话。"
+    },
+    hi: {
+        "mainTitle": "कूपा सहायक",
+        "googleAuth": "गूगल कैलेंडर से कनेक्ट करें",
+        "walletConnect": "🦊 वॉलेट से लॉगिन करें",
+        "uploadTitle": "🖼️ व्यक्तिगत मेमोरी अपलोड करें",
+        "descriptionPlaceholder": "फ़ाइल के लिए एक संक्षिप्त विवरण...",
+        "uploadButton": "मेमोरी को स्थायी रूप से सहेजें",
+        "promptPlaceholder": "कूपा से कुछ पूछें...",
+        "promptPlaceholderMic": "कूपा से कुछ पूछें या 🎤",
+        "submitButton": "भेजें",
+        "loadingText": "प्रतिक्रिया तैयार हो रही है...",
+        "listeningText": "सुन रहा हूँ...",
+        "walletConnectFirst": "इस कार्रवाई के लिए कृपया पहले अपना वॉलेट कनेक्ट करें...",
+        "walletLoginFirst": "लेन-देन करने से पहले कृपया अपना वॉलेट कनेक्ट करें।",
+        "selectFile": "कृपया एक फ़ाइल चुनें।",
+        "uploading": "फ़ाइल अपलोड हो रही है, इसमें कुछ समय लग सकता है...",
+        "uploadError": "अपलोड के दौरान एक त्रुटि हुई:",
+        "loginRequired": "लॉगिन करने के लिए आपको संदेश पर हस्ताक्षर करना होगा।",
+        "installMetaMask": "इस सुविधा का उपयोग करने के लिए कृपया MetaMask वॉलेट स्थापित करें।",
+        "voiceLoginRequired": "वॉयस कमांड का उपयोग करने से पहले कृपया अपना वॉलेट कनेक्ट करें।",
+        "speechError": "भाषण पहचान त्रुटि:",
+        "loginSuccess": "लॉगिन किया गया:",
+        "googleAuthSuccess": "✅ गूगल कैलेंडर से सफलतापूर्वक कनेक्ट हो गया!",
+        "googleAuthError": "❌ गूगल कैलेंडर से कनेक्ट करते समय एक त्रुटि हुई।",
+        "popupBlocked": "आपके ब्राउज़र ने पॉप-अप को ब्लॉक कर दिया है। सफलता संदेश देखने के लिए कृपया इस साइट के लिए पॉप-अप की अनुमति दें।",
+        "chooseFileButton": "फ़ाइल चुनें",
+        "noFileChosen": "कोई फ़ाइल नहीं चुनी गई",
+        "logoutTitle": "लॉग आउट",
+        "memoryFoundRequest": "आपके अनुरोध पर मिली मेमोरी:",
+        "downloadImage": "छवि डाउनलोड करें",
+        "downloadableFile": "डाउनलोड करने योग्य फ़ाइल:",
+        "downloadFile": "फ़ाइल डाउनलोड करें",
+        "clearChatTitle": "चैट साफ़ करें",
+        "chatCleared": "चैट साफ़ हो गई है। आप एक नई बातचीत शुरू कर सकते हैं।"
+    },
+    es: {
+        "mainTitle": "Asistente Coopa",
+        "googleAuth": "Conectar a Google Calendar",
+        "walletConnect": "🦊 Iniciar Sesión con Monedero",
+        "uploadTitle": "🖼️ Subir Recuerdo Personal",
+        "descriptionPlaceholder": "Una breve descripción para el archivo...",
+        "uploadButton": "Guardar Recuerdo Permanentemente",
+        "promptPlaceholder": "Pregúntale algo a Coopa...",
+        "promptPlaceholderMic": "Pregúntale algo a Coopa o 🎤",
+        "submitButton": "Enviar",
+        "loadingText": "Preparando respuesta...",
+        "listeningText": "Escuchando...",
+        "walletConnectFirst": "Por favor, conecte su monedero primero para realizar esta acción...",
+        "walletLoginFirst": "Por favor, conecte su monedero antes de realizar una transacción.",
+        "selectFile": "Por favor, seleccione un archivo.",
+        "uploading": "Subiendo archivo, esto puede tardar un poco...",
+        "uploadError": "Ocurrió un error durante la carga:",
+        "loginRequired": "Debe firmar el mensaje para iniciar sesión.",
+        "installMetaMask": "Por favor, instale el monedero MetaMask para usar esta función.",
+        "voiceLoginRequired": "Por favor, conecte su monedero antes de usar comandos de voz.",
+        "speechError": "Error de reconocimiento de voz:",
+        "loginSuccess": "Sesión Iniciada:",
+        "googleAuthSuccess": "✅ ¡Conectado a Google Calendar con éxito!",
+        "googleAuthError": "❌ Ocurrió un error al conectar con Google Calendar.",
+        "popupBlocked": "Su navegador bloqueó la ventana emergente. Por favor, permita las ventanas emergentes para este sitio para ver el mensaje de éxito.",
+        "chooseFileButton": "Elegir Archivo",
+        "noFileChosen": "Ningún archivo seleccionado",
+        "logoutTitle": "Cerrar Sesión",
+        "memoryFoundRequest": "Recuerdo encontrado a petición suya:",
+        "downloadImage": "Descargar Imagen",
+        "downloadableFile": "Archivo Descargable:",
+        "downloadFile": "Descargar Archivo",
+        "clearChatTitle": "Limpiar Chat",
+        "chatCleared": "Chat limpiado. Puede iniciar una nueva conversación."
+    },
+    fr: {
+        "mainTitle": "Assistant Coopa",
+        "googleAuth": "Se connecter à Google Agenda",
+        "walletConnect": "🦊 Se connecter avec le portefeuille",
+        "uploadTitle": "🖼️ Télécharger un souvenir personnel",
+        "descriptionPlaceholder": "Une courte description pour le fichier...",
+        "uploadButton": "Enregistrer le souvenir de façon permanente",
+        "promptPlaceholder": "Demandez quelque chose à Coopa...",
+        "promptPlaceholderMic": "Demandez quelque chose à Coopa ou 🎤",
+        "submitButton": "Envoyer",
+        "loadingText": "Préparation de la réponse...",
+        "listeningText": "Écoute...",
+        "walletConnectFirst": "Veuillez d'abord connecter votre portefeuille pour effectuer cette action...",
+        "walletLoginFirst": "Veuillez connecter votre portefeuille avant d'effectuer une transaction.",
+        "selectFile": "Veuillez sélectionner un fichier.",
+        "uploading": "Téléchargement du fichier en cours, cela peut prendre un certain temps...",
+        "uploadError": "Une erreur s'est produite lors du téléchargement :",
+        "loginRequired": "Vous devez signer le message pour vous connecter.",
+        "installMetaMask": "Veuillez installer le portefeuille MetaMask pour utiliser cette fonctionnalité.",
+        "voiceLoginRequired": "Veuillez connecter votre portefeuille avant d'utiliser les commandes vocales.",
+        "speechError": "Erreur de reconnaissance vocale :",
+        "loginSuccess": "Connecté :",
+        "googleAuthSuccess": "✅ Connecté avec succès à Google Agenda !",
+        "googleAuthError": "❌ Une erreur s'est produite lors de la connexion à Google Agenda.",
+        "popupBlocked": "Votre navigateur a bloqué la fenêtre contextuelle. Veuillez autoriser les fenêtres contextuelles pour ce site afin de voir le message de succès.",
+        "chooseFileButton": "Choisir un fichier",
+        "noFileChosen": "Aucun fichier choisi",
+        "logoutTitle": "Se déconnecter",
+        "memoryFoundRequest": "Souvenir trouvé à votre demande :",
+        "downloadImage": "Télécharger l'image",
+        "downloadableFile": "Fichier téléchargeable :",
+        "downloadFile": "Télécharger le fichier",
+        "clearChatTitle": "Effacer la discussion",
+        "chatCleared": "Discussion effacée. Vous pouvez commencer une nouvelle conversation."
+    },
+    ar: {
+        "mainTitle": "مساعد Coopa",
+        "googleAuth": "الاتصال بتقويم جوجل",
+        "walletConnect": "🦊 تسجيل الدخول باستخدام المحفظة",
+        "uploadTitle": "🖼️ تحميل ذكرى شخصية",
+        "descriptionPlaceholder": "وصف قصير للملف...",
+        "uploadButton": "حفظ الذاكرة بشكل دائم",
+        "promptPlaceholder": "اسأل Coopa شيئًا...",
+        "promptPlaceholderMic": "اسأل Coopa شيئًا أو 🎤",
+        "submitButton": "إرسال",
+        "loadingText": "يتم تحضير الرد...",
+        "listeningText": "أستمع...",
+        "walletConnectFirst": "يرجى توصيل محفظتك أولاً لإجراء هذه العملية...",
+        "walletLoginFirst": "يرجى توصيل محفظتك قبل إجراء معاملة.",
+        "selectFile": "يرجى تحديد ملف.",
+        "uploading": "جاري تحميل الملف، قد تستغرق هذه العملية بعض الوقت...",
+        "uploadError": "حدث خطأ أثناء التحميل:",
+        "loginRequired": "يجب عليك توقيع الرسالة لتسجيل الدخول.",
+        "installMetaMask": "يرجى تثبيت محفظة MetaMask لاستخدام هذه الميزة.",
+        "voiceLoginRequired": "يرجى توصيل محفظتك قبل استخدام الأوامر الصوتية.",
+        "speechError": "خطأ في التعرف على الكلام:",
+        "loginSuccess": "تم تسجيل الدخول:",
+        "googleAuthSuccess": "✅ تم الاتصال بتقويم جوجل بنجاح!",
+        "googleAuthError": "❌ حدث خطأ أثناء الاتصال بتقويم جوجل.",
+        "popupBlocked": "قام متصفحك بحظر النافذة المنبثقة. يرجى السماح بالنوافذ المنبثقة لهذا الموقع لرؤية رسالة النجاح.",
+        "chooseFileButton": "اختر ملف",
+        "noFileChosen": "لم يتم اختيار ملف",
+        "logoutTitle": "تسجيل الخروج",
+        "memoryFoundRequest": "الذكرى التي تم العثور عليها بناءً على طلبك:",
+        "downloadImage": "تنزيل الصورة",
+        "downloadableFile": "ملف قابل للتنزيل:",
+        "downloadFile": "تنزيل الملف",
+        "clearChatTitle": "مسح المحادثة",
+        "chatCleared": "تم مسح المحادثة. يمكنك بدء محادثة جديدة."
+    },
+    bn: {
+        "mainTitle": "কুপা সহকারী",
+        "googleAuth": "গুগল ক্যালেন্ডারের সাথে সংযোগ করুন",
+        "walletConnect": "🦊 ওয়ালেট দিয়ে লগইন করুন",
+        "uploadTitle": "🖼️ ব্যক্তিগত স্মৃতি আপলোড করুন",
+        "descriptionPlaceholder": "ফাইলের জন্য একটি সংক্ষিপ্ত বিবরণ...",
+        "uploadButton": "স্মৃতি স্থায়ীভাবে সংরক্ষণ করুন",
+        "promptPlaceholder": "কুপাকে কিছু জিজ্ঞাসা করুন...",
+        "promptPlaceholderMic": "কুপাকে কিছু জিজ্ঞাসা করুন অথবা 🎤",
+        "submitButton": "জমা দিন",
+        "loadingText": "উত্তর প্রস্তুত করা হচ্ছে...",
+        "listeningText": "শুনছি...",
+        "walletConnectFirst": "এই কাজটি করার জন্য অনুগ্রহ করে প্রথমে আপনার ওয়ালেট সংযোগ করুন...",
+        "walletLoginFirst": "লেনদেন করার আগে অনুগ্রহ করে আপনার ওয়ালেট সংযোগ করুন।",
+        "selectFile": "অনুগ্রহ করে একটি ফাইল নির্বাচন করুন।",
+        "uploading": "ফাইল আপলোড হচ্ছে, এতে কিছু সময় লাগতে পারে...",
+        "uploadError": "আপলোডের সময় একটি ত্রুটি ঘটেছে:",
+        "loginRequired": "লগইন করার জন্য আপনাকে বার্তাটি স্বাক্ষর করতে হবে।",
+        "installMetaMask": "এই বৈশিষ্ট্যটি ব্যবহার করার জন্য অনুগ্রহ করে MetaMask ওয়ালেট ইনস্টল করুন।",
+        "voiceLoginRequired": "ভয়েস কমান্ড ব্যবহার করার আগে অনুগ্রহ করে আপনার ওয়ালেট সংযোগ করুন।",
+        "speechError": "কথা শনাক্তকরণে ত্রুটি:",
+        "loginSuccess": "লগইন করা হয়েছে:",
+        "googleAuthSuccess": "✅ গুগল ক্যালেন্ডারের সাথে সফলভাবে সংযুক্ত হয়েছেন!",
+        "googleAuthError": "❌ গুগল ক্যালেন্ডারের সাথে সংযোগ করার সময় একটি ত্রুটি ঘটেছে।",
+        "popupBlocked": "আপনার ব্রাউজার পপ-আপ ব্লক করেছে। সফল বার্তা দেখতে অনুগ্রহ করে এই সাইটের জন্য পপ-আপ অনুমতি দিন।",
+        "chooseFileButton": "ফাইল নির্বাচন করুন",
+        "noFileChosen": "কোনো ফাইল নির্বাচন করা হয়নি",
+        "logoutTitle": "লগ আউট",
+        "memoryFoundRequest": "আপনার অনুরোধে স্মৃতি পাওয়া গেছে:",
+        "downloadImage": "ছবি ডাউনলোড করুন",
+        "downloadableFile": "ডাউনলোডযোগ্য ফাইল:",
+        "downloadFile": "ফাইল ডাউনলোড করুন",
+        "clearChatTitle": "চ্যাট পরিষ্কার করুন",
+        "chatCleared": "চ্যাট পরিষ্কার করা হয়েছে। আপনি একটি নতুন কথোপকথন শুরু করতে পারেন।"
+    },
+    ru: {
+        "mainTitle": "Ассистент Coopa",
+        "googleAuth": "Подключиться к Google Календарю",
+        "walletConnect": "🦊 Войти с помощью кошелька",
+        "uploadTitle": "🖼️ Загрузить личное воспоминание",
+        "descriptionPlaceholder": "Краткое описание файла...",
+        "uploadButton": "Сохранить воспоминание навсегда",
+        "promptPlaceholder": "Спросите что-нибудь у Coopa...",
+        "promptPlaceholderMic": "Спросите что-нибудь у Coopa или 🎤",
+        "submitButton": "Отправить",
+        "loadingText": "Подготовка ответа...",
+        "listeningText": "Слушаю...",
+        "walletConnectFirst": "Пожалуйста, сначала подключите ваш кошелек, чтобы выполнить это действие...",
+        "walletLoginFirst": "Пожалуйста, подключите ваш кошелек перед совершением транзакции.",
+        "selectFile": "Пожалуйста, выберите файл.",
+        "uploading": "Идет загрузка файла, это может занять некоторое время...",
+        "uploadError": "Произошла ошибка при загрузке:",
+        "loginRequired": "Вы должны подписать сообщение для входа.",
+        "installMetaMask": "Пожалуйста, установите кошелек MetaMask, чтобы использовать эту функцию.",
+        "voiceLoginRequired": "Пожалуйста, подключите ваш кошелек перед использованием голосовых команд.",
+        "speechError": "Ошибка распознавания речи:",
+        "loginSuccess": "Вход выполнен:",
+        "googleAuthSuccess": "✅ Успешное подключение к Google Календарю!",
+        "googleAuthError": "❌ Произошла ошибка при подключении к Google Календарю.",
+        "popupBlocked": "Ваш браузер заблокировал всплывающее окно. Пожалуйста, разрешите всплывающие окна для этого сайта, чтобы увидеть сообщение об успехе.",
+        "chooseFileButton": "Выберите файл",
+        "noFileChosen": "Файл не выбран",
+        "logoutTitle": "Выйти",
+        "memoryFoundRequest": "Воспоминание, найденное по вашему запросу:",
+        "downloadImage": "Скачать изображение",
+        "downloadableFile": "Файл для скачивания:",
+        "downloadFile": "Скачать файл",
+        "clearChatTitle": "Очистить чат",
+        "chatCleared": "Чат очищен. Вы можете начать новый разговор."
+    },
+    pt: {
+        "mainTitle": "Assistente Coopa",
+        "googleAuth": "Conectar ao Google Agenda",
+        "walletConnect": "🦊 Entrar com Carteira",
+        "uploadTitle": "🖼️ Carregar Memória Pessoal",
+        "descriptionPlaceholder": "Uma breve descrição para o arquivo...",
+        "uploadButton": "Salvar Memória Permanentemente",
+        "promptPlaceholder": "Pergunte algo ao Coopa...",
+        "promptPlaceholderMic": "Pergunte algo ao Coopa ou 🎤",
+        "submitButton": "Enviar",
+        "loadingText": "Preparando resposta...",
+        "listeningText": "Ouvindo...",
+        "walletConnectFirst": "Por favor, conecte sua carteira primeiro para realizar esta ação...",
+        "walletLoginFirst": "Por favor, conecte sua carteira antes de fazer uma transação.",
+        "selectFile": "Por favor, selecione um arquivo.",
+        "uploading": "O arquivo está sendo carregado, isso pode levar algum tempo...",
+        "uploadError": "Ocorreu um erro durante o carregamento:",
+        "loginRequired": "Você deve assinar a mensagem para fazer login.",
+        "installMetaMask": "Por favor, instale a carteira MetaMask para usar este recurso.",
+        "voiceLoginRequired": "Por favor, conecte sua carteira antes de usar comandos de voz.",
+        "speechError": "Erro de reconhecimento de fala:",
+        "loginSuccess": "Login Efetuado:",
+        "googleAuthSuccess": "✅ Conectado com sucesso ao Google Agenda!",
+        "googleAuthError": "❌ Ocorreu um erro ao conectar ao Google Agenda.",
+        "popupBlocked": "Seu navegador bloqueou o pop-up. Por favor, permita pop-ups para este site para ver a mensagem de sucesso.",
+        "chooseFileButton": "Escolher Arquivo",
+        "noFileChosen": "Nenhum arquivo escolhido",
+        "logoutTitle": "Sair",
+        "memoryFoundRequest": "Memória encontrada a seu pedido:",
+        "downloadImage": "Baixar Imagem",
+        "downloadableFile": "Arquivo para Download:",
+        "downloadFile": "Baixar Arquivo",
+        "clearChatTitle": "Limpar Conversa",
+        "chatCleared": "Conversa limpa. Você pode começar de novo."
+    },
+    ur: {
+        "mainTitle": "کوپا اسسٹنٹ",
+        "googleAuth": "گوگل کیلنڈر سے منسلک کریں",
+        "walletConnect": "🦊 والیٹ کے ساتھ لاگ ان کریں",
+        "uploadTitle": "🖼️ ذاتی یادداشت اپ لوڈ کریں",
+        "descriptionPlaceholder": "فائل کے لیے مختصر تفصیل...",
+        "uploadButton": "یادداشت کو مستقل طور پر محفوظ کریں",
+        "promptPlaceholder": "کوپا سے کچھ پوچھیں...",
+        "promptPlaceholderMic": "کوپا سے کچھ پوچھیں یا 🎤",
+        "submitButton": "جمع کرائیں",
+        "loadingText": "جواب تیار کیا جا رہا ہے۔..",
+        "listeningText": "سن رہا ہوں...",
+        "walletConnectFirst": "اس کارروائی کے لیے براہ کرم پہلے اپنا والیٹ منسلک کریں...",
+        "walletLoginFirst": "براہ کرم لین دین کرنے سے پہلے اپنا والیٹ منسلک کریں۔",
+        "selectFile": "براہ کرم ایک فائل منتخب کریں۔",
+        "uploading": "فائل اپ لوڈ ہو رہی ہے، اس میں کچھ وقت لگ سکتا ہے۔..",
+        "uploadError": "اپ لوڈ کے دوران ایک خرابی پیش آئی:",
+        "loginRequired": "لاگ ان کرنے کے لیے آپ کو پیغام پر دستخط کرنا ہوگا۔",
+        "installMetaMask": "براہ کرم اس خصوصیت کو استعمال کرنے کے لیے MetaMask والیٹ انسٹال کریں۔",
+        "voiceLoginRequired": "براہ کرم صوتی احکامات استعمال کرنے سے پہلے اپنا والیٹ منسلک کریں۔",
+        "speechError": "تقریر کی شناخت میں خرابی:",
+        "loginSuccess": "لاگ ان ہو گیا:",
+        "googleAuthSuccess": "✅ گوگل کیلنڈر سے کامیابی سے منسلک ہو گیا!",
+        "googleAuthError": "❌ گوگل کیلنڈر سے منسلک ہوتے وقت ایک خرابی پیش آئی۔",
+        "popupBlocked": "آپ کے براؤزر نے پاپ اپ کو بلاک کر دیا ہے۔ کامیابی کا پیغام دیکھنے کے لیے براہ کرم اس سائٹ کے لیے پاپ اپ کی اجازت دیں۔",
+        "chooseFileButton": "فائل منتخب کریں",
+        "noFileChosen": "کوئی فائل منتخب نہیں کی گئی",
+        "logoutTitle": "لاگ آؤٹ",
+        "memoryFoundRequest": "آپ کی درخواست پر یادداشت مل گئی:",
+        "downloadImage": "تصویر ڈاؤن لوڈ کریں",
+        "downloadableFile": "ڈاؤن لوڈ کے قابل فائل:",
+        "downloadFile": "فائل ڈاؤن لوڈ کریں",
+        "clearChatTitle": "چیٹ صاف کریں",
+        "chatCleared": "چیٹ صاف ہوگئی ہے۔ آپ ایک نئی گفتگو شروع کر سکتے ہیں۔"
+    },
+    ms: {
+        "mainTitle": "Pembantu Coopa",
+        "googleAuth": "Sambung ke Kalendar Google",
+        "walletConnect": "🦊 Log Masuk dengan Dompet",
+        "uploadTitle": "🖼️ Muat Naik Memori Peribadi",
+        "descriptionPlaceholder": "Penerangan ringkas untuk fail...",
+        "uploadButton": "Simpan Memori Secara Kekal",
+        "promptPlaceholder": "Tanya sesuatu kepada Coopa...",
+        "promptPlaceholderMic": "Tanya sesuatu kepada Coopa atau 🎤",
+        "submitButton": "Hantar",
+        "loadingText": "Menyediakan respons...",
+        "listeningText": "Mendengar...",
+        "walletConnectFirst": "Sila sambungkan dompet anda terlebih dahulu untuk melakukan tindakan ini...",
+        "walletLoginFirst": "Sila sambungkan dompet anda sebelum membuat transaksi.",
+        "selectFile": "Sila pilih fail.",
+        "uploading": "Fail sedang dimuat naik, ini mungkin mengambil sedikit masa...",
+        "uploadError": "Ralat berlaku semasa muat naik:",
+        "loginRequired": "Anda mesti menandatangani mesej untuk log masuk.",
+        "installMetaMask": "Sila pasang dompet MetaMask untuk menggunakan ciri ini.",
+        "voiceLoginRequired": "Sila sambungkan dompet anda sebelum menggunakan arahan suara.",
+        "speechError": "Ralat pengecaman pertuturan:",
+        "loginSuccess": "Berjaya Log Masuk:",
+        "googleAuthSuccess": "✅ Berjaya disambungkan ke Kalendar Google!",
+        "googleAuthError": "❌ Ralat berlaku semasa menyambung ke Kalendar Google.",
+        "popupBlocked": "Pelayar anda telah menyekat pop timbul. Sila benarkan pop timbul untuk tapak ini untuk melihat mesej kejayaan.",
+        "chooseFileButton": "Pilih Fail",
+        "noFileChosen": "Tiada fail dipilih",
+        "logoutTitle": "Log Keluar",
+        "memoryFoundRequest": "Memori ditemui atas permintaan anda:",
+        "downloadImage": "Muat Turun Imej",
+        "downloadableFile": "Fail Boleh Dimuat Turun:",
+        "downloadFile": "Muat Turun Fail",
+        "clearChatTitle": "Kosongkan Sembang",
+        "chatCleared": "Sembang dikosongkan. Anda boleh memulakan perbualan baharu."
+    },
+    de: {
+        "mainTitle": "Coopa Assistent",
+        "googleAuth": "Mit Google Kalender verbinden",
+        "walletConnect": "🦊 Mit Wallet anmelden",
+        "uploadTitle": "🖼️ Persönliche Erinnerung hochladen",
+        "descriptionPlaceholder": "Eine kurze Beschreibung für die Datei...",
+        "uploadButton": "Erinnerung dauerhaft speichern",
+        "promptPlaceholder": "Fragen Sie Coopa etwas...",
+        "promptPlaceholderMic": "Fragen Sie Coopa etwas oder 🎤",
+        "submitButton": "Senden",
+        "loadingText": "Antwort wird vorbereitet...",
+        "listeningText": "Höre zu...",
+        "walletConnectFirst": "Bitte verbinden Sie zuerst Ihre Wallet, um diese Aktion auszuführen...",
+        "walletLoginFirst": "Bitte verbinden Sie Ihre Wallet, bevor Sie eine Transaktion durchführen.",
+        "selectFile": "Bitte wählen Sie eine Datei aus.",
+        "uploading": "Datei wird hochgeladen, dies kann einige Zeit dauern...",
+        "uploadError": "Beim Hochladen ist ein Fehler aufgetreten:",
+        "loginRequired": "Sie müssen die Nachricht signieren, um sich anzumelden.",
+        "installMetaMask": "Bitte installieren Sie die MetaMask-Wallet, um diese Funktion zu nutzen.",
+        "voiceLoginRequired": "Bitte verbinden Sie Ihre Wallet, bevor Sie Sprachbefehle verwenden.",
+        "speechError": "Fehler bei der Spracherkennung:",
+        "loginSuccess": "Angemeldet:",
+        "googleAuthSuccess": "✅ Erfolgreich mit Google Kalender verbunden!",
+        "googleAuthError": "❌ Beim Verbinden mit Google Kalender ist ein Fehler aufgetreten.",
+        "popupBlocked": "Ihr Browser hat das Pop-up blockiert. Bitte erlauben Sie Pop-ups für diese Seite, um die Erfolgsmeldung zu sehen.",
+        "chooseFileButton": "Datei auswählen",
+        "noFileChosen": "Keine Datei ausgewählt",
+        "logoutTitle": "Abmelden",
+        "memoryFoundRequest": "Auf Ihre Anfrage gefundene Erinnerung:",
+        "downloadImage": "Bild herunterladen",
+        "downloadableFile": "Herunterladbare Datei:",
+        "downloadFile": "Datei herunterladen",
+        "clearChatTitle": "Chat löschen",
+        "chatCleared": "Chat gelöscht. Sie können eine neue Konversation beginnen."
+    },
+    ja: {
+        "mainTitle": "Coopaアシスタント",
+        "googleAuth": "Googleカレンダーに接続",
+        "walletConnect": "🦊 ウォレットでログイン",
+        "uploadTitle": "🖼️ 個人的な思い出をアップロード",
+        "descriptionPlaceholder": "ファイルについての簡単な説明...",
+        "uploadButton": "思い出を永久に保存",
+        "promptPlaceholder": "Coopaに何か質問する...",
+        "promptPlaceholderMic": "Coopaに何か質問するか、🎤",
+        "submitButton": "送信",
+        "loadingText": "応答を準備しています...",
+        "listeningText": "聞いています...",
+        "walletConnectFirst": "この操作を行うには、まずウォレットを接続してください...",
+        "walletLoginFirst": "取引を行う前に、ウォレットを接続してください。",
+        "selectFile": "ファイルを選択してください。",
+        "uploading": "ファイルをアップロードしています。これには少し時間がかかる場合があります...",
+        "uploadError": "アップロード中にエラーが発生しました：",
+        "loginRequired": "ログインするには、メッセージに署名する必要があります。",
+        "installMetaMask": "この機能を使用するには、MetaMaskウォレットをインストールしてください。",
+        "voiceLoginRequired": "音声コマンドを使用する前に、ウォレットを接続してください。",
+        "speechError": "音声認識エラー：",
+        "loginSuccess": "ログインしました：",
+        "googleAuthSuccess": "✅ Googleカレンダーに正常に接続しました！",
+        "googleAuthError": "❌ Googleカレンダーへの接続中にエラーが発生しました。",
+        "popupBlocked": "ブラウザがポップアップをブロックしました。成功メッセージを表示するには、このサイトのポップアップを許可してください。",
+        "chooseFileButton": "ファイルを選択",
+        "noFileChosen": "ファイルが選択されていません",
+        "logoutTitle": "ログアウト",
+        "memoryFoundRequest": "ご要望に応じて見つかった思い出：",
+        "downloadImage": "画像をダウンロード",
+        "downloadableFile": "ダウンロード可能なファイル：",
+        "downloadFile": "ファイルをダウンロード",
+        "clearChatTitle": "チャットをクリア",
+        "chatCleared": "チャットがクリアされました。新しい会話を開始できます。"
+    },
+    fa: {
+        "mainTitle": "دستیار Coopa",
+        "googleAuth": "اتصال به تقویم گوگل",
+        "walletConnect": "🦊 ورود با کیف پول",
+        "uploadTitle": "🖼️ بارگذاری خاطره شخصی",
+        "descriptionPlaceholder": "یک توضیح کوتاه برای فایل...",
+        "uploadButton": "ذخیره دائمی خاطره",
+        "promptPlaceholder": "از Coopa چیزی بپرسید...",
+        "promptPlaceholderMic": "از Coopa چیزی بپرسید یا 🎤",
+        "submitButton": "ارسال",
+        "loadingText": "در حال آماده‌سازی پاسخ...",
+        "listeningText": "در حال گوش دادن...",
+        "walletConnectFirst": "لطفاً برای انجام عملیات، ابتدا کیف پول خود را متصل کنید...",
+        "walletLoginFirst": "لطفاً قبل از انجام تراکنش، کیف پول خود را متصل کنید.",
+        "selectFile": "لطفاً یک فایل انتخاب کنید.",
+        "uploading": "در حال بارگذاری فایل، این فرآیند ممکن است کمی طول بکشد...",
+        "uploadError": "هنگام بارگذاری خطایی رخ داد:",
+        "loginRequired": "برای ورود باید پیام را امضا کنید.",
+        "installMetaMask": "لطفاً برای استفاده از این ویژگی، کیف پول MetaMask را نصب کنید.",
+        "voiceLoginRequired": "لطفاً قبل از استفاده از دستورات صوتی، کیف پول خود را متصل کنید.",
+        "speechError": "خطای تشخیص گفتار:",
+        "loginSuccess": "وارد شدید:",
+        "googleAuthSuccess": "✅ با موفقیت به تقویم گوگل متصل شدید!",
+        "googleAuthError": "❌ هنگام اتصال به تقویم گوگل خطایی رخ داد.",
+        "popupBlocked": "مرورگر شما پنجره بازشو را مسدود کرده است. لطفاً برای دیدن پیام موفقیت، به پنجره‌های بازشو برای این سایت اجازه دهید.",
+        "chooseFileButton": "انتخاب فایل",
+        "noFileChosen": "هیچ فایلی انتخاب نشده است",
+        "logoutTitle": "خروج از سیستم",
+        "memoryFoundRequest": "خاطره‌ای که به درخواست شما پیدا شد:",
+        "downloadImage": "دانلود تصویر",
+        "downloadableFile": "فایل قابل دانلود:",
+        "downloadFile": "دانلود فایل",
+        "clearChatTitle": "پاک کردن گفتگو",
+        "chatCleared": "گفتگو پاک شد. می‌توانید یک گفتگوی جدید شروع کنید."
+    },
+    ha: {
+        "mainTitle": "Mataimakin Coopa",
+        "googleAuth": "Haɗa zuwa Kalanda na Google",
+        "walletConnect": "🦊 Shiga da Wallet",
+        "uploadTitle": "🖼️ Loda Tunani na Keɓaɓɓen",
+        "descriptionPlaceholder": "Takaitaccen bayanin fayil...",
+        "uploadButton": "Ajiye Tunani Har abada",
+        "promptPlaceholder": "Tambayi Coopa wani abu...",
+        "promptPlaceholderMic": "Tambayi Coopa wani abu ko 🎤",
+        "submitButton": "Aika",
+        "loadingText": "Ana shirya amsa...",
+        "listeningText": "Ina sauraro...",
+        "walletConnectFirst": "Da fatan za a haɗa wallet ɗinka tukuna don aiwatar da wannan aikin...",
+        "walletLoginFirst": "Da fatan za a haɗa wallet ɗinka kafin yin ma'amala.",
+        "selectFile": "Da fatan za a zaɓi fayil.",
+        "uploading": "Ana loda fayil, wannan na iya ɗaukar ɗan lokaci...",
+        "uploadError": "An sami kuskure yayin lodawa:",
+        "loginRequired": "Dole ne ka sanya hannu a saƙon don shiga.",
+        "installMetaMask": "Da fatan za a shigar da wallet ɗin MetaMask don amfani da wannan fasalin.",
+        "voiceLoginRequired": "Da fatan za a haɗa wallet ɗinka kafin amfani da umarnin murya.",
+        "speechError": "Kuskuren gane magana:",
+        "loginSuccess": "An Shiga:",
+        "googleAuthSuccess": "✅ An yi nasarar haɗawa da Kalanda na Google!",
+        "googleAuthError": "❌ An sami kuskure yayin haɗawa da Kalanda na Google.",
+        "popupBlocked": "Burauzarka ta toshe pop-up. Da fatan za a ba da izinin pop-up don wannan rukunin yanar gizon don ganin saƙon nasara.",
+        "chooseFileButton": "Zaɓi Fayil",
+        "noFileChosen": "Ba a zaɓi fayil ba",
+        "logoutTitle": "Fita",
+        "memoryFoundRequest": "An sami tunani bisa ga buƙatarku:",
+        "downloadImage": "Sauke Hoto",
+        "downloadableFile": "Fayil Mai Saukewa:",
+        "downloadFile": "Sauke Fayil",
+        "clearChatTitle": "Share Hira",
+        "chatCleared": "An share hira. Kuna iya fara sabuwar hira."
+    },
+    sw: {
+        "mainTitle": "Msaidizi wa Coopa",
+        "googleAuth": "Unganisha kwenye Kalenda ya Google",
+        "walletConnect": "🦊 Ingia kwa kutumia Mkoba",
+        "uploadTitle": "🖼️ Pakia Kumbukumbu ya Kibinafsi",
+        "descriptionPlaceholder": "Maelezo mafupi ya faili...",
+        "uploadButton": "Hifadhi Kumbukumbu Kabisa",
+        "promptPlaceholder": "Uliza Coopa kitu...",
+        "promptPlaceholderMic": "Uliza Coopa kitu au 🎤",
+        "submitButton": "Tuma",
+        "loadingText": "Inatayarisha jibu...",
+        "listeningText": "Inasikiliza...",
+        "walletConnectFirst": "Tafadhali unganisha mkoba wako kwanza ili kutekeleza kitendo hiki...",
+        "walletLoginFirst": "Tafadhali unganisha mkoba wako kabla ya kufanya muamala.",
+        "selectFile": "Tafadhali chagua faili.",
+        "uploading": "Faili inapakia, hii inaweza kuchukua muda...",
+        "uploadError": "Hitilafu imetokea wakati wa kupakia:",
+        "loginRequired": "Lazima utie sahihi ujumbe ili kuingia.",
+        "installMetaMask": "Tafadhali sakinisha mkoba wa MetaMask ili kutumia kipengele hiki.",
+        "voiceLoginRequired": "Tafadhali unganisha mkoba wako kabla ya kutumia amri za sauti.",
+        "speechError": "Hitilafu ya utambuzi wa sauti:",
+        "loginSuccess": "Umeingia:",
+        "googleAuthSuccess": "✅ Umeunganishwa kwa mafanikio kwenye Kalenda ya Google!",
+        "googleAuthError": "❌ Hitilafu imetokea wakati wa kuunganisha kwenye Kalenda ya Google.",
+        "popupBlocked": "Kivinjari chako kimezuia kidukizo. Tafadhali ruhusu vidukizo kwa tovuti hii ili kuona ujumbe wa mafanikio.",
+        "chooseFileButton": "Chagua Faili",
+        "noFileChosen": "Hakuna faili iliyochaguliwa",
+        "logoutTitle": "Toka",
+        "memoryFoundRequest": "Kumbukumbu imepatikana kulingana na ombi lako:",
+        "downloadImage": "Pakua Picha",
+        "downloadableFile": "Faili Inayoweza Kupakuliwa:",
+        "downloadFile": "Pakua Faili",
+        "clearChatTitle": "Futa Gumzo",
+        "chatCleared": "Gumzo limefutwa. Unaweza kuanzisha mazungumzo mapya."
+    },
+    vi: {
+        "mainTitle": "Trợ lý Coopa",
+        "googleAuth": "Kết nối với Lịch Google",
+        "walletConnect": "🦊 Đăng nhập bằng Ví",
+        "uploadTitle": "🖼️ Tải lên Kỷ niệm Cá nhân",
+        "descriptionPlaceholder": "Mô tả ngắn cho tệp...",
+        "uploadButton": "Lưu Kỷ niệm Vĩnh viễn",
+        "promptPlaceholder": "Hỏi Coopa điều gì đó...",
+        "promptPlaceholderMic": "Hỏi Coopa điều gì đó hoặc 🎤",
+        "submitButton": "Gửi",
+        "loadingText": "Đang chuẩn bị phản hồi...",
+        "listeningText": "Đang nghe...",
+        "walletConnectFirst": "Vui lòng kết nối ví của bạn trước để thực hiện hành động này...",
+        "walletLoginFirst": "Vui lòng kết nối ví của bạn trước khi thực hiện giao dịch.",
+        "selectFile": "Vui lòng chọn một tệp.",
+        "uploading": "Đang tải tệp lên, quá trình này có thể mất một chút thời gian...",
+        "uploadError": "Đã xảy ra lỗi trong quá trình tải lên:",
+        "loginRequired": "Bạn phải ký vào tin nhắn để đăng nhập.",
+        "installMetaMask": "Vui lòng cài đặt ví MetaMask để sử dụng tính năng này.",
+        "voiceLoginRequired": "Vui lòng kết nối ví của bạn trước khi sử dụng lệnh thoại.",
+        "speechError": "Lỗi nhận dạng giọng nói:",
+        "loginSuccess": "Đã đăng nhập:",
+        "googleAuthSuccess": "✅ Đã kết nối thành công với Lịch Google!",
+        "googleAuthError": "❌ Đã xảy ra lỗi khi kết nối với Lịch Google.",
+        "popupBlocked": "Trình duyệt của bạn đã chặn cửa sổ bật lên. Vui lòng cho phép cửa sổ bật lên cho trang web này để xem thông báo thành công.",
+        "chooseFileButton": "Chọn tệp",
+        "noFileChosen": "Chưa có tệp nào được chọn",
+        "logoutTitle": "Đăng xuất",
+        "memoryFoundRequest": "Kỷ niệm được tìm thấy theo yêu cầu của bạn:",
+        "downloadImage": "Tải hình ảnh xuống",
+        "downloadableFile": "Tệp có thể tải xuống:",
+        "downloadFile": "Tải tệp xuống",
+        "clearChatTitle": "Xóa cuộc trò chuyện",
+        "chatCleared": "Cuộc trò chuyện đã được xóa. Bạn có thể bắt đầu một cuộc trò chuyện mới."
+    },
+    ko: {
+        "mainTitle": "Coopa 어시스턴트",
+        "googleAuth": "Google 캘린더에 연결",
+        "walletConnect": "🦊 지갑으로 로그인",
+        "uploadTitle": "🖼️ 개인 추억 업로드",
+        "descriptionPlaceholder": "파일에 대한 간단한 설명...",
+        "uploadButton": "추억을 영구적으로 저장",
+        "promptPlaceholder": "Coopa에게 무엇이든 물어보세요...",
+        "promptPlaceholderMic": "Coopa에게 무엇이든 물어보거나 🎤",
+        "submitButton": "전송",
+        "loadingText": "응답 준비 중...",
+        "listeningText": "듣고 있습니다...",
+        "walletConnectFirst": "이 작업을 수행하려면 먼저 지갑을 연결하십시오...",
+        "walletLoginFirst": "거래하기 전에 지갑을 연결하십시오.",
+        "selectFile": "파일을 선택하십시오.",
+        "uploading": "파일을 업로드하는 중입니다. 시간이 걸릴 수 있습니다...",
+        "uploadError": "업로드 중 오류가 발생했습니다:",
+        "loginRequired": "로그인하려면 메시지에 서명해야 합니다.",
+        "installMetaMask": "이 기능을 사용하려면 MetaMask 지갑을 설치하십시오.",
+        "voiceLoginRequired": "음성 명령을 사용하기 전에 지갑을 연결하십시오.",
+        "speechError": "음성 인식 오류:",
+        "loginSuccess": "로그인 성공:",
+        "googleAuthSuccess": "✅ Google 캘린더에 성공적으로 연결되었습니다!",
+        "googleAuthError": "❌ Google 캘린더에 연결하는 동안 오류가 발생했습니다.",
+        "popupBlocked": "브라우저가 팝업을 차단했습니다. 성공 메시지를 보려면 이 사이트의 팝업을 허용하십시오.",
+        "chooseFileButton": "파일 선택",
+        "noFileChosen": "선택된 파일 없음",
+        "logoutTitle": "로그아웃",
+        "memoryFoundRequest": "요청에 따라 찾은 추억:",
+        "downloadImage": "이미지 다운로드",
+        "downloadableFile": "다운로드 가능한 파일:",
+        "downloadFile": "파일 다운로드",
+        "clearChatTitle": "채팅 지우기",
+        "chatCleared": "채팅이 지워졌습니다. 새 대화를 시작할 수 있습니다."
+    },
+    it: {
+        "mainTitle": "Assistente Coopa",
+        "googleAuth": "Connetti a Google Calendar",
+        "walletConnect": "🦊 Accedi con il Wallet",
+        "uploadTitle": "🖼️ Carica Ricordo Personale",
+        "descriptionPlaceholder": "Una breve descrizione per il file...",
+        "uploadButton": "Salva Ricordo Permanentemente",
+        "promptPlaceholder": "Chiedi qualcosa a Coopa...",
+        "promptPlaceholderMic": "Chiedi qualcosa a Coopa o 🎤",
+        "submitButton": "Invia",
+        "loadingText": "Preparazione della risposta...",
+        "listeningText": "In ascolto...",
+        "walletConnectFirst": "Per favore, collega prima il tuo portafoglio per eseguire questa azione...",
+        "walletLoginFirst": "Per favore, collega il tuo portafoglio prima di effettuare una transazione.",
+        "selectFile": "Per favore, seleziona un file.",
+        "uploading": "Caricamento del file in corso, potrebbe volerci del tempo...",
+        "uploadError": "Si è verificato un errore durante il caricamento:",
+        "loginRequired": "Devi firmare il messaggio per accedere.",
+        "installMetaMask": "Per favore, installa il wallet MetaMask per utilizzare questa funzionalità.",
+        "voiceLoginRequired": "Per favore, collega il tuo portafoglio prima di usare i comandi vocali.",
+        "speechError": "Errore di riconoscimento vocale:",
+        "loginSuccess": "Accesso effettuato:",
+        "googleAuthSuccess": "✅ Connesso a Google Calendar con successo!",
+        "googleAuthError": "❌ Si è verificato un errore durante la connessione a Google Calendar.",
+        "popupBlocked": "Il tuo browser ha bloccato il pop-up. Per favore, consenti i pop-up per questo sito per vedere il messaggio di successo.",
+        "chooseFileButton": "Scegli File",
+        "noFileChosen": "Nessun file scelto",
+        "logoutTitle": "Esci",
+        "memoryFoundRequest": "Ricordo trovato su tua richiesta:",
+        "downloadImage": "Scarica Immagine",
+        "downloadableFile": "File Scaricabile:",
+        "downloadFile": "Scarica File",
+        "clearChatTitle": "Pulisci Chat",
+        "chatCleared": "Chat pulita. Puoi iniziare una nuova conversazione."
+    },
+    jv: {
+        "mainTitle": "Asisten Coopa",
+        "googleAuth": "Sambung menyang Google Kalender",
+        "walletConnect": "🦊 Mlebu nganggo Dompet",
+        "uploadTitle": "🖼️ Unggah Memori Pribadi",
+        "descriptionPlaceholder": "Katrangan singkat kanggo file...",
+        "uploadButton": "Simpen Memori kanthi Permanen",
+        "promptPlaceholder": "Takon apa wae menyang Coopa...",
+        "promptPlaceholderMic": "Takon apa wae menyang Coopa utawa 🎤",
+        "submitButton": "Kirim",
+        "loadingText": "Nyiapake wangsulan...",
+        "listeningText": "Ngrungokake...",
+        "walletConnectFirst": "Tulung sambungake dompet sampeyan dhisik kanggo nindakake tindakan iki...",
+        "walletLoginFirst": "Tulung sambungake dompet sampeyan sadurunge nggawe transaksi.",
+        "selectFile": "Tulung pilih file.",
+        "uploading": "File lagi diunggah, iki bisa mbutuhake wektu...",
+        "uploadError": "Ana kesalahan nalika ngunggah:",
+        "loginRequired": "Sampeyan kudu nandhatangani pesen kanggo mlebu.",
+        "installMetaMask": "Tulung instal dompet MetaMask kanggo nggunakake fitur iki.",
+        "voiceLoginRequired": "Tulung sambungake dompet sampeyan sadurunge nggunakake prentah swara.",
+        "speechError": "Kesalahan pangenalan wicara:",
+        "loginSuccess": "Kasil Mlebu:",
+        "googleAuthSuccess": "✅ Kasil nyambung menyang Google Kalender!",
+        "googleAuthError": "❌ Ana kesalahan nalika nyambung menyang Google Kalender.",
+        "popupBlocked": "Browser sampeyan mblokir pop-up. Tulung idini pop-up kanggo situs iki kanggo ndeleng pesen kasil.",
+        "chooseFileButton": "Pilih File",
+        "noFileChosen": "Ora ana file sing dipilih",
+        "logoutTitle": "Metu",
+        "memoryFoundRequest": "Memori ditemokake miturut panjaluk sampeyan:",
+        "downloadImage": "Unduh Gambar",
+        "downloadableFile": "File sing Bisa Diunduh:",
+        "downloadFile": "Unduh File",
+        "clearChatTitle": "Rampungake Obrolan",
+        "chatCleared": "Obrolan diresiki. Sampeyan bisa miwiti obrolan anyar."
+    },
+    tl: {
+        "mainTitle": "Coopa Assistant",
+        "googleAuth": "Kumonekta sa Google Calendar",
+        "walletConnect": "🦊 Mag-login gamit ang Wallet",
+        "uploadTitle": "🖼️ Mag-upload ng Personal na Alaala",
+        "descriptionPlaceholder": "Isang maikling paglalarawan para sa file...",
+        "uploadButton": "I-save ang Alaala nang Permanente",
+        "promptPlaceholder": "Magtanong sa Coopa ng kahit ano...",
+        "promptPlaceholderMic": "Magtanong sa Coopa ng kahit ano o 🎤",
+        "submitButton": "Ipadala",
+        "loadingText": "Inihahanda ang tugon...",
+        "listeningText": "Nakikinig...",
+        "walletConnectFirst": "Mangyaring ikonekta muna ang iyong wallet upang maisagawa ang aksyon na ito...",
+        "walletLoginFirst": "Mangyaring ikonekta ang iyong wallet bago gumawa ng transaksyon.",
+        "selectFile": "Mangyaring pumili ng isang file.",
+        "uploading": "Nag-a-upload ang file, maaaring tumagal ito ng ilang sandali...",
+        "uploadError": "May naganap na error habang nag-a-upload:",
+        "loginRequired": "Dapat mong pirmahan ang mensahe upang mag-login.",
+        "installMetaMask": "Mangyaring i-install ang MetaMask wallet upang magamit ang tampok na ito.",
+        "voiceLoginRequired": "Mangyaring ikonekta ang iyong wallet bago gumamit ng mga voice command.",
+        "speechError": "Error sa pagkilala ng boses:",
+        "loginSuccess": "Naka-login:",
+        "googleAuthSuccess": "✅ Matagumpay na nakakonekta sa Google Calendar!",
+        "googleAuthError": "❌ May naganap na error habang kumokonekta sa Google Calendar.",
+        "popupBlocked": "Hinarangan ng iyong browser ang pop-up. Mangyaring payagan ang mga pop-up para sa site na ito upang makita ang mensahe ng tagumpay.",
+        "chooseFileButton": "Pumili ng File",
+        "noFileChosen": "Walang napiling file",
+        "logoutTitle": "Mag-logout",
+        "memoryFoundRequest": "Natagpuan ang alaala ayon sa iyong kahilingan:",
+        "downloadImage": "I-download ang Imahe",
+        "downloadableFile": "Mada-download na File:",
+        "downloadFile": "I-download ang File",
+        "clearChatTitle": "I-clear ang Chat",
+        "chatCleared": "Na-clear ang chat. Maaari kang magsimula ng bagong pag-uusap."
+    },
+    uz: {
+        "mainTitle": "Coopa Yordamchisi",
+        "googleAuth": "Google Taqvimga ulanish",
+        "walletConnect": "🦊 Hamyon bilan kirish",
+        "uploadTitle": "🖼️ Shaxsiy Xotirani Yuklash",
+        "descriptionPlaceholder": "Fayl uchun qisqa tavsif...",
+        "uploadButton": "Xotirani Doimiy Saqlash",
+        "promptPlaceholder": "Coopa'dan biror narsa so'rang...",
+        "promptPlaceholderMic": "Coopa'dan biror narsa so'rang yoki 🎤",
+        "submitButton": "Yuborish",
+        "loadingText": "Javob tayyorlanmoqda...",
+        "listeningText": "Tinglanmoqda...",
+        "walletConnectFirst": "Ushbu amalni bajarish uchun avval hamyoningizni ulang...",
+        "walletLoginFirst": "Tranzaktsiyani amalga oshirishdan oldin hamyoningizni ulang.",
+        "selectFile": "Iltimos, faylni tanlang.",
+        "uploading": "Fayl yuklanmoqda, bu biroz vaqt olishi mumkin...",
+        "uploadError": "Yuklash paytida xatolik yuz berdi:",
+        "loginRequired": "Kirish uchun xabarni imzolashingiz kerak.",
+        "installMetaMask": "Ushbu xususiyatdan foydalanish uchun MetaMask hamyonini o'rnating.",
+        "voiceLoginRequired": "Ovozli buyruqlardan foydalanishdan oldin hamyoningizni ulang.",
+        "speechError": "Nutqni aniqlashda xatolik:",
+        "loginSuccess": "Kirildi:",
+        "googleAuthSuccess": "✅ Google Taqvimga muvaffaqiyatli ulandi!",
+        "googleAuthError": "❌ Google Taqvimga ulanishda xatolik yuz berdi.",
+        "popupBlocked": "Brauzeringiz qalqib chiquvchi oynani blokladi. Muvaffaqiyat xabarini ko'rish uchun ushbu sayt uchun qalqib chiquvchi oynalarga ruxsat bering.",
+        "chooseFileButton": "Faylni Tanlash",
+        "noFileChosen": "Hech qanday fayl tanlanmagan",
+        "logoutTitle": "Chiqish",
+        "memoryFoundRequest": "Sizning so'rovingiz bo'yicha topilgan xotira:",
+        "downloadImage": "Rasmni Yuklab Olish",
+        "downloadableFile": "Yuklab Olinadigan Fayl:",
+        "downloadFile": "Faylni Yuklab Olish",
+        "clearChatTitle": "Suhbatni Tozalash",
+        "chatCleared": "Suhbat tozalandi. Yangi suhbat boshlashingiz mumkin."
+    },
+    nl: {
+        "mainTitle": "Coopa Assistent",
+        "googleAuth": "Verbinden met Google Agenda",
+        "walletConnect": "🦊 Inloggen met Wallet",
+        "uploadTitle": "🖼️ Persoonlijke Herinnering Uploaden",
+        "descriptionPlaceholder": "Een korte beschrijving voor het bestand...",
+        "uploadButton": "Herinnering Permanent Opslaan",
+        "promptPlaceholder": "Vraag Coopa iets...",
+        "promptPlaceholderMic": "Vraag Coopa iets of 🎤",
+        "submitButton": "Verstuur",
+        "loadingText": "Antwoord wordt voorbereid...",
+        "listeningText": "Luisteren...",
+        "walletConnectFirst": "Gelieve eerst uw wallet te verbinden om deze actie uit te voeren...",
+        "walletLoginFirst": "Gelieve uw wallet te verbinden voordat u een transactie uitvoert.",
+        "selectFile": "Selecteer alstublieft een bestand.",
+        "uploading": "Bestand wordt geüpload, dit kan even duren...",
+        "uploadError": "Er is een fout opgetreden tijdens het uploaden:",
+        "loginRequired": "U moet het bericht ondertekenen om in te loggen.",
+        "installMetaMask": "Installeer alstublieft de MetaMask-wallet om deze functie te gebruiken.",
+        "voiceLoginRequired": "Gelieve uw wallet te verbinden voordat u spraakopdrachten gebruikt.",
+        "speechError": "Spraakherkenningsfout:",
+        "loginSuccess": "Ingelogd:",
+        "googleAuthSuccess": "✅ Succesvol verbonden met Google Agenda!",
+        "googleAuthError": "❌ Er is een fout opgetreden bij het verbinden met Google Agenda.",
+        "popupBlocked": "Uw browser heeft de pop-up geblokkeerd. Sta alstublieft pop-ups toe voor deze site om het succesbericht te zien.",
+        "chooseFileButton": "Kies Bestand",
+        "noFileChosen": "Geen bestand gekozen",
+        "logoutTitle": "Uitloggen",
+        "memoryFoundRequest": "Herinnering gevonden op uw verzoek:",
+        "downloadImage": "Afbeelding Downloaden",
+        "downloadableFile": "Downloadbaar Bestand:",
+        "downloadFile": "Bestand Downloaden",
+        "clearChatTitle": "Chat Wissen",
+        "chatCleared": "Chat gewist. U kunt een nieuw gesprek beginnen."
+    },
+    el: {
+        "mainTitle": "Βοηθός Coopa",
+        "googleAuth": "Σύνδεση με το Ημερολόγιο Google",
+        "walletConnect": "🦊 Σύνδεση με Πορτοφόλι",
+        "uploadTitle": "🖼️ Μεταφόρτωση Προσωπικής Ανάμνησης",
+        "descriptionPlaceholder": "Μια σύντομη περιγραφή για το αρχείο...",
+        "uploadButton": "Αποθήκευση Ανάμνησης Μόνιμα",
+        "promptPlaceholder": "Ρωτήστε κάτι τον Coopa...",
+        "promptPlaceholderMic": "Ρωτήστε κάτι τον Coopa ή 🎤",
+        "submitButton": "Αποστολή",
+        "loadingText": "Προετοιμασία απάντησης...",
+        "listeningText": "Ακούγοντας...",
+        "walletConnectFirst": "Παρακαλώ συνδέστε το πορτοφόλι σας πρώτα για να εκτελέσετε αυτήν την ενέργεια...",
+        "walletLoginFirst": "Παρακαλώ συνδέστε το πορτοφόλι σας πριν κάνετε μια συναλλαγή.",
+        "selectFile": "Παρακαλώ επιλέξτε ένα αρχείο.",
+        "uploading": "Το αρχείο μεταφορτώνεται, αυτό μπορεί να πάρει λίγο χρόνο...",
+        "uploadError": "Παρουσιάστηκε σφάλμα κατά τη μεταφόρτωση:",
+        "loginRequired": "Πρέπει να υπογράψετε το μήνυμα για να συνδεθείτε.",
+        "installMetaMask": "Παρακαλώ εγκαταστήστε το πορτοφόλι MetaMask για να χρησιμοποιήσετε αυτήν τη δυνατότητα.",
+        "voiceLoginRequired": "Παρακαλώ συνδέστε το πορτοφόλι σας πριν χρησιμοποιήσετε φωνητικές εντολές.",
+        "speechError": "Σφάλμα αναγνώρισης ομιλίας:",
+        "loginSuccess": "Συνδεθήκατε:",
+        "googleAuthSuccess": "✅ Συνδεθήκατε με επιτυχία στο Ημερολόγιο Google!",
+        "googleAuthError": "❌ Παρουσιάστηκε σφάλμα κατά τη σύνδεση με το Ημερολόγιο Google.",
+        "popupBlocked": "Το πρόγραμμα περιήγησής σας μπλόκαρε το αναδυόμενο παράθυρο. Παρακαλώ επιτρέψτε τα αναδυόμενα παράθυρα για αυτόν τον ιστότοπο για να δείτε το μήνυμα επιτυχίας.",
+        "chooseFileButton": "Επιλογή Αρχείου",
+        "noFileChosen": "Δεν επιλέχθηκε αρχείο",
+        "logoutTitle": "Αποσύνδεση",
+        "memoryFoundRequest": "Η ανάμνηση βρέθηκε κατόπιν αιτήματός σας:",
+        "downloadImage": "Λήψη Εικόνας",
+        "downloadableFile": "Αρχείο με δυνατότητα λήψης:",
+        "downloadFile": "Λήψη Αρχείου",
+        "clearChatTitle": "Εκκαθάριση Συνομιλίας",
+        "chatCleared": "Η συνομιλία εκκαθαρίστηκε. Μπορείτε να ξεκινήσετε μια νέα συνομιλία."
+    },
+    sv: {
+        "mainTitle": "Coopa Assistent",
+        "googleAuth": "Anslut till Google Kalender",
+        "walletConnect": "🦊 Logga in med plånbok",
+        "uploadTitle": "🖼️ Ladda upp personligt minne",
+        "descriptionPlaceholder": "En kort beskrivning av filen...",
+        "uploadButton": "Spara minne permanent",
+        "promptPlaceholder": "Fråga Coopa något...",
+        "promptPlaceholderMic": "Fråga Coopa något eller 🎤",
+        "submitButton": "Skicka",
+        "loadingText": "Förbereder svar...",
+        "listeningText": "Lyssnar...",
+        "walletConnectFirst": "Anslut din plånbok först för att utföra den här åtgärden...",
+        "walletLoginFirst": "Anslut din plånbok innan du gör en transaktion.",
+        "selectFile": "Välj en fil.",
+        "uploading": "Filen laddas upp, det kan ta en stund...",
+        "uploadError": "Ett fel uppstod under uppladdningen:",
+        "loginRequired": "Du måste signera meddelandet för att logga in.",
+        "installMetaMask": "Installera MetaMask-plånboken för att använda den här funktionen.",
+        "voiceLoginRequired": "Anslut din plånbok innan du använder röstkommandon.",
+        "speechError": "Fel vid taligenkänning:",
+        "loginSuccess": "Inloggad:",
+        "googleAuthSuccess": "✅ Ansluten till Google Kalender!",
+        "googleAuthError": "❌ Ett fel uppstod vid anslutning till Google Kalender.",
+        "popupBlocked": "Din webbläsare blockerade popup-fönstret. Tillåt popup-fönster för den här webbplatsen för att se framgångsmeddelandet.",
+        "chooseFileButton": "Välj fil",
+        "noFileChosen": "Ingen fil vald",
+        "logoutTitle": "Logga ut",
+        "memoryFoundRequest": "Minne hittades på din begäran:",
+        "downloadImage": "Ladda ner bild",
+        "downloadableFile": "Nedladdningsbar fil:",
+        "downloadFile": "Ladda ner fil",
+        "clearChatTitle": "Rensa chatt",
+        "chatCleared": "Chatten har rensats. Du kan starta en ny konversation."
+    },
+    he: {
+        "mainTitle": "העוזר של Coopa",
+        "googleAuth": "התחבר ליומן גוגל",
+        "walletConnect": "🦊 התחבר עם ארנק",
+        "uploadTitle": "🖼️ העלה זיכרון אישי",
+        "descriptionPlaceholder": "תיאור קצר לקובץ...",
+        "uploadButton": "שמור זיכרון לצמיתות",
+        "promptPlaceholder": "שאל את Coopa משהו...",
+        "promptPlaceholderMic": "שאל את Coopa משהו או 🎤",
+        "submitButton": "שלח",
+        "loadingText": "מכין תגובה...",
+        "listeningText": "מאזין...",
+        "walletConnectFirst": "אנא חבר את הארנק שלך תחילה כדי לבצע פעולה זו...",
+        "walletLoginFirst": "אנא חבר את הארנק שלך לפני ביצוע עסקה.",
+        "selectFile": "אנא בחר קובץ.",
+        "uploading": "הקובץ נטען, פעולה זו עשויה לקחת זמן מה...",
+        "uploadError": "אירעה שגיאה במהלך ההעלאה:",
+        "loginRequired": "עליך לחתום על ההודעה כדי להתחבר.",
+        "installMetaMask": "אנא התקן את ארנק MetaMask כדי להשתמש בתכונה זו.",
+        "voiceLoginRequired": "אנא חבר את הארנק שלך לפני השימוש בפקודות קוליות.",
+        "speechError": "שגיאת זיהוי דיבור:",
+        "loginSuccess": "התחברת בהצלחה:",
+        "googleAuthSuccess": "✅ התחברת בהצלחה ליומן גוגל!",
+        "googleAuthError": "❌ אירעה שגיאה בעת ההתחברות ליומן גוגל.",
+        "popupBlocked": "הדפדפן שלך חסם את החלון הקופץ. אנא אפשר חלונות קופצים עבור אתר זה כדי לראות את הודעת ההצלחה.",
+        "chooseFileButton": "בחר קובץ",
+        "noFileChosen": "לא נבחר קובץ",
+        "logoutTitle": "התנתק",
+        "memoryFoundRequest": "הזיכרון שנמצא לבקשתך:",
+        "downloadImage": "הורד תמונה",
+        "downloadableFile": "קובץ להורדה:",
+        "downloadFile": "הורד קובץ",
+        "clearChatTitle": "נקה צ'אט",
+        "chatCleared": "הצ'אט נוקה. אתה יכול להתחיל שיחה חדשה."
+    },
+    da: {
+        "mainTitle": "Coopa Assistent",
+        "googleAuth": "Forbind til Google Kalender",
+        "walletConnect": "🦊 Log ind med Wallet",
+        "uploadTitle": "🖼️ Upload Personligt Minde",
+        "descriptionPlaceholder": "En kort beskrivelse af filen...",
+        "uploadButton": "Gem Minde Permanent",
+        "promptPlaceholder": "Spørg Coopa om noget...",
+        "promptPlaceholderMic": "Spørg Coopa om noget eller 🎤",
+        "submitButton": "Send",
+        "loadingText": "Forbereder svar...",
+        "listeningText": "Lytter...",
+        "walletConnectFirst": "Forbind venligst din wallet først for at udføre denne handling...",
+        "walletLoginFirst": "Forbind venligst din wallet, før du foretager en transaktion.",
+        "selectFile": "Vælg venligst en fil.",
+        "uploading": "Filen uploades, dette kan tage et stykke tid...",
+        "uploadError": "Der opstod en fejl under upload:",
+        "loginRequired": "Du skal underskrive beskeden for at logge ind.",
+        "installMetaMask": "Installer venligst MetaMask-wallet for at bruge denne funktion.",
+        "voiceLoginRequired": "Forbind venligst din wallet, før du bruger stemmekommandoer.",
+        "speechError": "Fejl i talegenkendelse:",
+        "loginSuccess": "Logget ind:",
+        "googleAuthSuccess": "✅ Forbundet til Google Kalender med succes!",
+        "googleAuthError": "❌ Der opstod en fejl under tilslutning til Google Kalender.",
+        "popupBlocked": "Din browser blokerede pop-up-vinduet. Tillad venligst pop-ups for dette websted for at se succesmeddelelsen.",
+        "chooseFileButton": "Vælg fil",
+        "noFileChosen": "Ingen fil valgt",
+        "logoutTitle": "Log ud",
+        "memoryFoundRequest": "Minde fundet efter din anmodning:",
+        "downloadImage": "Download billede",
+        "downloadableFile": "Fil til download:",
+        "downloadFile": "Download fil",
+        "clearChatTitle": "Ryd chat",
+        "chatCleared": "Chat ryddet. Du kan starte en ny samtale."
+    },
+    fi: {
+        "mainTitle": "Coopa-avustaja",
+        "googleAuth": "Yhdistä Google-kalenteriin",
+        "walletConnect": "🦊 Kirjaudu lompakolla",
+        "uploadTitle": "🖼️ Lataa henkilökohtainen muisto",
+        "descriptionPlaceholder": "Lyhyt kuvaus tiedostolle...",
+        "uploadButton": "Tallenna muisto pysyvästi",
+        "promptPlaceholder": "Kysy Coopalta jotain...",
+        "promptPlaceholderMic": "Kysy Coopalta jotain tai 🎤",
+        "submitButton": "Lähetä",
+        "loadingText": "Valmistellaan vastausta...",
+        "listeningText": "Kuunnellaan...",
+        "walletConnectFirst": "Yhdistä lompakkosi ensin suorittaaksesi tämän toiminnon...",
+        "walletLoginFirst": "Yhdistä lompakkosi ennen tapahtuman tekemistä.",
+        "selectFile": "Valitse tiedosto.",
+        "uploading": "Tiedostoa ladataan, tämä voi kestää hetken...",
+        "uploadError": "Latauksen aikana tapahtui virhe:",
+        "loginRequired": "Sinun on allekirjoitettava viesti kirjautuaksesi sisään.",
+        "installMetaMask": "Asenna MetaMask-lompakko käyttääksesi tätä ominaisuutta.",
+        "voiceLoginRequired": "Yhdistä lompakkosi ennen äänikomentojen käyttöä.",
+        "speechError": "Puheentunnistusvirhe:",
+        "loginSuccess": "Kirjautunut sisään:",
+        "googleAuthSuccess": "✅ Yhdistetty onnistuneesti Google-kalenteriin!",
+        "googleAuthError": "❌ Virhe yhdistettäessä Google-kalenteriin.",
+        "popupBlocked": "Selaimesi esti ponnahdusikkunan. Salli ponnahdusikkunat tällä sivustolla nähdäksesi onnistumisviestin.",
+        "chooseFileButton": "Valitse tiedosto",
+        "noFileChosen": "Ei valittua tiedostoa",
+        "logoutTitle": "Kirjaudu ulos",
+        "memoryFoundRequest": "Muisto löytyi pyynnöstäsi:",
+        "downloadImage": "Lataa kuva",
+        "downloadableFile": "Ladattava tiedosto:",
+        "downloadFile": "Lataa tiedosto",
+        "clearChatTitle": "Tyhjennä keskustelu",
+        "chatCleared": "Keskustelu tyhjennetty. Voit aloittaa uuden keskustelun."
+    },
+    no: {
+        "mainTitle": "Coopa Assistent",
+        "googleAuth": "Koble til Google Kalender",
+        "walletConnect": "🦊 Logg inn med lommebok",
+        "uploadTitle": "🖼️ Last opp personlig minne",
+        "descriptionPlaceholder": "En kort beskrivelse for filen...",
+        "uploadButton": "Lagre minne permanent",
+        "promptPlaceholder": "Spør Coopa om noe...",
+        "promptPlaceholderMic": "Spør Coopa om noe eller 🎤",
+        "submitButton": "Send",
+        "loadingText": "Forbereder svar...",
+        "listeningText": "Lytter...",
+        "walletConnectFirst": "Koble til lommeboken din først for å utføre denne handlingen...",
+        "walletLoginFirst": "Koble til lommeboken din før du utfører en transaksjon.",
+        "selectFile": "Vennligst velg en fil.",
+        "uploading": "Filen lastes opp, dette kan ta litt tid...",
+        "uploadError": "Det oppstod en feil under opplasting:",
+        "loginRequired": "Du må signere meldingen for å logge inn.",
+        "installMetaMask": "Installer MetaMask-lommeboken for å bruke denne funksjonen.",
+        "voiceLoginRequired": "Koble til lommeboken din før du bruker talekommandoer.",
+        "speechError": "Talegjenkjenningsfeil:",
+        "loginSuccess": "Innlogget:",
+        "googleAuthSuccess": "✅ Vellykket tilkobling til Google Kalender!",
+        "googleAuthError": "❌ Det oppstod en feil ved tilkobling til Google Kalender.",
+        "popupBlocked": "Nettleseren din blokkerte popup-vinduet. Vennligst tillat popup-vinduer for dette nettstedet for å se suksessmeldingen.",
+        "chooseFileButton": "Velg fil",
+        "noFileChosen": "Ingen fil valgt",
+        "logoutTitle": "Logg ut",
+        "memoryFoundRequest": "Minne funnet på din forespørsel:",
+        "downloadImage": "Last ned bilde",
+        "downloadableFile": "Nedlastbar fil:",
+        "downloadFile": "Last ned fil",
+        "clearChatTitle": "Tøm samtale",
+        "chatCleared": "Samtalen er slettet. Du kan starte en ny samtale."
+    }
+};
+
+    // --- YENİ VE DÜZENLİ DEĞİŞKEN TANIMLAMALARI ---
+    
+
+    let currentLanguage = localStorage.getItem('coopaLanguage') || 'tr';
+    
+    // DOM elementlerini tek bir yerde toplayalım (SADECE 1 KERE TANIMLANMALI)
+    const elements = { 
+        form: document.getElementById('prompt-form'), 
+        input: document.getElementById('prompt-input'), 
+        chatContainer: document.getElementById('chat-container'), 
+        submitButton: document.getElementById('submit-button'), 
+        loadingIndicator: document.getElementById('loading-indicator'), 
+        micButton: document.getElementById('mic-button'), 
+        ttsButton: document.getElementById('tts-button'),
+        connectWalletButton: document.getElementById('connect-wallet-button'), 
+        walletInfo: document.getElementById('wallet-info'), 
+        googleAuthSection: document.getElementById('google-auth-section'), 
+        uploadForm: document.getElementById('upload-form'),
+        languageSelect: document.getElementById('language-select'),
+        fileInput: document.getElementById('file-input'),
+        fileInputLabel: document.getElementById('file-input-label'),
+        fileChosen: document.getElementById('file-chosen'),
+        walletAddress: document.getElementById('wallet-address'),
+        logoutButton: document.getElementById('logout-button'),
+        clearChatButton: document.getElementById('clear-chat-button')
+    };
+
+    // Sağdan Sola yazılan dillerin ISO kodları
+    const rtlLanguages = ['ar', 'he', 'fa', 'ur'];
+
+    // Global state değişkenleri (SADECE 1 KERE TANIMLANMALI)
+    let conversationHistory = []; 
+    let currentUserAddress = null; 
+    let sessionSignature = null; 
+    let isWalletConnected = false; 
+    let isTtsEnabled = localStorage.getItem('ttsEnabled') === 'true'; 
+    const synth = window.speechSynthesis;
+
+    // Helper: Çeviri fonksiyonu
+    function t(key) {
+        return translations[currentLanguage]?.[key] || translations['tr']?.[key] || key;
+    }
+
+    // Arayüz dilini güncelleyen ana fonksiyon
+
+    
+    function updateLanguageUI(lang) {
+        currentLanguage = lang;
+        localStorage.setItem('coopaLanguage', lang);
+        document.documentElement.lang = lang;
+
+        // BÖLÜM 1: Sağdan Sola Dil Desteği (Mevcut kodun korunuyor)
+        if (rtlLanguages.includes(lang)) {
+            document.body.dir = 'rtl';
+        } else {
+            document.body.dir = 'ltr';
+        }
+        
+        // BÖLÜM 2: Statik Elementleri Güncelleme (Mevcut kodun korunuyor)
+        const mainTitle = document.getElementById('main-title');
+        if(mainTitle) mainTitle.textContent = t("mainTitle");
+
+        const googleAuthLink = document.getElementById('google-auth-link');
+        if(googleAuthLink) googleAuthLink.textContent = t("googleAuth");
+
+        if(elements.connectWalletButton) elements.connectWalletButton.textContent = t("walletConnect");
+        
+        const uploadTitle = document.getElementById('upload-title');
+        if(uploadTitle) uploadTitle.textContent = t("uploadTitle");
+
+        const descriptionInput = document.getElementById('description-input');
+        if(descriptionInput) descriptionInput.placeholder = t("descriptionPlaceholder");
+
+        const uploadButton = document.getElementById('upload-button');
+        if(uploadButton) uploadButton.textContent = t("uploadButton");
+
+        if(elements.submitButton) elements.submitButton.textContent = t("submitButton");
+
+        const loadingText = document.getElementById('loading-text');
+        if(loadingText) loadingText.textContent = t("loadingText");
+        
+        if(elements.logoutButton) elements.logoutButton.title = t("logoutTitle");
+        if(elements.clearChatButton) elements.clearChatButton.title = t("clearChatTitle");
+        if(elements.fileInputLabel) elements.fileInputLabel.textContent = t("chooseFileButton");
+        if(elements.fileChosen) elements.fileChosen.textContent = elements.fileInput.files.length > 0 ? elements.fileInput.files[0].name : t("noFileChosen");
+        if(elements.input) elements.input.placeholder = isWalletConnected ? t("promptPlaceholderMic") : t("walletConnectFirst");
+
+        // BÖLÜM 3: Dinamik Elementleri Güncelleme (Mevcut kodun ve EKSİK PARÇANIN birleşimi)
+        const notification = document.getElementById('clear-chat-notification');
+        if (notification) {
+            notification.innerText = t('chatCleared');
+        }
+
+        const authStatusDiv = document.getElementById('google-auth-status');
+        if (authStatusDiv) {
+            const urlParams = new URLSearchParams(window.location.search);
+            const authStatus = urlParams.get('auth');
+            if (authStatus) {
+                authStatusDiv.innerText = authStatus === 'success' ? t('googleAuthSuccess') : t('googleAuthError');
+            }
+        }
+
+        // --- EKSİK OLAN VE EKLENEN KISIM ---
+        // "Giriş Yapıldı" metnini de bul ve güncelle.
+        const walletAddressText = document.getElementById('wallet-address-text');
+        if (walletAddressText && currentUserAddress) {
+            const shortAddress = `${currentUserAddress.substring(0, 6)}...${currentUserAddress.substring(currentUserAddress.length - 4)}`;
+            walletAddressText.textContent = `${t('loginSuccess')} ${shortAddress}`;
+        }
+    }
+
+  // Helper: Sesli okuma fonksiyonu 
+
+  const speak = (text) => {
+    if (!isTtsEnabled || !text) return;
+    synth.cancel();
+    
+    const utterThis = new SpeechSynthesisUtterance(text);
+    
+    // Seçilen dile göre doğru dil kodunu ayarla
+    switch(currentLanguage) {
+        case 'tr': utterThis.lang = 'tr-TR'; break;
+        case 'en': utterThis.lang = 'en-US'; break;
+        case 'zh': utterThis.lang = 'zh-CN'; break; // Mandarin
+        case 'hi': utterThis.lang = 'hi-IN'; break; // Hintçe
+        case 'es': utterThis.lang = 'es-ES'; break;
+        case 'fr': utterThis.lang = 'fr-FR'; break;
+        case 'ar': utterThis.lang = 'ar-SA'; break; // Arapça
+        case 'bn': utterThis.lang = 'bn-IN'; break; // Bengalce
+        case 'ru': utterThis.lang = 'ru-RU'; break;
+        case 'pt': utterThis.lang = 'pt-BR'; break; // Portekizce
+        case 'ur': utterThis.lang = 'ur-PK'; break; // Urduca
+        case 'ms': utterThis.lang = 'ms-MY'; break; // Malayca
+        case 'de': utterThis.lang = 'de-DE'; break;
+        case 'ja': utterThis.lang = 'ja-JP'; break; // Japonca
+        case 'fa': utterThis.lang = 'fa-IR'; break; // Farsça
+        case 'ha': utterThis.lang = 'ha-NG'; break; // Hausa
+        case 'sw': utterThis.lang = 'sw-KE'; break; // Svahili
+        case 'vi': utterThis.lang = 'vi-VN'; break; // Vietnamca
+        case 'ko': utterThis.lang = 'ko-KR'; break; // Korece
+        case 'it': utterThis.lang = 'it-IT'; break;
+        case 'jv': utterThis.lang = 'jv-ID'; break; // Cavaca
+        case 'tl': utterThis.lang = 'tl-PH'; break; // Tagalogca
+        case 'uz': utterThis.lang = 'uz-UZ'; break; // Özbekçe
+        case 'nl': utterThis.lang = 'nl-NL'; break; // Flemenkçe
+        case 'el': utterThis.lang = 'el-GR'; break; // Yunanca
+        case 'sv': utterThis.lang = 'sv-SE'; break; // İsveççe
+        case 'he': utterThis.lang = 'he-IL'; break; // İbranice
+        case 'da': utterThis.lang = 'da-DK'; break; // Danca
+        case 'fi': utterThis.lang = 'fi-FI'; break; // Fince
+        case 'no': utterThis.lang = 'nb-NO'; break; // Norveççe
+        default: utterThis.lang = 'en-US'; // Varsayılan
+    }
+    
+    synth.speak(utterThis);
+};
+
+    // YENİ YARDIMCI FONKSİYON: Metni Markdown işaretlerinden temizler
+    const stripMarkdown = (text) => {
+        if (!text) return "";
+
+        // **kalın** -> kalın
+        let cleanText = text.replace(/\*\*(.*?)\*\*/g, '$1');
+        // *italik* -> italik
+        cleanText = cleanText.replace(/\*(.*?)\*/g, '$1');
+        // Liste işaretlerini (✅, *, -) ve başlıkları (#) kaldır
+        cleanText = cleanText.replace(/^[*\-✅🔒#]+\s?/gm, '');
+        // Kalan özel karakterleri ve yeni satırları boşlukla değiştir
+        cleanText = cleanText.replace(/[\*_`#]/g, '');
+        cleanText = cleanText.replace(/\n/g, ' ');
+
+        return cleanText.trim();
+    };
+    
+    // Helper: Formu aktif/pasif yapma
+    const toggleForm = (disabled, reason = 'loading') => { 
+        elements.input.disabled = disabled; 
+        elements.submitButton.disabled = disabled; 
+        elements.micButton.disabled = disabled; 
+        elements.loadingIndicator.style.display = (disabled && reason === 'loading') ? 'block' : 'none'; 
+        if (disabled && reason === 'wallet') {
+            elements.input.placeholder = t('walletConnectFirst'); 
+        } else {
+            elements.input.placeholder = t('promptPlaceholderMic');
+            if(!disabled) elements.input.focus(); 
+        }
+    };
+
+    // Helper: Bulunan anıyı ekranda gösterme
+    const displayMemory = (memoryData) => {
+        if (!memoryData || !memoryData.decryptedDataUrl) return;
+
+        const messageDiv = document.createElement('div');
+        messageDiv.className = 'message model-message';
+        let contentHTML = `<p>${t('memoryFoundRequest')}</p><p><em>${memoryData.description}</em></p>`;
+        
+        if (memoryData.mediaType.startsWith('image/')) {
+            contentHTML += `<img src="${memoryData.decryptedDataUrl}" class="memory-image" alt="${memoryData.description}">
+                            <div style="text-align: right; margin-top: 5px; font-size: 12px;"><a href="${memoryData.decryptedDataUrl}" download="${memoryData.description || 'coopa-image'}">${t('downloadImage')}</a></div>`;
+        } else {
+            contentHTML += `<div style="margin-top: 10px; padding: 15px; background-color: #f0f0f0; border-radius: 8px;">
+                                <p><strong>${t('downloadableFile')}</strong> ${memoryData.description}</p>
+                                <a href="${memoryData.decryptedDataUrl}" download="${memoryData.description.replace(/[^a-z0-9.]/gi, '_').toLowerCase() || 'coopa-file'}">${t('downloadFile')}</a>
+                            </div>`;
+        }
+        messageDiv.innerHTML = contentHTML;
+        elements.chatContainer.appendChild(messageDiv);
+        elements.chatContainer.scrollTop = elements.chatContainer.scrollHeight;
+    };
+    
+    // Ana Fonksiyon: Sohbet geçmişini ekrana yazdırma
+ // GÜNCELLENMİŞ FONKSİYON: renderHistory
+    const renderHistory = (isNewMessage = false) => {
+        elements.chatContainer.innerHTML = '';
+        let lastModelMessageText = '';
+
+        conversationHistory.forEach(message => {
+            if (message.role === 'function' || !message.parts?.[0]?.text) return;
+
+            const messageDiv = document.createElement('div');
+            const part = message.parts[0];
+            
+            if (message.role === 'user') {
+                messageDiv.className = 'message user-message';
+                messageDiv.innerText = part.text;
+            } else if (message.role === 'model') {
+                messageDiv.className = 'message model-message';
+                messageDiv.innerHTML = marked.parse(part.text);
+                lastModelMessageText = part.text;
+            }
+            elements.chatContainer.appendChild(messageDiv);
+        });
+
+        elements.chatContainer.scrollTop = elements.chatContainer.scrollHeight;
+        
+        if (isNewMessage && lastModelMessageText) {
+            // DEĞİŞİKLİK BURADA: Metni temizleyerek sesli okumaya gönderiyoruz
+            speak(stripMarkdown(lastModelMessageText));
+        }
+    };
+    
+    // Ana Fonksiyon: Form gönderildiğinde
+    const handleFormSubmit = async (event) => {
+        if (event) event.preventDefault();
+        if (!isWalletConnected) return alert(t('walletLoginFirst'));
+        
+        const prompt = elements.input.value.trim();
+        if (!prompt) return;
+        
+        conversationHistory.push({ role: 'user', parts: [{ text: prompt }] });
+        renderHistory();
+        toggleForm(true, 'loading');
+        elements.input.value = '';
+
+        try {
+            // YENİ: Backend rotası /api/generate olarak güncellendi
+            const response = await fetch('/api/generate', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ 
+                    prompt, 
+                    history: conversationHistory.slice(0, -1), 
+                    userAddress: currentUserAddress, 
+                    signature: sessionSignature,
+                    lang: currentLanguage // Dil bilgisini backend'e gönderiyoruz
+                })
+            });
+
+            const data = await response.json();
+            if (!response.ok) throw new Error(data.error || 'Server error');
+            
+            conversationHistory = data.history;
+            renderHistory(true);
+
+            if (data.displayData) {
+                displayMemory(data.displayData);
+            }
+            sessionStorage.setItem('coopaChatHistory', JSON.stringify(conversationHistory));
+        } catch (error) {
+            conversationHistory.push({ role: 'model', parts: [{ text: `Bir hata oluştu: ${error.message}` }] });
+            renderHistory(true);
+        } finally {
+            toggleForm(isWalletConnected ? false : true, 'wallet');
+        }
+    };
+
+    // Ana Fonksiyon: Dosya Yükleme (Eksik bilgiler eklendi)
+    const handleUpload = async (event) => {
+        event.preventDefault();
+        if (!isWalletConnected) return alert(t('walletLoginFirst'));
+        
+        const formData = new FormData(elements.uploadForm);
+        if (!elements.fileInput.files[0]) return alert(t('selectFile'));
+        
+        // --- EKLENMESİ GEREKEN KRİTİK SATIRLAR ---
+        // Sunucunun kimlik doğrulaması yapabilmesi için bu bilgileri ekliyoruz.
+        formData.append('userAddress', currentUserAddress);
+        formData.append('signature', sessionSignature);
+        // --- EKLENEN SATIRLARIN SONU ---
+
+        alert(t('uploading'));
+        
+        try {
+            const response = await fetch('/api/upload', {
+                method: 'POST',
+                body: formData
+            });
+
+            const resultHtml = await response.text();
+            // Sunucudan gelen yanıt "ok" değilse, hatayı göster.
+            if (!response.ok) {
+                // Gelen hata mesajı JSON formatında olabilir, parse etmeye çalışalım.
+                try {
+                    const errorJson = JSON.parse(resultHtml);
+                    throw new Error(errorJson.error || resultHtml);
+                } catch (e) {
+                    throw new Error(resultHtml); // Eğer JSON değilse olduğu gibi göster
+                }
+            }
+
+            const newWindow = window.open();
+            if (newWindow) {
+                newWindow.document.write(resultHtml);
+                newWindow.document.close();
+            } else {
+                alert(t('popupBlocked'));
+            }
+            elements.uploadForm.reset();
+            elements.fileChosen.textContent = t('noFileChosen');
+        } catch (error) {
+            // Hata mesajını daha anlaşılır hale getirdik.
+            alert(`${t('uploadError')} ${error.message}`);
+        }
+    };
+// Helper: Sohbeti temizleme (Otomatik kaybolma özellikli)
+    const handleClearChat = () => {
+        conversationHistory = [];
+        sessionStorage.removeItem('coopaChatHistory');
+        
+        // "Sohbet temizlendi" mesajını benzersiz bir ID ile oluşturalım
+        const notificationHTML = `<div id="clear-chat-notification" class="message model-message">${t('chatCleared')}</div>`;
+        
+        // Sohbet ekranını temizleyip SADECE bu bildirimi gösterelim
+        elements.chatContainer.innerHTML = notificationHTML;
+        
+        // 5 saniye sonra bildirimi kaldıracak bir zamanlayıcı kuralım
+        setTimeout(() => {
+            const notification = document.getElementById('clear-chat-notification');
+            // Eğer kullanıcı bu 5 saniye içinde başka bir işlem yapıp
+            // bildirimi ekrandan sildiyse, hata almamak için varlığını kontrol edelim.
+            if (notification) {
+                notification.remove();
+            }
+        }, 1000); // 1000 milisaniye = 1 saniye
+    };
+
+    // Helper: Oturumu kapatma
+    const handleLogout = () => {
+        currentUserAddress = null;
+        sessionSignature = null;
+        isWalletConnected = false;
+        
+        sessionStorage.removeItem('coopaUserAddress');
+        sessionStorage.removeItem('coopaSessionSignature');
+        
+        handleClearChat(); // Sohbeti de temizle
+
+        elements.walletInfo.style.display = 'none';
+        elements.connectWalletButton.style.display = 'block';
+        toggleForm(true, 'wallet');
+    };
+
+    // Ana Fonksiyon: Cüzdanla giriş
+
+    const handleLogin = async () => { 
+        if (!window.ethereum) return alert(t('installMetaMask'));
+
+        try { 
+            const accounts = await window.ethereum.request({ method: 'eth_requestAccounts' }); 
+            const account = accounts[0]; 
+            const signMessage = "Bu, CoopaASI için kalıcı şifreleme anahtarımı oluşturacak ve bu anahtar başka bir amaç için kullanılmayacaktır.";
+            const signature = await window.ethereum.request({ method: 'personal_sign', params: [signMessage, account] }); 
+            
+            currentUserAddress = account; 
+            sessionSignature = signature; 
+            isWalletConnected = true; 
+            
+            const shortAddress = `${account.substring(0, 6)}...${account.substring(account.length - 4)}`; 
+            
+            // --- EKLENEN TEK SATIR BURASI ---
+            // Dil değiştirildiğinde bu elementi bulabilmek için ona bir kimlik veriyoruz.
+            elements.walletAddress.id = 'wallet-address-text'; 
+            
+            elements.walletAddress.textContent = `${t('loginSuccess')} ${shortAddress}`;
+            elements.walletInfo.style.display = 'flex';
+            elements.connectWalletButton.style.display = 'none'; 
+            
+            sessionStorage.setItem('coopaUserAddress', account);
+            sessionStorage.setItem('coopaSessionSignature', signature);
+
+            toggleForm(false); 
+        } catch (error) { 
+            console.error("Login error:", error);
+            alert(t('loginRequired')); 
+        } 
+    };
+
+    // Sayfa Yüklendiğinde Çalışacak Kodlar (Initializer)
+    document.addEventListener('DOMContentLoaded', () => {
+        elements.languageSelect.value = currentLanguage;
+        updateLanguageUI(currentLanguage);
+
+        // Olay dinleyicilerini (event listeners) burada merkezi olarak atayalım
+        elements.form.addEventListener('submit', handleFormSubmit);
+        elements.uploadForm.addEventListener('submit', handleUpload);
+        elements.connectWalletButton.addEventListener('click', handleLogin);
+        elements.logoutButton.addEventListener('click', handleLogout);
+        elements.clearChatButton.addEventListener('click', handleClearChat);
+        elements.languageSelect.addEventListener('change', (e) => updateLanguageUI(e.target.value));
+        elements.fileInput.addEventListener('change', () => {
+            elements.fileChosen.textContent = elements.fileInput.files.length > 0 ? elements.fileInput.files[0].name : t('noFileChosen');
+        });
+        
+        // Oturum kontrolü
+        const savedAddress = sessionStorage.getItem('coopaUserAddress');
+        const savedSignature = sessionStorage.getItem('coopaSessionSignature');
+
+        if (savedAddress && savedSignature) {
+            currentUserAddress = savedAddress;
+            sessionSignature = savedSignature;
+            isWalletConnected = true;
+
+            const shortAddress = `${savedAddress.substring(0, 6)}...${savedAddress.substring(savedAddress.length - 4)}`;
+            elements.walletAddress.textContent = `${t('loginSuccess')} ${shortAddress}`;
+            elements.walletInfo.style.display = 'flex';
+            elements.connectWalletButton.style.display = 'none';
+            
+            const savedHistory = sessionStorage.getItem('coopaChatHistory');
+            if (savedHistory) {
+                conversationHistory = JSON.parse(savedHistory);
+                renderHistory();
+            }
+            toggleForm(false);
+        } else {
+            toggleForm(true, 'wallet');
+        }
+
+        // Google Auth kontrolü
+        const params = new URLSearchParams(window.location.search);
+        if (params.get('auth')) { 
+            const authStatus = params.get('auth'); 
+            const message = authStatus === 'success' ? t('googleAuthSuccess') : t('googleAuthError');
+            // YENİLİK: Oluşturulan div'e kalıcı bir kimlik veriyoruz.
+            elements.googleAuthSection.innerHTML = `<div id="google-auth-status" style="color:${authStatus === 'success' ? 'green' : 'red'};">${message}</div>`;
+            speak(stripMarkdown(message)); 
+        }
     });
-  }, { threshold: 0.08 });
-  reveals.forEach(el => observer.observe(el));
+    // --- Ses tanıma ve okuma kodları (10 Dil Destekli) ---
+    const updateTtsButtonIcon = () => elements.ttsButton.textContent = isTtsEnabled ? '🔊' : '🔇';
+    updateTtsButtonIcon();
+    elements.ttsButton.addEventListener('click', () => { 
+        isTtsEnabled = !isTtsEnabled; 
+        localStorage.setItem('ttsEnabled', isTtsEnabled); 
+        updateTtsButtonIcon(); 
+        if (!isTtsEnabled) synth.cancel(); 
+    });
+
+    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+    if (SpeechRecognition) { 
+        const recognition = new SpeechRecognition(); 
+        recognition.continuous = false; 
+
+        // Dil kodunu ayarlamak için bir yardımcı fonksiyon
+const setRecognitionLanguage = () => {
+    switch(currentLanguage) {
+        case 'tr': recognition.lang = 'tr-TR'; break;
+        case 'en': recognition.lang = 'en-US'; break;
+        case 'zh': recognition.lang = 'zh-CN'; break; // Mandarin
+        case 'hi': recognition.lang = 'hi-IN'; break; // Hintçe
+        case 'es': recognition.lang = 'es-ES'; break;
+        case 'fr': recognition.lang = 'fr-FR'; break;
+        case 'ar': recognition.lang = 'ar-SA'; break; // Arapça
+        case 'bn': recognition.lang = 'bn-IN'; break; // Bengalce
+        case 'ru': recognition.lang = 'ru-RU'; break;
+        case 'pt': recognition.lang = 'pt-BR'; break; // Portekizce
+        case 'ur': recognition.lang = 'ur-PK'; break; // Urduca
+        case 'ms': recognition.lang = 'ms-MY'; break; // Malayca
+        case 'de': recognition.lang = 'de-DE'; break;
+        case 'ja': recognition.lang = 'ja-JP'; break; // Japonca
+        case 'fa': recognition.lang = 'fa-IR'; break; // Farsça
+        case 'ha': recognition.lang = 'ha-NG'; break; // Hausa
+        case 'sw': recognition.lang = 'sw-KE'; break; // Svahili
+        case 'vi': recognition.lang = 'vi-VN'; break; // Vietnamca
+        case 'ko': recognition.lang = 'ko-KR'; break; // Korece
+        case 'it': recognition.lang = 'it-IT'; break;
+        case 'jv': recognition.lang = 'jv-ID'; break; // Cavaca
+        case 'tl': recognition.lang = 'tl-PH'; break; // Tagalogca
+        case 'uz': recognition.lang = 'uz-UZ'; break; // Özbekçe
+        case 'nl': recognition.lang = 'nl-NL'; break; // Flemenkçe
+        case 'el': recognition.lang = 'el-GR'; break; // Yunanca
+        case 'sv': recognition.lang = 'sv-SE'; break; // İsveççe
+        case 'he': recognition.lang = 'he-IL'; break; // İbranice
+        case 'da': recognition.lang = 'da-DK'; break; // Danca
+        case 'fi': recognition.lang = 'fi-FI'; break; // Fince
+        case 'no': recognition.lang = 'nb-NO'; break; // Norveççe
+        default: recognition.lang = 'en-US'; // Varsayılan
+    }
+};
+
+        // Başlangıçta ve dil değiştiğinde dili ayarla
+        setRecognitionLanguage();
+        elements.languageSelect.addEventListener('change', setRecognitionLanguage);
+
+        elements.micButton.addEventListener('click', () => { 
+            if (!isWalletConnected) return alert(t('voiceLoginRequired'));
+            synth.cancel(); 
+            try {
+                recognition.start(); 
+            } catch(e) {
+                console.error("Recognition start error:", e);
+                // Bazen önceki işlem bitmeden tekrar basılınca hata verebilir, bunu engeller.
+            }
+        }); 
+        
+        recognition.onstart = () => { 
+            elements.micButton.classList.add('listening'); 
+            elements.input.placeholder = t('listeningText'); 
+        }; 
+        
+        recognition.onend = () => { 
+            elements.micButton.classList.remove('listening'); 
+            elements.input.placeholder = t('promptPlaceholderMic');
+        }; 
+        
+        recognition.onresult = (event) => { 
+            const transcript = event.results[event.results.length - 1][0].transcript.trim(); 
+            elements.input.value = transcript; 
+            handleFormSubmit(); 
+        }; 
+        
+        recognition.onerror = (event) => { 
+            console.error('Speech recognition error:', event.error);
+        }; 
+    } else { 
+        elements.micButton.style.display = 'none'; 
+    }
 </script>
 </body>
 </html>
